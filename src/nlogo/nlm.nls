@@ -1,0 +1,35 @@
+;; code to access the NLMR package via the simpleR extension
+;; just have FBM here but song remains the same for other algorithms
+
+to build-fbm
+
+  sr:setup
+
+  sr:run "library(NLMR)"
+  sr:set "ncol" max-pxcor + 1
+  sr:set "nrow" max-pycor + 1
+  sr:set "fractal_dim" 1.2;; fractal_dim
+   
+  (sr:run 
+    "fbm <- NLMR::nlm_fbm(ncol, nrow, fractal_dim)"
+    "fbm_df <- raster::as.data.frame(fbm, xy = TRUE)"
+  )
+  
+  ;; get the coordinates - did it like this as raster::as.data.frame seemed broken?
+  let x sr:runresult "rep(seq(0, ncol - 1), nrow)"
+  let y sr:runresult "rep(seq(nrow - 1, 0), each = ncol)"
+  let fbm sr:runresult "raster::values(fbm)"
+  
+  fill-patches x y fbm
+end
+
+
+to fill-patches [xc yc zc]
+
+  (foreach xc yc zc [[x y z] -> ask patch x y  [ set edaphic-grad z ]])
+  
+  ask patches [
+    set pcolor palette:scale-gradient [[236 226 240] [28 144 153]] edaphic-grad 0 1
+  ]
+end  
+  

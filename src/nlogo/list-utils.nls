@@ -1,3 +1,4 @@
+;; https://github.com/DOSull/netlogo-utils
 ;; additional list utilities for Netlogo
 
 to-report cumulative-proportion [lst]

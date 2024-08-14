@@ -1,5 +1,22 @@
-__includes["mrc.nls" "regen-mtx.nls" "pathogens.nls" "list-utils.nls" "fireRoutines.nls" "setup.nls"]
-extensions [profiler matrix table csv]
+__includes [
+  "setup.nls"
+  "mrc.nls"
+  "nlm.nls"
+  "regen-mtx.nls"
+  "pathogens.nls"
+  "fireRoutines.nls"
+  "list-utils.nls"
+  "dist-utils.nls"
+]
+
+extensions [
+  profiler ;; in case we need to figure out why things are slow
+  matrix   ;; matrix maths
+  palette  ;; nicer colours
+  table    ;; dictionary like tables for storing lots of the input parameters
+  csv      ;; easy reading of CSVs
+  sr        ;; because..
+]
 
 ;; these are as per the Ecosystems paper (perry et al. 2015)
 ;; classes: 0 = invaded, 1 = manuka, 2 = kanuka, 3 = yng forest (mid-succ), 4 = mature forest (late-succ)
@@ -7,16 +24,30 @@ extensions [profiler matrix table csv]
 ;; new names for STM:
 ;; classes "gr" (0), "d-sh" (1), m-sh (2), "ksh-k" (3) "ksh-nok" (5)  "yf-k" (4)  "yf-nok" (6) "old" (7) "ksh-p" (8) "yf-p" (9) "old-p" (10)
 
+;; set and forget globals...
 globals [
-  from-R?
 
+  ;; run control aux
+  from-R?
   run-id
 
+  ;; model world structure
   world-size
   patch-grain
   n-states
-
   record-tag
+
+  ;; forest composition etc.
+  class-list
+  class-names-list
+  forest-classes-list
+  base-changes
+  base-changes-dict
+  matrix-3
+  matrix-4
+  sum-stalled       ;; total stalled list 0 = 2 -> 3, 1 = 3 -> 4
+  sum-changes       ;; no. stalled list 0 = 2 -> 3, 1 = 3 -> 4
+  n-changes
 
   ;; fire-related
   flammability-list
@@ -25,10 +56,6 @@ globals [
   fire-size
   rnd-seed
   extinguished?
-  class-list
-  class-names-list
-  forest-classes-list
-  abundances
 
   ;; fire history
   ;; two lists to deal with individual fires and their characteristics
@@ -37,21 +64,9 @@ globals [
   fire-record
   fire-size-list
 
-
+  ;; lsp reporters
+  abundances
   beyond-flamm-time
-
-  base-changes
-  base-changes-dict
-  ;;accum-changes
-  ;;base-lag
-
-  ;; regeneration and succession things
-  matrix-3
-  matrix-4
-  sum-stalled       ;; total stalled list 0 = 2 -> 3, 1 = 3 -> 4
-  sum-changes       ;; no. stalled list 0 = 2 -> 3, 1 = 3 -> 4
-  n-changes
-
   old-growth-abund
 
   ;; these globals control the MRC algorithm
@@ -64,7 +79,8 @@ globals [
 ]
 
 
-patches-own [
+patches-own
+[
   fire-history      ;; list of years in which cell burned
   last-change
   next-change
@@ -75,6 +91,7 @@ patches-own [
   regenbank-4
   ldd-this-tick
 
+  edaphic-grad
   distance-to-coast
 
   myrtle-rust?
@@ -152,6 +169,8 @@ end
 ;; This sorts out what happens after a fire - this is where pyrophyllic invasion takes place
 to post-fire
 
+   show "fix up post-fire grassland transitions"
+
    let new-invasions 0
    ask patches with [burned?]
    [
@@ -159,28 +178,34 @@ to post-fire
 
      set fire-history lput ticks fire-history
      let last30 length filter [ ?1 -> ?1 >= ticks - 30 ] fire-history
-     let local-weeds count neighbors with [class = 0]
+     let local-weeds count neighbors with [class = "d-sh"]
 
+
+     ;; assume regen bank destroyed
      set regenbank-3 matrix:from-column-list [[0 0]]
      set regenbank-4 matrix:from-column-list [[0 0]]
 
-     ifelse invasion? = true
+     ;; grass returns to grass (prob redundant code but makes things clear)
+     if class = "gr" [ set class "gr"]
+
+     ;; transition to manuka or invaded shrubland?
+     ifelse invasion? = true and class != "gr"
      [
        ifelse random-float 1 <= (base-invasion + (fire-invasion * last30)) * (1 + (local-weeds / 8))
        [
-         set class 0
+         set class "d-sh"   ;; to degraded shrubland
          set next-change ticks + (item class base-changes) + (last30 * fire-slow)
          set flammability item class flammability-list
        ]
        [
-         set class 1
+         set class "m-sh"   ;; to manuka
          set next-change ticks + (item class base-changes) + (last30 * fire-slow)
          set flammability item class flammability-list
        ]
      ]
 
      [
-         set class 1
+         set class "m-sh"
          set next-change ticks + (item class base-changes) + (last30 * fire-slow)
          set flammability item class flammability-list
      ]
@@ -194,11 +219,9 @@ to post-fire
    set fire-stats lput fire-size fire-stats
 
 
-   let types-burned map [ ?1 -> count patches with [burned? and prev-class = ?1] ]  (n-values 5 [ ?1 -> ?1 ])
-   foreach types-burned
-   [ ?1 ->
-     set fire-stats lput (?1 / world-size) fire-stats
-   ]
+   let types-burned map [ cl -> count patches with [burned? and prev-class = cl] ]  class-names-list
+
+   foreach types-burned[ cl -> set fire-stats lput (cl / world-size) fire-stats ]
 
    set fire-stats lput mean [flammability] of patches fire-stats
    set fire-stats lput new-invasions fire-stats
@@ -223,14 +246,38 @@ to succession
     [
       set prev-class class
 
+      ;; transition from grassland to manuka shrubland
+      if class = "gr"
+      [
+        let forest-nhb count neighbors with [class != "gr" and class != "d-sh"]
+        let trans 0
 
+        ;; TO DO - should this be a non-zero chance?
+        ifelse  forest-nhb = 0 [set trans 0 ] [set trans 1 - ((1 / forest-nhb) ^ 0.5)]
+
+        if random-float 1 < trans
+        [
+          set class "m-sh"
+
+        let last30 length filter [ f -> f >= ticks - 30 ] fire-history
+        let base table:get base-changes-dict class    ;; so time to *next* change estimated here
+
+        set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float 0.2)
+        ;;next change yr = base change + fire slowing + random noise
+
+        set last-change ticks
+        set times-change times-change + 1
+
+        set n-changes n-changes + 1
+      ]
+    ]
 
       ;; invaded -> manuka shrubland
       if class = "d-sh"
       [
         set class "m-sh"
 
-        let last30 length filter [ ?1 -> ?1 >= ticks - 30 ] fire-history
+        let last30 length filter [ f -> f >= ticks - 30 ] fire-history
         let base item class base-changes    ;; so time to *next* change estimated here
 
         set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float 0.2)
@@ -246,10 +293,13 @@ to succession
       if class = "m-sh" and last-change != ticks
       [
         ;; *** TO DO ***
-        set class 2
+        ;; pohut, kauri, no kauri??????
+        show "fix trans out of manuka!!"
+
+        set class one-of (list "ksh-nok" "ksh-k" "ksh-p")
 
         let last30 length filter [ ?1 -> ?1 >= ticks - 30 ] fire-history
-        let base item class base-changes
+        let base table:get base-changes-dict class
 
         set next-change ceiling ((ticks + (base + (last30 * 2)))  * (0.9 + random-float 0.2))
         ;;show next-change
@@ -261,26 +311,27 @@ to succession
       ]
 
       ;; kanuka-x -> young forest-x
-      if member? "k-sh" class and last-change != ticks
+      if (class = "ksh-p" or class = "ksh-k" or class = "ksh-nok") and last-change != ticks
       [
-        ;; *** TO DO ***
-
         let n-saps max (list matrix:get regenbank-3 1 0 matrix:get regenbank-4 1 0)    ;; n-trees is max of type 3 or 4 to stop spurious stalling
-        ifelse n-saps >= crit-density-yng ;; and (ticks - (item 0 t-colonised)) >= (item 0 base-lag)
+        ifelse n-saps >= crit-density-yng
         [
-
           if track-stalled?
           [
             let n item 0 sum-changes
             let stl item 0 sum-stalled
 
             set sum-changes replace-item 0 sum-changes (n + 1)
-            set sum-stalled replace-item 0 sum-stalled  (stl + stalled)    ; replace-item index list value
+            set sum-stalled replace-item 0 sum-stalled (stl + stalled)    ; replace-item index list value
           ]
 
-          set class 3
-          let base item class base-changes * (0.9 + random-float 0.2)
+          let new-class ""
+          if class = "ksh-nok" [set new-class "yf-nok"]
+          if class = "ksh-k" [set new-class "yf-k"]
+          if class = "ksh-p" [set new-class "yf-p"]
 
+          set class new-class
+          let base table:get base-changes-dict class * (0.9 + random-float 0.2)
 
           set next-change ticks + base
           set last-change ticks
@@ -295,7 +346,7 @@ to succession
       ]
 
       ;; young forest-x -> old forest-x
-      if member? "yf-" class and last-change != ticks and last-change != ticks
+      if (class = "yf-p" or class = "yf-k" or class = "yf-nok") and last-change != ticks
       [
         let n-saps matrix:get regenbank-4 1 0
 
@@ -310,7 +361,10 @@ to succession
             set sum-stalled replace-item 1 sum-stalled  (stl + stalled)    ; replace-item index list value
           ]
 
-          set class 4
+          let new-class ""
+          if class = "yf-nok" or class = "yf-k" [set new-class "old-f"]
+          if class = "yf-p" [set new-class "old-p"]
+
           set stalled 0
           set next-change -999
           set times-change times-change + 1
@@ -462,7 +516,7 @@ end
 
 ;; Abundance flammable
 to-report abund-flammable
-  report count patches with [class <= 2] / world-size
+  report count patches with [flammability < 0.25] / world-size
 end
 
 ;; Abundance stalled
@@ -522,9 +576,6 @@ to file-newline
   file-print ""
 end
 
-to-report random-binomial [sz pr]
-  report length filter [ ?1 -> ?1 ] n-values sz [random-float 1 < pr]
-end
 
 ;to-report get-binomial [sz pr]
 ;  r:put "p" pr
@@ -656,8 +707,8 @@ SLIDER
 54
 202
 87
-p
-p
+perc-seed
+perc-seed
 0
 1
 0.57
@@ -733,11 +784,11 @@ true
 true
 "" ""
 PENS
-"invaded" 1.0 0 -6459832 true "" "plot item 0 abundances / world-size"
-"manuka" 1.0 0 -7171555 true "" "plot item 1 abundances / world-size"
-"kanuka" 1.0 0 -5509967 true "" "plot item 2 abundances / world-size"
-"yngfor" 1.0 0 -13840069 true "" "plot item 3 abundances / world-size"
-"oldfor" 1.0 0 -15575016 true "" "plot item 4 abundances / world-size"
+"invaded" 1.0 0 -6459832 true "" "plot count patches with [class = \"d-sh\" or class = \"gr\"] / world-size"
+"manuka" 1.0 0 -7171555 true "" "plot count patches with [class = \"m-sh\"] / world-size"
+"kanuka" 1.0 0 -5509967 true "" "plot count patches with [class = \"ksh-p\" or class = \"ksh-k\" or class = \"ksh-nok\"] / world-size"
+"yngfor" 1.0 0 -13840069 true "" "plot count patches with [class = \"yf-p\" or class = \"yf-k\" or class = \"yf-nok\"] / world-size"
+"oldfor" 1.0 0 -15575016 true "" "plot count patches with [class = \"old-p\" or class = \"old-f\"] / world-size"
 
 SLIDER
 31
@@ -748,7 +799,7 @@ fire-frequency
 fire-frequency
 0
 1
-0.1
+0.0
 .01
 1
 NIL
@@ -763,7 +814,7 @@ fraction-consumed
 fraction-consumed
 0
 1
-0.25
+0.0
 .01
 1
 NIL
@@ -778,7 +829,7 @@ seed-pred
 seed-pred
 0
 1
-0.1
+0.0
 0.01
 1
 NIL
@@ -1166,6 +1217,16 @@ write-record?
 0
 1
 -1000
+
+TEXTBOX
+435
+570
+1300
+1029
+SEEMS LIKE THERE IS NO TRANSITION OUT OF YF OCCURRING - need to sort out the regen bank stuff
+36
+15.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

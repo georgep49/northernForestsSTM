@@ -66,7 +66,7 @@ end
 to setup-mrc [remove-singleton-patches? sequentially-assign-clusters?]
   ;; assign patches to percolation cluster
   ask patches [ 
-    if random-float 1 < p [ 
+    if random-float 1 < perc-seed [ 
       set in-perc-cluster? true 
       set pcolor white 
     ]
@@ -215,7 +215,7 @@ to age-by-cluster
   foreach ids
   [  i ->
      let f-class [class] of one-of patches with [cluster-id = i] 
-     let half-age ((item  f-class base-changes) / 2)
+     let half-age ((table:get base-changes-dict f-class ) / 2)
      let nc half-age + random half-age 
 
      ask patches with [cluster-id = i]

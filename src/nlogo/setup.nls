@@ -1,3 +1,7 @@
+;; -----------------------------------------
+;; MAIN LOOP setup
+;; -----------------------------------------
+
 
 to setup
   clear-all
@@ -80,7 +84,7 @@ to setup
   reset-ticks
 end
 
-
+;; drive the MRC landscape building
 to build-landscape
   set clusters []
   set class-list n-values n-states [ i -> i ]
@@ -107,13 +111,13 @@ to build-landscape
   age-by-cluster
 
   update-abundances
-  set old-growth-abund count patches with [class = "old-p" or class = "old-f"] 
+
 
   ask patches [set distance-to-coast pxcor * patch-grain]
 
 end
 
-
+;; initialise the patch fire and regen history
 to init-patch-dynamics
 
   ask patches
