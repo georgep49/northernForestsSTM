@@ -14,7 +14,6 @@ to setup
   set record-tag ""
 
   set rnd-seed new-seed
-  set colour-list (list 35 43 68 65 62)
 
   set colour-dict table:from-list [
     ["gr" 19]
@@ -32,8 +31,6 @@ to setup
   
   set class-names-list (list "gr" "d-sh" "m-sh" "ksh-k" "yf-k" "ksh-nok" "yf-nok" "old-f" "ksh-p" "yf-p" "old-p")
   set forest-classes-list (list "yf-k" "yf-nok" "old-f" "yf-p" "old-p")
-   
-  set flammability-list (list 0.5 0.65 0.35 0.25 0.1 0.25 0.1 0.05 0.25 0.1 0.05)
 
   set flammability-dict table:from-list [
     ["gr" 0.5]
@@ -49,7 +46,6 @@ to setup
     ["old-p" 0.05]
   ]
 
- set base-changes (list 20 20 30 80 120 -999);; -> this is time spent in each state
   set base-changes-dict table:from-list [
     ["gr" 20]
     ["d-sh" 20]
@@ -64,19 +60,17 @@ to setup
     ["old-p" 0]
   ]
 
+  ;; Set up the transition matrices for seedling/sapling dynamics
+  set tr-mtx-bank-yfor (list [0.9 0.05] [0 0.99])    ;; transitions from 1.5m -> 5 cm dbh individuals
+  set tr-mtx-bank-ofor (list [0.9 0.05] [0 0.99])
 
-  ;;set accum-changes (list 0 20 50 130 250)
-  ;; so if start in all manuka [item *1*] and no stalling:: 231 years total
+  ;; Set up fire history lists
   set fire-record []
   set fire-stats []
   set fire-size-list []
 
   set beyond-flamm-time 99999
-  
-  ;set old-growth-abund count patches with member?
-  
-  set matrix-3 matrix:from-column-list [[0.9 0.05][0 0.99]]    ;; transitions from 1.5m -> 5 cm dbh individuals
-  set matrix-4 matrix:from-column-list [[0.9 0.05][0 0.99]]
+
 
   ;; Build the landscape using the MRC code...
   build-landscape
@@ -125,8 +119,8 @@ to init-patch-dynamics
     set times-change 0
     set flammability table:get flammability-dict class
     set burned? false
-    set regenbank-3 matrix:from-column-list [[0 0]]
-    set regenbank-4 matrix:from-column-list [[0 0]]
+    set regenbank-yfor (list 0 0)
+    set regenbank-ofor (list 0 0)
 
     set fire-history []
     set next-change table:get base-changes-dict class

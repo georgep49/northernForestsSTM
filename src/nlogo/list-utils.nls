@@ -1,10 +1,11 @@
-;; https://github.com/DOSull/netlogo-utils
 ;; additional list utilities for Netlogo
+;; https://github.com/DOSull/netlogo-utils
 
 to-report cumulative-proportion [lst]
+  if length lst = 0 [ report [0] ]
   let s sum lst
-  if s = 0 [ report [1] ]
-  report map [x -> x / s] lst
+  if s = 0 [ report [0] ]
+  report map [x -> x / s] cumulative-sum lst
 end
 
 to-report cumulative-sum [lst]
@@ -104,11 +105,13 @@ to-report zip [list1 list2]
 ;  report (map [[a b] -> (list a b)] list1 list2)
 end
 
-;; added from https://stackoverflow.com/questions/55271947/netlogo-how-do-i-flatten-a-list-of-lists-of-lists
+
+;; https://stackoverflow.com/questions/55271947/netlogo-how-do-i-flatten-a-list-of-lists-of-lists
 to-report unnest [ xs ]
   let ys reduce sentence xs
   report ifelse-value (reduce or map is-list? ys) [ unnest ys ] [ ys ]
 end
+
 
 ;; The MIT License (MIT)
 ;;

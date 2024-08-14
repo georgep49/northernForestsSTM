@@ -43,8 +43,8 @@ globals [
   forest-classes-list
   ;;base-changes
   base-changes-dict
-  tr-mtx-bank-yfor
-  tr-mtx-bank-ofor
+  tr-mtx-bank3
+  tr-mtx-bank4
   sum-stalled       ;; total stalled list 0 = 2 -> 3, 1 = 3 -> 4
   sum-changes       ;; no. stalled list 0 = 2 -> 3, 1 = 3 -> 4
   n-changes
