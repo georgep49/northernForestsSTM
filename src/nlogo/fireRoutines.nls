@@ -1,194 +1,261 @@
-extensions [array]
+to-report ignite-fire
+  set fire-size 0
+  let succ-ignition? false
 
-to-report flammValue [t fireDamp]
-  let f flamm-at-t t
-  report f * fireDamp
-
-end
-
-to build-flamm-curve
-  set flammCurve []
-  let t 0
-  while [t <= 1000 + (lengthIBP + lengthPostIBP)]
+  let target nobody
+  ifelse any? patches with [ class = 0 or class = 1 ] and random-float 1 <= flamm-start
   [
-    set flammCurve lput (flammValue t 1) flammCurve 
-    set t t + 1  
+    set target one-of patches with [ class = 0 or class = 1 ]
   ]
-end 
-
-to-report get-critical-window [threshold]
-  let minW 500
-  let maxW 500
-  let t 0
-  
-  while [t <= 500]
   [
-    if item t flammCurve > threshold and t <= minW [set minW t]
-    if item t flammCurve <= threshold and t >= minW and t <= maxW [set maxW t]
-    set t t + 1
+    set target one-of patches
   ]
-  
-  report (list minW maxW)
-  
-end
 
-to-report effectiveFrequency
-  let eF 0
-  ifelse nFires > 0 and ticks > 0 
-     [set Ef 1 / (nFires / ticks)]
-     [set Ef 0]
-  
-  report eF 
-end
+  ask one-of patch-set target [ ;; with [pcolor = green] [
 
-to ignition-driver [ extrinsic ]
- 
-  ;; if burning only occurs under 'good' extrinsic conditions then test for fire at all...
-  if  (igniteWeather = true and extrinsic >= targetWeatherThresh) or igniteWeather = false
-  [
-      ifelse targetVeg = false
-      [ 
-        set fireSize 0
-        set nFires nFires + 1
-        ask n-of 1 patches [ ignite-first-cell ] 
+    if random-float 1 <= ([flammability] of target * 2)
+    [
+      ;; record initial fire conditions
+      set fire-stats (list (ticks)  ([class] of target)  (count [neighbors with [class <= 2]] of target ) (mean [flammability] of patches) )
+
+      foreach abundances
+      [ ?1 ->
+        set fire-stats lput (?1 / world-size) fire-stats
       ]
-    
-    ;; this is the targetted ignition routine
-    ;; the smart burner would go for ignitable cells that were surrounded by other ignitable cells
-    ;; so maybe the best option is to start fire in cell with highest flamm across a Moore nhb incl. self
-    
-      [
-        
-        ;; threshold is the percentile value for flammability
-        let threshold list-percentile   sort ([flammability] of patches)  targetVegPerc 
-        
-        ;; patch-set with candidates for burning...
-        let ignite-candidates (patch-set patches with [flammability > threshold])
-      
-        ;; this is just to make sure that if the lsp is perfectly even-aged then
-        ;; we don't get an error due to empty patch-sets, etc.
-        if any? ignite-candidates = false 
-        [ 
-          let maxFlamm max [flammability] of patches
-          set ignite-candidates ( patch-set patches with [ flammability = maxFlamm ]) 
-        ]
-      
-        ask n-of 1 ignite-candidates
-        [ 
-          set fireSize 0
-          set nFires nFires + 1
-          ignite-first-cell ]
-        ]
-      
-    fire-spread-fast extrinsic
+
+      set burned? true
+      set pcolor red
+      set fire-front patch-set self               ;; a new fire-front patch-set
+      set fire-size 1
+      set succ-ignition? true                                 ;; a fire has started
+    ]
   ]
-  
+
+  report succ-ignition?
 end
 
-to ignite-first-cell
-  set status 1
-  set age 0
-  ;; set pcolor red
-  set fireFront patch-set self               ;; a new fire-front patch-set
+to fire-spread
+  while [ any? fire-front ]                 ;; Stop when we run out of flaming fire-front
+  [
+    fire-shell
+  ]
 end
 
+to fire-shell
+   let new-fire-front patch-set nobody     ;; Empty set of patches for the next 'round' of the fire
 
+   ask fire-front [
 
-;; fire spread - sped up by using patchset to store the active fire-front
-to fire-spread-fast [extrinsic]
-  
-  set fireSize 1
-  let pSpread 0
-  let fireDamp 1
-  
-  let windSpeed (random 3) + 1
-  let windDirection (random 8) * 45   ;; For convenience this is the direction blowing *towards*
-  
-  ; Modifiers from Millington et al in EMS
-  let windModifiers create-2DArray 3 5 1.0
-  update-2Drow windModifiers 0 array:from-list (list 1.1 1.05 1.0 0.95 0.9)
-  update-2Drow windModifiers 1 array:from-list (list 1.2 1.1 1.0 0.9 0.8)
-  update-2Drow windModifiers 2 array:from-list (list 1.5 1.0 0.9 0.8 0.7)
-  
-  
-  while [ any? fireFront ]                  ;; Stop when we run out of flaming fireFront
-  [  
-     let new-fireFront patch-set nobody     ;; Empty set of patches for the next 'round' of the fire
-   
-     ask fireFront                          ;; Ask patches nieghbouring the fireFront to see if they ignite
+     let N neighbors with [ not burned? ]
+
+     ask N
      [
-       
-       let fx pxcor
-       let fy pycor
-       
-       ask neighbors with [ status = 0 ]
-       [
-          
-          let nx pxcor
-          let ny pycor
-          
-          ;; wind calculations   
-          let cellBearing atan (nx - fx)  (ny - fy)       ;; Bearing from ignited pacth (fx,fy) to candidate patch (nx,ny)
-          let relDirn abs(windDirection - cellBearing)    ;; Dir of fire spread relative to wind (difference)
-          if relDirn > 180 [set relDirn 360 - relDirn]  ;; Corrected to bound angle (0,180) 
-          let windWgt get-2Delement windModifiers (windSpeed - 1) (relDirn / 45)
-          
-          ;; edge drying calculations
-          set edgeNhbs n-edge-cells                       ;; Get nhb of edge cells - note this assumes inter-fire drying 
-          let edgeWgt (edgeNhbs * edgeEffect) + 1
-          
-          ;; compute the base flammability multiplier
-          let baseMultiplier (windWgt * (1 + extrinsic) * edgeWgt)
-          
-          
-          set pSpread flammability * baseMultiplier
-          
-          if random-float 1 < (pSpread )
-          [
-            set status 1                                            ;; Need to change status here so they don't get ignited twice
-            set fireSize fireSize + 1
-            set new-fireFront ( patch-set new-fireFront self)       ;; Add newly ignited patches to the new-fireFront
-          ]
-        ]
-     ]
-   
-    ;; ask new-fireFront [set status 1]
-    set fireFront new-fireFront
- 
-   ]    
-   
-   ;; set fireSize count patches with [age = 0]
-   if fireSize > maxFireSize [set maxFireSize fireSize]
-   
-   set fireSizeList lput fireSize fireSizeList
-   set totalBurnedArea totalBurnedArea + fireSize
-   set aveFireSize totalBurnedArea / (length fireSizeList)   
-   
-  ;; reset the burned patches at the end of the fire event; need to update flamm, etc. as
-  ;; there may be multiple fires per year
-  ask patches with [status != 0] 
-  [ 
-    set age 0
-    set status 0
-    set flammability item age flammCurve
-    ;; set flammabilityNhb mean [flammability] of patchNhbs 
-     
-    set fireRecord lput ticks fireRecord 
-    set timesBurned (timesBurned + 1)   
-  ]
- 
- end
+       let edge-wgt count neighbors with [class <= 1] * 0.025
+       ;; show edge-wgt
 
-to-report ave-flamm
-  
-  ifelse flammModel = "exponential"
-  [
-    report item 0 fireParams
-  ]
-  [
-    report mean [flammability] of patches
-  ]
+       if random-float 1 <= flammability * (1 + edge-wgt)
+       [
+         set new-fire-front ( patch-set new-fire-front self)
+         set burned? true
+       ]
+     ]
+   ]
+
+   ;; ask fire-front [set pcolor grey]
+   ask new-fire-front [set pcolor red]
+   set fire-front new-fire-front
 end
+
+
+;to-report flammValue [t fireDamp]
+;  let f flamm-at-t t
+;  report f * fireDamp
+;
+;end
+
+;to build-flamm-curve
+;  set flammCurve []
+;  let t 0
+;  while [t <= 1000 + (lengthIBP + lengthPostIBP)]
+;  [
+;    set flammCurve lput (flammValue t 1) flammCurve 
+;    set t t + 1  
+;  ]
+;end 
+
+;to-report get-critical-window [threshold]
+;  let minW 500
+;  let maxW 500
+;  let t 0
+;  
+;  while [t <= 500]
+;  [
+;    if item t flammCurve > threshold and t <= minW [set minW t]
+;    if item t flammCurve <= threshold and t >= minW and t <= maxW [set maxW t]
+;    set t t + 1
+;  ]
+;  
+;  report (list minW maxW)
+;  
+;end
+
+;to-report effectiveFrequency
+;  let eF 0
+;  ifelse nFires > 0 and ticks > 0 
+;     [set Ef 1 / (nFires / ticks)]
+;     [set Ef 0]
+;  
+;  report eF 
+;end
+
+;to ignition-driver [ extrinsic ]
+; 
+;  ;; if burning only occurs under 'good' extrinsic conditions then test for fire at all...
+;  if  (igniteWeather = true and extrinsic >= targetWeatherThresh) or igniteWeather = false
+;  [
+;      ifelse targetVeg = false
+;      [ 
+;        set fireSize 0
+;        set nFires nFires + 1
+;        ask n-of 1 patches [ ignite-first-cell ] 
+;      ]
+;    
+;    ;; this is the targetted ignition routine
+;    ;; the smart burner would go for ignitable cells that were surrounded by other ignitable cells
+;    ;; so maybe the best option is to start fire in cell with highest flamm across a Moore nhb incl. self
+;    
+;      [
+;        
+;        ;; threshold is the percentile value for flammability
+;        let threshold list-percentile   sort ([flammability] of patches)  targetVegPerc 
+;        
+;        ;; patch-set with candidates for burning...
+;        let ignite-candidates (patch-set patches with [flammability > threshold])
+;      
+;        ;; this is just to make sure that if the lsp is perfectly even-aged then
+;        ;; we don't get an error due to empty patch-sets, etc.
+;        if any? ignite-candidates = false 
+;        [ 
+;          let maxFlamm max [flammability] of patches
+;          set ignite-candidates ( patch-set patches with [ flammability = maxFlamm ]) 
+;        ]
+;      
+;        ask n-of 1 ignite-candidates
+;        [ 
+;          set fireSize 0
+;          set nFires nFires + 1
+;          ignite-first-cell ]
+;        ]
+;      
+;    fire-spread-fast extrinsic
+;  ]
+;  
+;end
+
+;to ignite-first-cell
+;  set status 1
+;  set age 0
+;  ;; set pcolor red
+;  set fireFront patch-set self               ;; a new fire-front patch-set
+;end
+
+
+
+;;; fire spread - sped up by using patchset to store the active fire-front
+;to fire-spread-fast [extrinsic]
+;  
+;  set fireSize 1
+;  let pSpread 0
+;  let fireDamp 1
+;  
+;  let windSpeed (random 3) + 1
+;  let windDirection (random 8) * 45   ;; For convenience this is the direction blowing *towards*
+;  
+;  ; Modifiers from Millington et al in EMS
+;  let windModifiers create-2DArray 3 5 1.0
+;  update-2Drow windModifiers 0 array:from-list (list 1.1 1.05 1.0 0.95 0.9)
+;  update-2Drow windModifiers 1 array:from-list (list 1.2 1.1 1.0 0.9 0.8)
+;  update-2Drow windModifiers 2 array:from-list (list 1.5 1.0 0.9 0.8 0.7)
+;  
+;  
+;  while [ any? fireFront ]                  ;; Stop when we run out of flaming fireFront
+;  [  
+;     let new-fireFront patch-set nobody     ;; Empty set of patches for the next 'round' of the fire
+;   
+;     ask fireFront                          ;; Ask patches nieghbouring the fireFront to see if they ignite
+;     [
+;       
+;       let fx pxcor
+;       let fy pycor
+;       
+;       ask neighbors with [ status = 0 ]
+;       [
+;          
+;          let nx pxcor
+;          let ny pycor
+;          
+;          ;; wind calculations   
+;          let cellBearing atan (nx - fx)  (ny - fy)       ;; Bearing from ignited pacth (fx,fy) to candidate patch (nx,ny)
+;          let relDirn abs(windDirection - cellBearing)    ;; Dir of fire spread relative to wind (difference)
+;          if relDirn > 180 [set relDirn 360 - relDirn]  ;; Corrected to bound angle (0,180) 
+;          let windWgt get-2Delement windModifiers (windSpeed - 1) (relDirn / 45)
+;          
+;          ;; edge drying calculations
+;          set edgeNhbs n-edge-cells                       ;; Get nhb of edge cells - note this assumes inter-fire drying 
+;          let edgeWgt (edgeNhbs * edgeEffect) + 1
+;          
+;          ;; compute the base flammability multiplier
+;          let baseMultiplier (windWgt * (1 + extrinsic) * edgeWgt)
+;          
+;          
+;          set pSpread flammability * baseMultiplier
+;          
+;          if random-float 1 < (pSpread )
+;          [
+;            set status 1                                            ;; Need to change status here so they don't get ignited twice
+;            set fireSize fireSize + 1
+;            set new-fireFront ( patch-set new-fireFront self)       ;; Add newly ignited patches to the new-fireFront
+;          ]
+;        ]
+;     ]
+;   
+;    ;; ask new-fireFront [set status 1]
+;    set fireFront new-fireFront
+; 
+;   ]    
+;   
+;   ;; set fireSize count patches with [age = 0]
+;   if fireSize > maxFireSize [set maxFireSize fireSize]
+;   
+;   set fireSizeList lput fireSize fireSizeList
+;   set totalBurnedArea totalBurnedArea + fireSize
+;   set aveFireSize totalBurnedArea / (length fireSizeList)   
+;   
+;  ;; reset the burned patches at the end of the fire event; need to update flamm, etc. as
+;  ;; there may be multiple fires per year
+;  ask patches with [status != 0] 
+;  [ 
+;    set age 0
+;    set status 0
+;    set flammability item age flammCurve
+;    ;; set flammabilityNhb mean [flammability] of patchNhbs 
+;     
+;    set fireRecord lput ticks fireRecord 
+;    set timesBurned (timesBurned + 1)   
+;  ]
+; 
+; end
+;
+;to-report ave-flamm
+;  
+;  ifelse flammModel = "exponential"
+;  [
+;    report item 0 fireParams
+;  ]
+;  [
+;    report mean [flammability] of patches
+;  ]
+;end
 
 ;; this returns the value of the limit-th percentile
 ;; assumes a sorted list    
@@ -201,46 +268,46 @@ to-report list-percentile [ valList limit]
   
 end
 
-to-report flamm-at-t [t]
-  
-  let f 0
-  
-  if flammModel = "exponential"
-  [
-    set f item 0 fireParams
-  ]
-  
-  if flammModel = "weibull"
-  [
-    let h item 0 fireParams
-    let b item 1 fireParams
-    
-    set f h * (t ^ b)  
-  ]
-  
-  if flammModel = "olson"
-  [
-    let h item 0 fireParams 
-    let k item 1 fireParams
-    
-    set f h * (1 - exp(- k * t))
-  ]
-  
-  if flammModel = "moisture"
-  [
-    let h item 0 fireParams
-    let k item 1 fireParams
-    let m item 2 fireParams
-    let r item 3 fireParams
-    
-    set f h * (1 - exp(- k * t)) * (r + exp(- m * t))
-  ]
-  
-  report f
-
-end
-
-
+;to-report flamm-at-t [t]
+;  
+;  let f 0
+;  
+;  if flammModel = "exponential"
+;  [
+;    set f item 0 fireParams
+;  ]
+;  
+;  if flammModel = "weibull"
+;  [
+;    let h item 0 fireParams
+;    let b item 1 fireParams
+;    
+;    set f h * (t ^ b)  
+;  ]
+;  
+;  if flammModel = "olson"
+;  [
+;    let h item 0 fireParams 
+;    let k item 1 fireParams
+;    
+;    set f h * (1 - exp(- k * t))
+;  ]
+;  
+;  if flammModel = "moisture"
+;  [
+;    let h item 0 fireParams
+;    let k item 1 fireParams
+;    let m item 2 fireParams
+;    let r item 3 fireParams
+;    
+;    set f h * (1 - exp(- k * t)) * (r + exp(- m * t))
+;  ]
+;  
+;  report f
+;
+;end
+;
+;
 to-report getTheta [x1 y1 x2 y2]
 
   let x_offset x2 - x1
@@ -256,95 +323,95 @@ report theta
 end
 
 ;; this reports the perc-th percentile fire sizes 
-to-report sizePercentileFires [perc]
-  
-  let s -999
-  
-  if not empty? fireSizeList
-  [
-    set s list-percentile ( sort fireSizeList) perc
-  ]
-  
-  report s
-
-end  
+;to-report sizePercentileFires [perc]
+;  
+;  let s -999
+;  
+;  if not empty? fireSizeList
+;  [
+;    set s list-percentile ( sort fireSizeList) perc
+;  ]
+;  
+;  report s
+;
+;end  
 
 ;; reports total burned area of fires of *greater* than the perc-th percentile 
 ;; e.g. perc = 50 would return the burned area of fires greater than or equal to the median fire size
-to-report areaPercentileFires [perc]
-  
-  let area 0
-  
-  ifelse not empty? fireSizeList
-  [
-    let i 0
-    let critSize list-percentile (sort fireSizeList) perc
+;to-report areaPercentileFires [perc]
+;  
+;  let area 0
+;  
+;  ifelse not empty? fireSizeList
+;  [
+;    let i 0
+;    let critSize list-percentile (sort fireSizeList) perc
+;
+;    while [i < length fireSizeList]
+;    [
+;      if item i fireSizeList >= critSize 
+;        [ set area area + (item i fireSizeList) ]
+;      set i i + 1
+;    ]  
+;  ]
+;  [
+;    set area -999
+;  ]  
+;    
+;  report area
+;  
+;  
+;end
 
-    while [i < length fireSizeList]
-    [
-      if item i fireSizeList >= critSize 
-        [ set area area + (item i fireSizeList) ]
-      set i i + 1
-    ]  
-  ]
-  [
-    set area -999
-  ]  
-    
-  report area
-  
-  
-end
-
-;; reports the slope of a power-law fit to the fire size distribution via MLE
-to-report mle-exponent [size-list xmin]
-  let b -999
-  
-  ;; check that there are sufficient fires (n > 20)
-  if length fireSizeList >= 20 
-  [
-    let mle-est map [(log ? 2) / xmin] size-list
-    set b 1 + ((sum mle-est) ^ -1) 
-  ]
-  
-  report b
-end
-
+;;; reports the slope of a power-law fit to the fire size distribution via MLE
+;to-report mle-exponent [size-list xmin]
+;  let b -999
+;  
+;  ;; check that there are sufficient fires (n > 20)
+;  if length fireSizeList >= 20 
+;  [
+;    let mle-est map [(log ? 2) / xmin] size-list
+;    set b 1 + ((sum mle-est) ^ -1) 
+;  ]
+;  
+;  report b
+;end
+;
 
 ;; reports the number of fires less than/equal to some size threshold thresh
 ;; e.g. if thresh = 1, it reports the no. of single cell fires
-to-report nLTEThreshFires [thresh]
-  
-  let i 0
-  let n 0
-    
-  ifelse not empty? FireSizeList
-  [
+;to-report nLTEThreshFires [thresh]
+;  
+;  let i 0
+;  let n 0
+;    
+;  ifelse not empty? FireSizeList
+;  [
+;
+;    while [i < length fireSizeList]
+;    [
+;      if item i fireSizeList <= thresh [ set n n + 1]
+;      set i i + 1
+;    ]
+;  ]
+;  [
+;    set n -999
+;  ]      
+;    
+;  report n
+;
+;end  
 
-    while [i < length fireSizeList]
-    [
-      if item i fireSizeList <= thresh [ set n n + 1]
-      set i i + 1
-    ]
-  ]
-  [
-    set n -999
-  ]      
-    
-  report n
-
-end  
-
-;; burned area over model run
-to-report burnedArea
-
-  let b -999
-  if empty? fireSizeList = false
-   [ set b sum fireSizeList ]
-   
-  report b 
-      
-end
-   
+;;; burned area over model run
+;to-report burnedArea
+;
+;  let b -999
+;  if empty? fireSizeList = false
+;   [ set b sum fireSizeList ]
+;   
+;  report b 
+;      
+;end
+;   
    
 

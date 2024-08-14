@@ -1,0 +1,134 @@
+
+to setup
+  clear-all
+  if from-r? != TRUE [set from-r? FALSE]
+
+  set world-size count patches
+  set patch-grain 20
+  set n-states 11
+
+  set record-tag ""
+
+  set rnd-seed new-seed
+  set colour-list (list 35 43 68 65 62)
+
+  set colour-dict table:from-list [
+    ["gr" 19]
+    ["d-sh" 38]
+    ["m-sh" 34]
+    ["ksh-k" 27]
+    ["yf-k" 24]
+    ["ksh-nok" 104]
+    ["yf-nok" 107]
+    ["old-f" 63]
+    ["ksh-p" 88]
+    ["yf-p" 85]
+    ["old-p" 83]
+  ]
+  
+  set class-names-list (list "gr" "d-sh" "m-sh" "ksh-k" "yf-k" "ksh-nok" "yf-nok" "old-f" "ksh-p" "yf-p" "old-p")
+  set forest-classes-list (list "yf-k" "yf-nok" "old-f" "yf-p" "old-p")
+   
+  set flammability-list (list 0.5 0.65 0.35 0.25 0.1 0.25 0.1 0.05 0.25 0.1 0.05)
+
+  set flammability-dict table:from-list [
+    ["gr" 0.5]
+    ["d-sh" 0.65]
+    ["m-sh" 0.35]
+    ["ksh-k" 0.25]
+    ["yf-k" 0.1]
+    ["ksh-nok" 0.25]
+    ["yf-nok" 0.1]
+    ["old-f" 0.05]
+    ["ksh-p" 0.25]
+    ["yf-p" 0.1]
+    ["old-p" 0.05]
+  ]
+
+ set base-changes (list 20 20 30 80 120 -999);; -> this is time spent in each state
+  set base-changes-dict table:from-list [
+    ["gr" 20]
+    ["d-sh" 20]
+    ["m-sh" 30]
+    ["ksh-k" 80]
+    ["yf-k" 120]
+    ["ksh-nok" 80]
+    ["yf-nok" 120]
+    ["old-f" 0]
+    ["ksh-p" 80]
+    ["yf-p" 120]
+    ["old-p" 0]
+  ]
+
+
+  ;;set accum-changes (list 0 20 50 130 250)
+  ;; so if start in all manuka [item *1*] and no stalling:: 231 years total
+  set fire-record []
+  set fire-stats []
+  set fire-size-list []
+
+  set beyond-flamm-time 99999
+  
+  ;set old-growth-abund count patches with member?
+  
+  set matrix-3 matrix:from-column-list [[0.9 0.05][0 0.99]]    ;; transitions from 1.5m -> 5 cm dbh individuals
+  set matrix-4 matrix:from-column-list [[0.9 0.05][0 0.99]]
+
+  ;; Build the landscape using the MRC code...
+  build-landscape
+
+  reset-ticks
+end
+
+
+to build-landscape
+  set clusters []
+  set class-list n-values n-states [ i -> i ]
+
+  set sum-stalled (list 0 0)
+  set sum-changes (list 0 0)
+
+  ;; set up the MRC landscape
+  init-patch-mrc-variables
+  read-class-file-csv init-composition
+  setup-mrc true false ;; args:: remove-singleton-patches? sequentially-assign-clusters?
+  
+  ask patches [set class item class class-names-list]
+  
+  ;; Ensure that there are no cells in the 'invaded' state if invasion is false
+  if invasion? = false
+  [
+    ask patches with [class = "d-sh"] [set class "m-sh"]
+  ]
+
+  init-patch-dynamics
+  find-clusters
+  id-clusters
+  age-by-cluster
+
+  update-abundances
+  set old-growth-abund count patches with [class = "old-p" or class = "old-f"] 
+
+  ask patches [set distance-to-coast pxcor * patch-grain]
+
+end
+
+
+to init-patch-dynamics
+
+  ask patches
+  [
+    set times-change 0
+    set flammability table:get flammability-dict class
+    set burned? false
+    set regenbank-3 matrix:from-column-list [[0 0]]
+    set regenbank-4 matrix:from-column-list [[0 0]]
+
+    set fire-history []
+    set next-change table:get base-changes-dict class
+    set t-colonised (list -1 -1)
+    set prev-class class
+  ]
+
+  color-patches
+end

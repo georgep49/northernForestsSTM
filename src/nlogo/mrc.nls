@@ -1,5 +1,11 @@
 ;; Code to build landscapes using the MRC method - adapted from the book.
 
+
+to test-csv
+  let class-abund csv:from-file "initial_composition.csv"
+  show class-abund
+end  
+
 to init-patch-mrc-variables
   ask patches [
     set class -1
@@ -8,31 +14,52 @@ to init-patch-mrc-variables
   ]
 end
 
+;;; Retrieve the list of relative probabilities of 
+;;; suitability classes from a file
+;to read-class-file [class-file]
+;  carefully [
+;    file-open class-file
+;    set num-classes file-read ;; first item in file is the number of classes
+;    set class-CFD (list 0) ;; initialise the CFD to 0
+;    set class-FD [] ;; empty FD
+;    while [ not file-at-end? ] [
+;      let prev-n last class-CFD
+;      let next-n file-read
+;      set class-CFD lput (next-n + prev-n) class-CFD
+;      set class-FD lput next-n class-FD
+;    ]
+;    set class-CFD but-first class-CFD ;; throw away the zero
+;    let tot-rel-p last class-CFD
+;    set class-CFD map [ i -> i / tot-rel-p ] class-CFD   ;; cumulative freq dist of classes
+;    set class-FD map [ i -> i / tot-rel-p ] class-FD     ;; freq of classes
+;
+;    file-close
+;  ] [ file-close ]
+;end
 
-
-;; Retrieve the list of relative probabilities of 
-;; suitability classes from a file
-to read-class-file [class-file]
+;;; Retrieve the list of relative probabilities of 
+;;; suitability classes from a CSV file with names
+to read-class-file-csv [class-file]
   carefully [
-    file-open class-file
-    set num-classes file-read ;; first item in file is the number of classes
-    set class-CFD (list 0) ;; initialise the CFD to 0
-    set class-FD [] ;; empty FD
-    while [ not file-at-end? ] [
-      let prev-n last class-CFD
-      let next-n file-read
-      set class-CFD lput (next-n + prev-n) class-CFD
-      set class-FD lput next-n class-FD
-    ]
-    set class-CFD but-first class-CFD ;; throw away the zero
-    let tot-rel-p last class-CFD
-    set class-CFD map [ i -> i / tot-rel-p ] class-CFD
-    set class-FD map [ i -> i / tot-rel-p ] class-FD
+    let class-abund csv:from-file "initial_composition.csv"; csv:from-file class-file
+    set num-classes length class-abund
+    set class-FD slice unnest class-abund range-from-to-by 1 (num-classes * 2) 2
+    let sum-class-p sum class-FD
+    
+    set class-CFD cumulative-sum class-FD
+    
+    set class-CFD map [i -> i / sum-class-p] class-CFD
+    set class-FD map [i -> i / sum-class-p] class-FD
+    
+    show class-abund
+    show num-classes
+    show class-CFD
+    show class-FD
+    
+    
     file-close
   ] [ file-close ]
 end
-
-
 
 ;; Internal setup based on SIMMAP algorithm
 ;; This is slow -- I believe due to repeated use of long lists

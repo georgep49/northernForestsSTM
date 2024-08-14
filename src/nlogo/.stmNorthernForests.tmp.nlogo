@@ -369,26 +369,28 @@ to dispersal
            ;; no establishment of class 3 in invaded shrubland OR grassland
            if forest-age = "young" and [class] of target != "d-sh" and [class] of target != "gr"
            [
+
              let n-sdl matrix:get regenbank-3 0 0        ; abundance of sdl of class x in the patch
 
              ask target
              [
                matrix:set regenbank-3 0 0 (n-sdl + 1)       ;; matrix:set matrix row-i col-j new-value
-               if (n-sdl + 1) >= crit-density-yng [set t-colonised replace-item 0 t-colonised ticks]  ;; 0 as first item in list
+               if (n-sdl + 1) >= crit-density-yng [set t-colonised replace-item idx t-colonised ticks]
              ]
 
            ]
 
            ;; old forest spp only establish in kanuka shrubland [2] or older
-           if forest-age = "old" and [class] of target != "d-sh" and [class] of target != "gr" and [class] of target != "m-sh"
+           if forest-age = "young" and [class] of target != "d-sh" and [class] of target != "gr" and [class] of target != "m-sh"
 
            [
+             let idx class - 3
              let n-sdl matrix:get regenbank-4 0 0    ; abundance of sdl of class x in the patch
 
              ask target
              [
                matrix:set regenbank-4 0 0 (n-sdl + 1)       ;; matrix:set matrix row-i col-j new-value
-               if (n-sdl + 1) >= crit-density-old [set t-colonised replace-item 1 t-colonised ticks] ;; 0 as second item in list
+               if (n-sdl + 1) >= crit-density-old [set t-colonised replace-item idx t-colonised ticks]
              ]
            ]
 
