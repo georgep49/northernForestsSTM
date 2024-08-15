@@ -134,5 +134,5 @@ to init-patch-dynamics
   ]
   
   build-fbm
-  color-patches
+  color-by-class
 end
