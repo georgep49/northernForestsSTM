@@ -1,8 +1,0 @@
-;; read a matrix from a file
-to abc [f-name]
-  let n  1
-  file-open f-name  ;; Opening file for reading
-  while [not file-at-end?] [show file-read show n set n n + 1]
-  
-  file-close
-end

@@ -1,7 +1,6 @@
 __includes [
   "setup.nls"
-  "mrc.nls"
-  "nlm.nls"
+  "construct-lsp.nls"
   "veg-dynamics.nls"
   "pathogens.nls"
   "fire-routines.nls"
@@ -55,6 +54,7 @@ globals [
   flammability-dict
   fire-front
   fire-size
+  fire-year
   rnd-seed
   extinguished?
 
@@ -128,8 +128,14 @@ to go
     ;if ticks = 0 [print date-and-time]
     ;if ticks = 300 [print date-and-time  stop ]
 
-    while [ ticks <= max-ticks and old-growth-abund <= max-forest  ]
+    while [ ticks <= max-ticks and old-growth-abund <= max-forest ]
     [
+
+
+      ;; Get the climate conditions for the year
+      transition-enso
+      let extrinsic random-normal 0 0
+
 
       let fire-this-tick false
       if ticks > burn-in-regen
@@ -139,7 +145,7 @@ to go
           let start? ignite-fire
           if start? = true
           [
-          fire-spread 0;  extrinsic <- weather conditions
+          fire-spread extrinsic
             post-fire
             set fire-this-tick true
           ]
@@ -157,16 +163,15 @@ to go
 
         if n-changes > 0 or fire-this-tick = true
         [
-          color-patches
+          color-by-class
           update-abundances
+
           if abund-flammable < 0.3 and ticks < beyond-flamm-time
           [
             set beyond-flamm-time ticks
           ]
         ]
       ]
-
-      transition-enso
 
 
 ;      profiler:stop          ;; stop profiling
@@ -178,77 +183,6 @@ to go
   ;write-record
 end
 
-
-;; This sorts out what happens after a fire - this is where pyrophyllic invasion takes place
-to post-fire
-
-   show "fix up post-fire grassland transitions"
-
-   let new-invasions 0
-   ask patches with [burned?]
-   [
-     set prev-class class
-
-     set fire-history lput ticks fire-history
-     let last30 length filter [ f -> f >= ticks - 30 ] fire-history
-     let local-weeds count neighbors with [class = "d-sh"]
-
-
-     ;; assume regen bank destroyed
-     set regenbank-yfor (list 0 0)
-     set regenbank-ofor (list 0 0)
-
-     ;; grass returns to grass (prob redundant code but makes things clear)
-     if class = "gr" [ set class "gr"]
-
-     ;; transition to manuka or invaded shrubland?
-     ifelse invasion? = true and class != "gr"
-     [
-       ifelse random-float 1 <= (base-invasion + (fire-invasion * last30)) * (1 + (local-weeds / 8))
-       [
-         set class "d-sh"   ;; to degraded shrubland
-         set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
-         set flammability table:get flammability-dict class
-
-       ]
-       [
-         set class "m-sh"   ;; to manuka
-         set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
-         set flammability table:get flammability-dict class
-       ]
-     ]
-
-     [
-         set class "m-sh"
-         set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
-         set flammability table:get flammability-dict class
-     ]
-   ]
-
-   set new-invasions count patches with [class = 0 and prev-class > 0]
-
-   set fire-size count patches with [burned?]
-
-   set fire-size-list lput fire-size fire-size-list
-   set fire-stats lput fire-size fire-stats
-
-
-   let types-burned map [ cl -> count patches with [burned? and prev-class = cl] ]  class-names-list
-
-   foreach types-burned[ cl -> set fire-stats lput (cl / world-size) fire-stats ]
-
-   set fire-stats lput mean [flammability] of patches fire-stats
-   set fire-stats lput new-invasions fire-stats
-
-   set fire-record lput fire-stats fire-record
-
-   ask patches [set burned? false]
-
-   color-patches
-end
-
-
-;; This is the linear 'time elapsed' component of the succession process
 
 
 
@@ -265,7 +199,7 @@ to-report occurrences [x the-list]
 end
 
 ;; Colours patches by class
-to color-patches
+to color-by-class
   ask patches [
     set pcolor table:get colour-dict class
   ]
@@ -289,6 +223,13 @@ to color-by-regen4
   ask patches [
     set pcolor scale-color blue (sum regenbank-ofor) 100 0
   ]
+end
+
+to color-by-edaphic
+ask patches
+[
+  set pcolor palette:scale-gradient [[236 226 240] [28 144 153]] edaphic-grad 1 0
+]
 end
 
 ;; Abundance flammable
@@ -430,14 +371,6 @@ to-report mle-exponent [size-list xmin]
   ;]
 end
 
-
-to-report old-growth-patches
-  report patches with [class = "old-p" or class = "old-f"]
-end
-
-to-report repro-patches
-  report patches with [class = "yf-p" or class = "yf-k" or class = "yf-nok" or class = "old-f" or class = "old-p"]
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
 241
@@ -505,7 +438,7 @@ BUTTON
 45
 NIL
 go
-T
+NIL
 1
 T
 OBSERVER
@@ -608,7 +541,7 @@ flamm-start
 flamm-start
 0
 1
-0.35
+0.15
 0.01
 1
 NIL
@@ -808,10 +741,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-237
-549
-409
-582
+21
+589
+193
+622
 crit-density-yng
 crit-density-yng
 1
@@ -823,10 +756,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-237
-588
-409
-621
+21
+628
+193
+661
 crit-density-old
 crit-density-old
 1
@@ -870,7 +803,7 @@ BUTTON
 1059
 456
 show-class
-color-patches
+color-by-class
 NIL
 1
 T
@@ -970,6 +903,34 @@ write-record?
 0
 1
 -1000
+
+PLOT
+1189
+12
+1553
+222
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 1 -16777216 true "" "(foreach fire-year fire-size-list [ [y f ] -> plotxy y f] )"
+
+TEXTBOX
+244
+412
+523
+440
+Blues - no kauri, Oranges - kauri, Turquises - pohutakawa\nDark green - oldgrowth\n
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

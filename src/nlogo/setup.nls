@@ -21,8 +21,8 @@ to setup
     ["m-sh" 34]
     ["ksh-k" 27]
     ["yf-k" 24]
-    ["ksh-nok" 104]
-    ["yf-nok" 107]
+    ["ksh-nok" 107]
+    ["yf-nok" 104]
     ["old-f" 63]
     ["ksh-p" 88]
     ["yf-p" 85]
@@ -68,6 +68,7 @@ to setup
   set fire-record []
   set fire-stats []
   set fire-size-list []
+  set fire-year []
   set beyond-flamm-time 99999
 
   ;; Setup ENSO
@@ -128,7 +129,10 @@ to init-patch-dynamics
     set next-change table:get base-changes-dict class
     set t-colonised (list -1 -1)
     set prev-class class
+    
+    set distance-to-coast pxcor * patch-grain
   ]
-
+  
+  build-fbm
   color-patches
 end

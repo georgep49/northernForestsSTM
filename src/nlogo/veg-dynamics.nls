@@ -1,9 +1,82 @@
-;; functions associated with vegetation change (succession, diuspersal, regen)
+;; Functions associated with vegetation change (succession, diuspersal, regen)
+
+;; This sorts out what happens after a fire - this is where pyrophyllic invasion takes place
+to post-fire
+
+   show "fix up post-fire grassland transitions"
+
+   let new-invasions 0
+   ask patches with [burned?]
+   [
+     set prev-class class
+
+     set fire-history lput ticks fire-history
+     let last30 length filter [ f -> f >= ticks - 30 ] fire-history
+     let local-weeds count neighbors with [class = "d-sh"]
+
+
+     ;; assume regen bank destroyed
+     set regenbank-yfor (list 0 0)
+     set regenbank-ofor (list 0 0)
+
+     ;; grass returns to grass (prob redundant code but makes things clear)
+     if class = "gr" [ set class "gr"]
+
+     ;; transition to manuka or invaded shrubland?
+     ifelse invasion? = true and class != "gr"
+     [
+       ifelse random-float 1 <= (base-invasion + (fire-invasion * last30)) * (1 + (local-weeds / 8))
+       [
+         set class "d-sh"   ;; to degraded shrubland
+         set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
+         set flammability table:get flammability-dict class
+
+       ]
+       [
+         set class "m-sh"   ;; to manuka
+         set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
+         set flammability table:get flammability-dict class
+       ]
+     ]
+
+     [
+         set class "m-sh"
+         set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
+         set flammability table:get flammability-dict class
+     ]
+   ]
+
+   set new-invasions count patches with [class = 0 and prev-class > 0]
+
+  set fire-size count patches with [burned?]
+  set fire-year lput ticks fire-year 
+  set fire-size-list lput fire-size fire-size-list
+  set fire-stats lput fire-size fire-stats
+
+
+  let types-burned map [ cl -> count patches with [burned? and prev-class = cl] ]  class-names-list
+
+  foreach types-burned[ cl -> set fire-stats lput (cl / world-size) fire-stats ]
+
+  set fire-stats lput mean [flammability] of patches fire-stats
+  set fire-stats lput new-invasions fire-stats
+
+  set fire-record lput fire-stats fire-record
+
+  ask patches [set burned? false]
+
+  color-by-class
+end
+
+
+;; This is the linear 'time elapsed' component of the succession process
+;; Work out next state for cells due to change and time until next change in the 
+;; absence of perturbation
 to succession
 
-  ;; set base-changes (list 20 30 80 120 -999)  -> time spent in class (30 in man, 80 in kan, 120 in yng)
-
+  ;; id patches where change will occur
   let change-patches patches with [next-change <= ticks and next-change != -999]
+
   if any? change-patches
   [
     ask change-patches
@@ -23,18 +96,18 @@ to succession
         [
           set class "m-sh"
 
-        let last30 length filter [ f -> f >= ticks - 30 ] fire-history
-        let base table:get base-changes-dict class    ;; so time to *next* change estimated here
-
-        set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float 0.2)
-        ;;next change yr = base change + fire slowing + random noise
-
-        set last-change ticks
-        set times-change times-change + 1
-
-        set n-changes n-changes + 1
+          let last30 length filter [ f -> f >= ticks - 30 ] fire-history
+          let base table:get base-changes-dict class    ;; so time to *next* change estimated here
+        
+          ;;next change yr = base change + fire slowing + random noise  
+          set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float 0.2)
+        
+          set last-change ticks
+          set times-change times-change + 1
+          
+          set n-changes n-changes + 1
+        ]
       ]
-    ]
 
       ;; invaded -> manuka shrubland
       if class = "d-sh"
@@ -60,8 +133,24 @@ to succession
         ;; pohut, kauri, no kauri??????
         ;;show "fix trans out of manuka!!"
 
-        set class one-of (list "ksh-nok" "ksh-k" "ksh-p")
-
+        ;; set class one-of (list "ksh-nok" "ksh-k" "ksh-p")
+        
+        ;; Distance based test for transition to pohutakawa
+        ;; TO DO - needs to be some sort of asymptotic function
+        if random-float 1 < 1 - ((1 / 25) * distance-to-coast)
+        [
+          set class "ksh-p"
+        ]
+        
+        ;; if not pohutakawa then coin toss on gradient
+       ;; TO DO - needs to be weighted by neighboiuring env (so if lots of kauri adjacent....) 
+        if class != "ksh-p"
+        [
+          ifelse random-float 1 < edaphic-grad
+          [ set class "ksh-k"]
+          [ set class "ksh-nok" ]  
+        ] 
+        
         let last30 length filter [ ?1 -> ?1 >= ticks - 30 ] fire-history
         let base table:get base-changes-dict class
 
@@ -266,4 +355,14 @@ to regenerate-patch-bank
         ; if sum regenbank-ofor > 0 [show regenbank-ofor]
   ]
     
+end
+
+
+;; Convenience reporters
+to-report old-growth-patches
+  report patches with [class = "old-p" or class = "old-f"]
+end
+
+to-report repro-patches
+  report patches with [class = "yf-p" or class = "yf-k" or class = "yf-nok" or class = "old-f" or class = "old-p"]
 end

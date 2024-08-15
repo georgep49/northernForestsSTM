@@ -67,29 +67,27 @@ to fire-spread [extrinsic]
          ; lt -25 = 0.8; -25 to -15 = 0.9; -15 to -5 = 0.95; -5 to 5 = 0; 5 to 15 = 1.05; 15 to 25 = 1.1; 25+ = 1.2  
          ; to add
         
-          ; wind calculations   
-          let cellBearing atan (pxcor - fx)  (pycor - fy)        ; Bearing from ignited patch (pxcor, pycor) to candidate patch (nx,ny)
-          let relDirn abs(windDirection - cellBearing)     ; Dir of fire spread relative to wind (difference)
-          if relDirn > 180 [set relDirn 360 - relDirn]     ; Corrected to bound angle (0,180) 
+        ; wind calculations   
+        let cellBearing atan (pxcor - fx)  (pycor - fy)  ; Bearing from ignited patch (pxcor, pycor) to candidate patch (nx,ny)
+        let relDirn abs(windDirection - cellBearing)     ; Dir of fire spread relative to wind (difference)
+        if relDirn > 180 [set relDirn 360 - relDirn]     ; Corrected to bound angle (0,180) 
           
-          let windWgt item (relDirn / 45) (item (windSpeed - 1) windModifiers) 
+        let windWgt item (relDirn / 45) (item (windSpeed - 1) windModifiers) 
         
-          ; edge drying calculations
-          let edge-wgt count neighbors with [ class = "d-sh" or class = "m-sh" or class = "gr" ] * 0.025
+        ; edge drying calculations
+        ; forest cells on edge of open veg are more flammable (as per Tepley et al. in Ecosystems) 
+        let edge-wgt count neighbors with [ class = "d-sh" or class = "m-sh" or class = "gr" ] * 0.025
           
-          ; compute the base flammability multiplier 
-          ; forest cells on edge of open veg are more flammable (as per Tepley et al. in Ecosystems) 
-          
-        ; let baseMultiplier (windWgt * (1 + extrinsic) * edge-wgt)
+        ; compute the base flammability multiplier 
         let baseMultiplier (windWgt * (1 + extrinsic) * (1 + edge-wgt))
-          set pSpread flammability * baseMultiplier
+        set pSpread flammability * baseMultiplier
           
           ; show pSpread 
         
-          if random-float 1 < (pSpread )
+        if random-float 1 < (pSpread )
           [
-            set burned? true                                             ;Need to change status here so they don't get ignited twice
-            set new-fire-front ( patch-set new-fire-front self)        ;Add newly ignited patches to the new-fireFront
+            set burned? true                                            ; Need to change status here so they don't get ignited twice
+            set new-fire-front ( patch-set new-fire-front self)         ; Add newly ignited patches to the new-fireFront
           ]
         ]
      ]
@@ -115,97 +113,3 @@ to-report getTheta [x1 y1 x2 y2]
 report theta
 
 end
-
-; this reports the perc-th percentile fire sizes 
-;to-report sizePercentileFires [ perc]
-;  
-;  let s -999
-;  
-;  if not empty? fireSizeList
-;  [
-;    set s list-percentile ( sort fireSizeList) perc
-;  ]
-;  
-;  report s
-;
-;end  
-
-; reports total burned area of fires of *greater* than the perc-th percentile 
-; e.g. perc = 50 would return the burned area of fires greater than or equal to the median fire size
-;to-report areaPercentileFires [perc]
-;  
-;  let area 0
-;  
-;  ifelse not empty? fireSizeList
-;  [
-;    let i 0
-;    let critSize list-percentile (sort fireSizeList) perc
-;
-;    while [i < length fireSizeList]
-;    [
-;      if item i fireSizeList >= critSize 
-;        [ set area area + (item i fireSizeList) ]
-;      set i i + 1
-;    ]  
-;  ]
-;  [
-;    set area -999
-;  ]  
-;    
-;  report area
-;  
-;  
-;end
-
-; reports the slope of a power-law fit to the fire size distribution via MLE
-;to-report mle-exponent [size-list xmin]
-;  let b -999
-;  
-;   check that there are sufficient fires (n > 20)
-;  if length fireSizeList >= 20 
-;  [
-;    let mle-est map [(log ? 2) / xmin] size-list
-;    set b 1 + ((sum mle-est) ^ -1) 
-;  ]
-;  
-;  report b
-;end
-;
-
-; reports the number of fires less than/equal to some size threshold thresh
-; e.g. if thresh = 1, it reports the no. of single cell fires
-;to-report nLTEThreshFires [thresh]
-;  
-;  let i 0
-;  let n 0
-;    
-;  ifelse not empty? FireSizeList
-;  [
-;
-;    while [i < length fireSizeList]
-;    [
-;      if item i fireSizeList <= thresh [ set n n + 1]
-;      set i i + 1
-;    ]
-;  ]
-;  [
-;    set n -999
-;  ]      
-;    
-;  report n
-;
-;end  
-
-; burned area over model run
-;to-report burnedArea
-;
-;  let b -999
-;  if empty? fireSizeList = false
-;   [ set b sum fireSizeList ]
-;   
-;  report b 
-;      
-;end
-;   
-   
-
