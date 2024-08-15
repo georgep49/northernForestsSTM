@@ -60,18 +60,20 @@ to setup
     ["old-p" 0]
   ]
 
-  ;; Set up the transition matrices for seedling/sapling dynamics
-  set tr-mtx-bank-yfor (list [0.9 0.05] [0 0.99])    ;; transitions from 1.5m -> 5 cm dbh individuals
-  set tr-mtx-bank-ofor (list [0.9 0.05] [0 0.99])
+  ;; Set up the transition matrices for seedling/sapling dynamics -> ROW wise
+  set tr-mtx-bank-yfor (list [0.8 0] [0.1 0.9])    ;; transitions from 1.5m -> 5 cm dbh individuals in yng forest
+  set tr-mtx-bank-ofor (list [0.8 0] [0.1 0.9])    ;; ... and old forest
 
-  ;; Set up fire history lists
+  ;; Set up fire history 
   set fire-record []
   set fire-stats []
   set fire-size-list []
-
   set beyond-flamm-time 99999
 
-
+  ;; Setup ENSO
+  set enso-record []
+  init-enso
+ 
   ;; Build the landscape using the MRC code...
   build-landscape
 

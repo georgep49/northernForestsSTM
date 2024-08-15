@@ -2,9 +2,10 @@ __includes [
   "setup.nls"
   "mrc.nls"
   "nlm.nls"
-  "regen-mtx.nls"
+  "veg-dynamics.nls"
   "pathogens.nls"
-  "fireRoutines.nls"
+  "fire-routines.nls"
+  "climate.nls"
   "list-utils.nls"
   "dist-utils.nls"
 ]
@@ -43,8 +44,8 @@ globals [
   forest-classes-list
   ;;base-changes
   base-changes-dict
-  tr-mtx-bank3
-  tr-mtx-bank4
+  tr-mtx-bank-yfor
+  tr-mtx-bank-ofor
   sum-stalled       ;; total stalled list 0 = 2 -> 3, 1 = 3 -> 4
   sum-changes       ;; no. stalled list 0 = 2 -> 3, 1 = 3 -> 4
   n-changes
@@ -57,12 +58,20 @@ globals [
   rnd-seed
   extinguished?
 
+  ;; pathogen-related
+
   ;; fire history
   ;; two lists to deal with individual fires and their characteristics
   ;; third list keeps track of fire sizes for aggregate stats at end
   fire-stats
   fire-record
   fire-size-list
+
+  ;; climate related
+  enso-mtx
+  enso-list
+  enso-state
+  enso-record
 
   ;; lsp reporters
   abundances
@@ -130,7 +139,7 @@ to go
           let start? ignite-fire
           if start? = true
           [
-            fire-spread
+          fire-spread 0;  extrinsic <- weather conditions
             post-fire
             set fire-this-tick true
           ]
@@ -156,6 +165,10 @@ to go
           ]
         ]
       ]
+
+      transition-enso
+
+
 ;      profiler:stop          ;; stop profiling
 ;      print profiler:report  ;; view the results
 ;      profiler:reset
@@ -177,13 +190,13 @@ to post-fire
      set prev-class class
 
      set fire-history lput ticks fire-history
-     let last30 length filter [ ?1 -> ?1 >= ticks - 30 ] fire-history
+     let last30 length filter [ f -> f >= ticks - 30 ] fire-history
      let local-weeds count neighbors with [class = "d-sh"]
 
 
      ;; assume regen bank destroyed
-     set regenbank-yfor matrix:from-column-list [[0 0]]
-     set regenbank-ofor matrix:from-column-list [[0 0]]
+     set regenbank-yfor (list 0 0)
+     set regenbank-ofor (list 0 0)
 
      ;; grass returns to grass (prob redundant code but makes things clear)
      if class = "gr" [ set class "gr"]
@@ -195,19 +208,20 @@ to post-fire
        [
          set class "d-sh"   ;; to degraded shrubland
          set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
-         set flammability item class flammability-list
+         set flammability table:get flammability-dict class
+
        ]
        [
          set class "m-sh"   ;; to manuka
          set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
-         set flammability item class flammability-list
+         set flammability table:get flammability-dict class
        ]
      ]
 
      [
          set class "m-sh"
          set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
-         set flammability item class flammability-list
+         set flammability table:get flammability-dict class
      ]
    ]
 
@@ -383,109 +397,17 @@ to succession
   ]
 end
 
-to dispersal
-    let target nobody
-    let forest-age ""
 
-   ;; what is dispersed is 1.5 m high saps (effectively)
-
-    ; ask patches with [ class >= 3 ]
-    ask repro-patches
-
-    [
-     let seed-rain 0
-     if class = "yf-p" or class = "yf-k" or class = "yf-nok" [
-       set seed-rain round (random-poisson base-seed-prod-yf)
-       set forest-age "young"
-     ]
-
-     if class = "old-p" or class = "old-f" [
-       set seed-rain round (random-poisson base-seed-prod-of)
-      set forest-age "old"
-    ]
-
-     repeat seed-rain
-     [
-       if random-float 1 >= seed-pred    ;; avoids predation?
-       [
-         ifelse random-float 1 <= fraction-consumed  ;; consumed and dispersed by pigeon
-         [
-           let d random-exponential mean-ldd
-           set target patch-at-heading-and-distance (random-float 360) d
-         ]
-         [
-           set target one-of (patch-set self neighbors)
-         ]
-
-         if target != nobody
-         [
-        ;; assume that seedlings of young forest spp can establish under any sort of veg, except invaded shrubland
-
-           ;; no establishment of class 'yfor-x' in invaded shrubland OR grassland
-           if forest-age = "young" and [class] of target != "d-sh" and [class] of target != "gr"
-           [
-             let n-sdl item 0 regenbank-yfor ; abundance of sdl of class x in the patch
-
-             ask target
-             [
-               set regenbank-yfor replace-item 0 regenbank-yfor (n-sdl + 1)
-               if (n-sdl + 1) >= crit-density-yng [set t-colonised replace-item 0 t-colonised ticks]  ;; 0 as first item in list
-             ]
-
-           ]
-
-           ;; old forest spp only establish in kanuka shrubland [2] or older
-           if forest-age = "old" and [class] of target != "d-sh" and [class] of target != "gr" and [class] of target != "m-sh"
-
-           [
-             let n-sdl (item 0 regenbank-ofor)    ; abundance of sdl of class x in the patch
-
-             ask target
-             [
-               set regenbank-ofor replace-item 0 regenbank-ofor (n-sdl + 1)       ;; matrix:set matrix row-i col-j new-value
-               if (n-sdl + 1) >= crit-density-old [set t-colonised replace-item 1 t-colonised ticks] ;; 0 as second item in list
-             ]
-           ]
-
-
-           ]
-         ]
-     ]
-   ]
-
-
-end
-
-to thin-regenbank
-
-  let sap-mortality 0
-  if sap-mortality > 0
-  [
-    ask patches
-    [
-      if regenbank-yfor > 0
-      [
-        set regenbank-yfor( map [i -> rbinom i (1 - sap-mortality)] regenbank-yfor)
-      ]
-
-      if regenbank-ofor > 0
-      [
-        set regenbank-ofor( map [i -> rbinom i (1 - sap-mortality)] regenbank-ofor)
-      ]
-
-    ]
-  ]
-end
 
 to update-abundances
   let n [class] of patches
-  set abundances (map [ ?1 -> occurrences ?1 n ] class-list)
+  set abundances (map [ i -> occurrences i n ] class-list)
   set old-growth-abund count patches with [class = "old-p" or class = "old-f"] / count patches
 end
 
 to-report occurrences [x the-list]
   report reduce
-    [ [?1 ?2] -> ifelse-value (?2 = x) [?1 + 1] [?1] ] (fput 0 the-list)
+    [ [i j] -> ifelse-value (j = x) [i + 1] [i] ] (fput 0 the-list)
 end
 
 ;; Colours patches by class
@@ -505,13 +427,13 @@ end
 
 to color-by-regen3
   ask patches [
-    set pcolor scale-color blue (sum matrix:get-column regenbank-yfor 0) 100 0
+    set pcolor scale-color blue (sum regenbank-yfor) 100 0
   ]
 end
 
 to color-by-regen4
   ask patches [
-    set pcolor scale-color blue (sum matrix:get-column regenbank-ofor 0) 100 0
+    set pcolor scale-color blue (sum regenbank-ofor) 100 0
   ]
 end
 
@@ -525,19 +447,6 @@ to-report abund-stalled
   report count patches with [stalled > 0] / world-size
 end
 
-
-to-report rbinom [n prob]
-
-  let x 0
-  let i 0
-  while [i < n]
-  [
-    if random-float 1 < prob [set x x + 1]
-    set i i + 1
-  ]
-  report x
-
-end
 
 to write-record
   if write-record? = true
@@ -800,7 +709,7 @@ fire-frequency
 fire-frequency
 0
 1
-0.0
+0.15
 .01
 1
 NIL
@@ -845,7 +754,7 @@ flamm-start
 flamm-start
 0
 1
-0.15
+0.35
 0.01
 1
 NIL
@@ -906,17 +815,6 @@ frac-consumed estimated from Dijkstra thesis\nfrac-predated estimated from C & A
 9
 0.0
 1
-
-MONITOR
-1188
-11
-1245
-56
-BFT
-beyond-flamm-time
-0
-1
-11
 
 SLIDER
 32

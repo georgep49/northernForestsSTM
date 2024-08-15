@@ -1,0 +1,269 @@
+;; functions associated with vegetation change (succession, diuspersal, regen)
+to succession
+
+  ;; set base-changes (list 20 30 80 120 -999)  -> time spent in class (30 in man, 80 in kan, 120 in yng)
+
+  let change-patches patches with [next-change <= ticks and next-change != -999]
+  if any? change-patches
+  [
+    ask change-patches
+    [
+      set prev-class class
+
+      ;; transition from grassland to manuka shrubland
+      if class = "gr"
+      [
+        let forest-nhb count neighbors with [class != "gr" and class != "d-sh"]
+        let trans 0
+
+        ;; TO DO - should this be a non-zero chance?
+        ifelse  forest-nhb = 0 [set trans 0 ] [set trans 1 - ((1 / forest-nhb) ^ 0.5)]
+
+        if random-float 1 < trans
+        [
+          set class "m-sh"
+
+        let last30 length filter [ f -> f >= ticks - 30 ] fire-history
+        let base table:get base-changes-dict class    ;; so time to *next* change estimated here
+
+        set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float 0.2)
+        ;;next change yr = base change + fire slowing + random noise
+
+        set last-change ticks
+        set times-change times-change + 1
+
+        set n-changes n-changes + 1
+      ]
+    ]
+
+      ;; invaded -> manuka shrubland
+      if class = "d-sh"
+      [
+        set class "m-sh"
+
+        let last30 length filter [ f -> f >= ticks - 30 ] fire-history
+        let base (table:get base-changes-dict class)    ;; so time to *next* change estimated here
+
+        set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float 0.2)
+        ;;next change yr = base change + fire slowing + random noise
+
+        set last-change ticks
+        set times-change times-change + 1
+
+        set n-changes n-changes + 1
+      ]
+
+      ;; manuka shrubland -> kanuka-x
+      if class = "m-sh" and last-change != ticks
+      [
+        ;; *** TO DO ***
+        ;; pohut, kauri, no kauri??????
+        ;;show "fix trans out of manuka!!"
+
+        set class one-of (list "ksh-nok" "ksh-k" "ksh-p")
+
+        let last30 length filter [ ?1 -> ?1 >= ticks - 30 ] fire-history
+        let base table:get base-changes-dict class
+
+        set next-change ceiling ((ticks + (base + (last30 * 2)))  * (0.9 + random-float 0.2))
+
+        set last-change ticks
+        set times-change times-change + 1
+        set stalled 0
+
+        set n-changes n-changes + 1
+      ]
+
+      ;; kanuka-x -> young forest-x
+      if (class = "ksh-p" or class = "ksh-k" or class = "ksh-nok") and last-change != ticks
+      [
+        let n-saps max (list item 1 regenbank-yfor  item 1 regenbank-ofor)    ;; n-trees is max of type 3 or 4 to stop spurious stalling
+        ifelse n-saps >= crit-density-yng
+        [
+          if track-stalled?
+          [
+            let n item 0 sum-changes
+            let stl item 0 sum-stalled
+
+            set sum-changes replace-item 0 sum-changes (n + 1)
+            set sum-stalled replace-item 0 sum-stalled (stl + stalled)    ; replace-item index list value
+          ]
+
+          let new-class ""
+          if class = "ksh-nok" [set new-class "yf-nok"]
+          if class = "ksh-k" [set new-class "yf-k"]
+          if class = "ksh-p" [set new-class "yf-p"]
+
+          set class new-class
+          let base table:get base-changes-dict class * (0.9 + random-float 0.2)
+
+          set next-change ticks + round base
+          set last-change ticks
+          set times-change times-change + 1
+          set stalled 0
+
+          set n-changes n-changes + 1
+        ]
+        [
+          set stalled stalled + 1
+        ]
+      ]
+
+      ;; young forest-x -> old forest-x
+      if (class = "yf-p" or class = "yf-k" or class = "yf-nok") and last-change != ticks
+      [
+        let n-saps item 1 regenbank-ofor
+
+        ifelse n-saps >= crit-density-old ;; and (ticks - (item 1 t-colonised)) >= (item 1 base-lag)
+        [
+          if track-stalled?
+          [
+            let n item 1 sum-changes
+            let stl item 1 sum-stalled
+
+            set sum-changes replace-item 1 sum-changes (n + 1)
+            set sum-stalled replace-item 1 sum-stalled  (stl + stalled)    ; replace-item index list value
+          ]
+
+          let new-class ""
+          if class = "yf-nok" or class = "yf-k" [set new-class "old-f"]
+          if class = "yf-p" [set new-class "old-p"]
+
+          set class new-class
+          set next-change -999
+          set last-change ticks
+          set times-change times-change + 1
+          set stalled 0
+
+          set n-changes n-changes + 1
+        ]
+        [
+          set stalled stalled + 1
+        ]
+      ]
+
+      set flammability table:get flammability-dict class
+    ]
+  ]
+end
+
+to dispersal
+    let target nobody
+    let forest-age ""
+
+   ;; what is dispersed is 1.5 m high saps (effectively)
+
+    ; ask patches with [ class >= 3 ]
+    ask repro-patches
+
+    [
+     let seed-rain 0
+     if class = "yf-p" or class = "yf-k" or class = "yf-nok" [
+       set seed-rain round (random-poisson base-seed-prod-yf)
+       set forest-age "young"
+     ]
+
+     if class = "old-p" or class = "old-f" [
+       set seed-rain round (random-poisson base-seed-prod-of)
+      set forest-age "old"
+    ]
+
+     repeat seed-rain
+     [
+       if random-float 1 >= seed-pred    ;; avoids predation?
+       [
+         ifelse random-float 1 <= fraction-consumed  ;; consumed and dispersed by pigeon
+         [
+           let d random-exponential mean-ldd
+           set target patch-at-heading-and-distance (random-float 360) d
+         ]
+         [
+           set target one-of (patch-set self neighbors)
+         ]
+
+         if target != nobody
+         [
+        ;; assume that seedlings of young forest spp can establish under any sort of veg, except invaded shrubland
+
+           ;; no establishment of class 'yfor-x' in invaded shrubland OR grassland
+           if forest-age = "young" and [class] of target != "d-sh" and [class] of target != "gr"
+           [
+             let n-sdl item 0 regenbank-yfor ; abundance of sdl of class x in the patch
+
+             ask target
+             [
+               set regenbank-yfor replace-item 0 regenbank-yfor (n-sdl + 1)
+               if (n-sdl + 1) >= crit-density-yng [set t-colonised replace-item 0 t-colonised ticks]  ;; 0 as first item in list
+             ]
+
+           ]
+
+           ;; old forest spp only establish in kanuka shrubland [2] or older
+           if forest-age = "old" and [class] of target != "d-sh" and [class] of target != "gr" and [class] of target != "m-sh"
+
+           [
+             let n-sdl (item 0 regenbank-ofor)    ; abundance of sdl of class x in the patch
+
+             ask target
+             [
+               set regenbank-ofor replace-item 0 regenbank-ofor (n-sdl + 1)       ;; matrix:set matrix row-i col-j new-value
+               if (n-sdl + 1) >= crit-density-old [set t-colonised replace-item 1 t-colonised ticks] ;; 0 as second item in list
+             ]
+           ]
+
+
+           ]
+         ]
+     ]
+   ]
+
+
+end
+
+to thin-regenbank
+
+  let sap-mortality 0
+  if sap-mortality > 0
+  [
+    ask patches
+    [
+      if regenbank-yfor > 0
+      [
+        set regenbank-yfor( map [i -> random-binomial i (1 - sap-mortality)] regenbank-yfor)
+      ]
+
+      if regenbank-ofor > 0
+      [
+        set regenbank-ofor( map [i -> random-binomial i (1 - sap-mortality)] regenbank-ofor)
+      ]
+
+    ]
+  ]
+end
+
+
+
+;; Deals with regeneration in the seedling and sapling banks
+to regenerate-patch-bank
+  ask patches
+  [     
+    ; this operates on binomial trials...
+    
+    ; regen-bank for **young** forest species  
+    let nsdl sum (map [ [a b] -> random-binomial a b ] regenbank-yfor (item 0 tr-mtx-bank-yfor))
+    let nsap sum (map [ [a b] -> random-binomial a b ] regenbank-yfor (item 1 tr-mtx-bank-yfor))
+    
+    set regenbank-yfor (list nsdl nsap)
+    
+   ; if sum regenbank-yfor > 0 [show regenbank-yfor]
+    
+    ; regen-bank for **old** forest species  
+    set nsdl sum (map [ [a b] -> random-binomial a b ] regenbank-ofor (item 0 tr-mtx-bank-ofor))
+    set nsap sum (map [ [a b] -> random-binomial a b ] regenbank-ofor (item 1 tr-mtx-bank-ofor))
+    
+    set regenbank-ofor (list nsdl nsap)
+    
+        ; if sum regenbank-ofor > 0 [show regenbank-ofor]
+  ]
+    
+end

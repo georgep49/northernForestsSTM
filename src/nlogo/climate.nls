@@ -1,0 +1,31 @@
+;; set up the ENSO matrix and initial state
+
+to init-enso
+
+  set enso-mtx csv:from-file "enso_matrix.csv"   ; load the matrix
+  set enso-list first enso-mtx                   ; get the states possible (headers)
+  set enso-mtx but-first enso-mtx                ; strip to mtx only
+  
+  set enso-state one-of enso-list         ; get the first state 
+  
+  set enso-record lput enso-state enso-record
+  show enso-mtx
+  show enso-state
+  
+end  
+
+;; get a new ENSO state
+to transition-enso
+  
+  ;; this is a littl eopaque but what we do is get the position of the current 
+  ;; ENSO state and then use that to index the frequencies of occurence of each
+  ;; state, and use that in a multinomial trial...
+  
+  let tp position enso-state enso-list  ;; get the numeric enso state
+  set tp item tp enso-mtx               ;; and appropriate freqs
+  
+  let en position 1 (random-multinomial-int 1 tp)   ;; draw n = 1 and find the '1'
+  set enso-state item en enso-list
+  set enso-record lput enso-state enso-record  
+  
+end  

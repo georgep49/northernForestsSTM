@@ -1,8 +1,0 @@
-to regenerate-patch-bank
-  ask patches ;; with [class < 4]  ;; no need to keep track once into old forest
-  [     
-    set regenbank-yfor (map [ [a b] -> round (a * b )] regenbank-yfor tr-mtx-bank-yfor)
-    set regenbank-ofor (map [ [a b] -> round (a * b )] regenbank-ofor tr-mtx-bank-ofor)
-  ]
-    
-end

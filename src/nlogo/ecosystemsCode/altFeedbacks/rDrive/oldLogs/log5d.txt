@@ -1,0 +1,2082 @@
+starting worker for localhost:11770 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+JOB STARTED AT Wed Sep 10 08:44:30 2014 ON SC-GPER020-2VVW (OSWindows) 7 x64
+ 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+R Version:  R version 3.1.0 (2014-04-10) 
+
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Loading required package: rlecuyer
+Type: EXEC 
+Loading required package: rJava
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Run:  6 
+Year:  501 
+Type: EXEC 
+Run:  11 YYear:  501 
+Type: EXEC 
+Run:  17 YYear:  501 
+Type: EXEC 
+Run:  23 YYear:  501 
+Type: EXEC 
+Run:  29 YYear:  501 
+Type: EXEC 
+Run:  35 YYear:  501 
+Type: EXEC 
+Run:  41 YYear:  501 
+Type: EXEC 
+Run:  47 YYear:  501 
+Type: EXEC 
+Run:  53 YYear:  501 
+Type: EXEC 
+Run:  59 YYear:  501 
+Type: EXEC 
+Run:  65 YYear:  501 
+Type: EXEC 
+Run:  71 YYear:  501 
+Type: EXEC 
+Run:  77 YYear:  501 
+Type: EXEC 
+Run:  83 YYear:  501 
+Type: EXEC 
+Run:  89 YYear:  501 
+Type: EXEC 
+Run:  95 YYear:  501 
+Type: EXEC 
+Run:  101 YYear:  501 
+Type: EXEC 
+Run:  107 YYear:  501 
+Type: EXEC 
+Run:  113 YYear:  501 
+Type: EXEC 
+Run:  119 YYear:  501 
+Type: EXEC 
+Run:  125 YYYear:  501 
+Type: EXEC 
+Run:  131 YYYear:  501 
+Type: EXEC 
+Run:  137 YYYear:  501 
+Type: EXEC 
+Run:  143 YYYear:  501 
+Type: EXEC 
+Run:  149 YYYear:  501 
+Type: EXEC 
+Run:  155 YYYear:  501 
+Type: EXEC 
+Run:  161 YYYear:  501 
+Type: EXEC 
+Run:  167 YYYear:  501 
+Type: EXEC 
+Run:  173 YYYear:  501 
+Type: EXEC 
+Run:  179 YYYear:  501 
+Type: EXEC 
+Run:  185 YYYear:  501 
+Type: EXEC 
+Run:  191 YYYear:  501 
+Type: EXEC 
+Run:  197 YYYear:  501 
+Type: EXEC 
+Run:  203 YYYear:  501 
+Type: EXEC 
+Run:  209 YYYear:  501 
+Type: EXEC 
+Run:  215 YYYear:  501 
+Type: EXEC 
+Run:  221 YYYear:  501 
+Type: EXEC 
+Run:  227 YYYear:  501 
+Type: EXEC 
+Run:  233 YYYear:  501 
+Type: EXEC 
+Run:  239 YYYear:  501 
+Type: EXEC 
+Run:  245 YYYear:  501 
+Type: EXEC 
+Run:  251 YYYear:  501 
+Type: EXEC 
+Run:  257 YYYear:  501 
+Type: EXEC 
+Run:  263 YYYear:  501 
+Type: EXEC 
+Run:  269 YYYear:  501 
+Type: EXEC 
+Run:  275 YYYear:  501 
+Type: EXEC 
+Run:  281 YYYear:  501 
+Type: EXEC 
+Run:  287 YYYear:  501 
+Type: EXEC 
+Run:  293 YYYear:  501 
+Type: EXEC 
+Run:  299 YYYear:  501 
+Type: EXEC 
+Run:  305 YYYear:  501 
+Type: EXEC 
+Run:  311 YYYear:  501 
+Type: EXEC 
+Run:  317 YYYear:  501 
+Type: EXEC 
+Run:  323 YYYear:  501 
+Type: EXEC 
+Run:  329 YYYear:  501 
+Type: EXEC 
+Run:  335 YYYear:  501 
+Type: EXEC 
+Run:  341 YYYear:  501 
+Type: EXEC 
+Run:  347 YYYear:  501 
+Type: EXEC 
+Run:  353 YYYear:  501 
+Type: EXEC 
+Run:  359 YYYear:  501 
+Type: EXEC 
+Run:  365 YYYear:  501 
+Type: EXEC 
+Run:  371 YYYear:  501 
+Type: EXEC 
+Run:  377 YYYear:  501 
+Type: EXEC 
+Run:  383 YYYear:  501 
+Type: EXEC 
+Run:  389 YYYear:  501 
+Type: EXEC 
+Run:  395 YYYear:  501 
+Type: EXEC 
+Run:  401 YYYear:  501 
+Type: EXEC 
+Run:  407 YYYear:  501 
+Type: EXEC 
+Run:  413 YYYear:  501 
+Type: EXEC 
+Run:  419 YYYear:  501 
+Type: EXEC 
+Run:  425 YYYear:  501 
+Type: EXEC 
+Run:  431 YYYear:  501 
+Type: EXEC 
+Run:  437 YYYear:  501 
+Type: EXEC 
+Run:  443 YYYear:  501 
+Type: EXEC 
+Run:  449 YYYear:  501 
+Type: EXEC 
+Run:  455 YYYear:  501 
+Type: EXEC 
+Run:  461 YYYear:  501 
+Type: EXEC 
+Run:  467 YYYear:  501 
+Type: EXEC 
+Run:  473 YYYear:  501 
+Type: EXEC 
+Run:  479 YYYear:  501 
+Type: EXEC 
+Run:  485 YYYear:  501 
+Type: EXEC 
+Run:  491 YYYear:  501 
+Type: EXEC 
+Run:  497 YYYear:  501 
+Type: EXEC 
+Run:  503 YYYear:  501 
+Type: EXEC 
+Run:  509 YYYear:  501 
+Type: EXEC 
+Run:  515 YYYear:  501 
+Type: EXEC 
+Run:  521 YYYear:  501 
+Type: EXEC 
+Run:  527 YYYear:  501 
+Type: EXEC 
+Run:  533 YYYear:  501 
+Type: EXEC 
+Run:  539 YYYear:  501 
+Type: EXEC 
+Run:  545 YYYear:  501 
+Type: EXEC 
+Run:  551 YYYear:  501 
+Type: EXEC 
+Run:  557 YYYear:  501 
+Type: EXEC 
+Run:  563 YYYear:  501 
+Type: EXEC 
+Run:  569 YYYear:  501 
+Type: EXEC 
+Run:  575 YYYear:  501 
+Type: EXEC 
+Run:  581 YYYear:  501 
+Type: EXEC 
+Run:  587 YYYear:  501 
+Type: EXEC 
+Run:  593 YYYear:  501 
+Type: EXEC 
+Run:  599 YYYear:  501 
+Type: EXEC 
+Run:  605 YYYear:  501 
+Type: EXEC 
+Run:  611 YYYear:  501 
+Type: EXEC 
+Run:  617 YYYear:  501 
+Type: EXEC 
+Run:  623 YYYear:  501 
+Type: EXEC 
+Run:  629 YYYear:  501 
+Type: EXEC 
+Run:  635 YYYear:  501 
+Type: EXEC 
+Run:  641 YYYear:  501 
+Type: EXEC 
+Run:  647 YYYear:  501 
+Type: EXEC 
+Run:  653 YYYear:  501 
+Type: EXEC 
+Run:  659 YYYear:  501 
+Type: EXEC 
+Run:  665 YYYear:  501 
+Type: EXEC 
+Run:  671 YYYear:  501 
+Type: EXEC 
+Run:  677 YYYear:  501 
+Type: EXEC 
+Run:  683 YYYear:  501 
+Type: EXEC 
+Run:  690 YYYear:  501 
+Type: EXEC 
+Run:  696 YYYear:  501 
+Type: EXEC 
+Run:  702 YYYear:  501 
+Type: EXEC 
+Run:  708 YYYear:  501 
+Type: EXEC 
+Run:  714 YYYear:  501 
+Type: EXEC 
+Run:  720 YYYear:  501 
+Type: EXEC 
+Run:  726 YYYear:  501 
+Type: EXEC 
+Run:  732 YYYear:  501 
+Type: EXEC 
+Run:  738 YYYear:  501 
+Type: EXEC 
+Run:  744 YYYear:  501 
+Type: EXEC 
+Run:  750 YYYear:  501 
+Type: EXEC 
+Run:  756 YYYear:  501 
+Type: EXEC 
+Run:  762 YYYear:  501 
+Type: EXEC 
+Run:  768 YYYear:  501 
+Type: EXEC 
+Run:  774 YYYear:  501 
+Type: EXEC 
+Run:  780 YYYear:  501 
+Type: EXEC 
+Run:  786 YYYear:  501 
+Type: EXEC 
+Run:  792 YYYear:  501 
+Type: EXEC 
+Run:  798 YYYear:  501 
+Type: EXEC 
+Run:  804 YYYear:  501 
+Type: EXEC 
+Run:  810 YYYear:  501 
+Type: EXEC 
+Run:  816 YYYear:  501 
+Type: EXEC 
+Run:  822 YYYear:  501 
+Type: EXEC 
+Run:  828 YYYear:  501 
+Type: EXEC 
+Run:  834 YYYear:  501 
+Type: EXEC 
+Run:  840 YYYear:  501 
+Type: EXEC 
+Run:  846 YYYear:  501 
+Type: EXEC 
+Run:  852 YYYear:  501 
+Type: EXEC 
+Run:  858 YYYear:  501 
+Type: EXEC 
+Run:  864 YYYear:  501 
+Type: EXEC 
+Run:  870 YYYear:  501 
+Type: EXEC 
+Run:  876 YYYear:  501 
+Type: EXEC 
+Run:  882 YYYear:  501 
+Type: EXEC 
+Run:  888 YYYear:  501 
+Type: EXEC 
+Run:  894 YYYear:  501 
+Type: EXEC 
+Run:  900 YYYear:  501 
+Type: EXEC 
+Run:  906 YYYear:  501 
+Type: EXEC 
+Run:  912 YYYear:  501 
+Type: EXEC 
+Run:  918 YYYear:  501 
+Type: EXEC 
+Run:  924 YYYear:  501 
+Type: EXEC 
+Run:  930 YYYear:  501 
+Type: EXEC 
+Run:  936 YYYear:  501 
+Type: EXEC 
+Run:  942 YYYear:  501 
+Type: EXEC 
+Run:  949 YYear:  501 
+Type: EXEC 
+Run:  955 YYear:  501 
+Type: EXEC 
+Run:  961 YYear:  501 
+Type: EXEC 
+Run:  967 YYear:  501 
+Type: EXEC 
+Run:  973 YYear:  501 
+Type: EXEC 
+Run:  979 YYear:  501 
+Type: EXEC 
+Run:  985 YYear:  501 
+Type: EXEC 
+Run:  991 YYear:  501 
+Type: EXEC 
+Run:  997 YYear:  501 
+Type: EXEC 
+Run:  1003 YYYear:  501 
+Type: EXEC 
+Run:  1009 YYYear:  501 
+Type: EXEC 
+Run:  1015 YYYear:  501 
+Type: EXEC 
+Run:  1021 YYYear:  501 
+Type: EXEC 
+Run:  1027 YYYear:  501 
+Type: EXEC 
+Run:  1033 YYYear:  501 
+Type: EXEC 
+Run:  1039 YYYear:  501 
+Type: EXEC 
+Run:  1045 YYYear:  501 
+Type: EXEC 
+Run:  1051 YYYear:  501 
+Type: EXEC 
+Run:  1057 YYYear:  501 
+Type: EXEC 
+Run:  1063 YYYear:  501 
+Type: EXEC 
+Run:  1069 YYYear:  501 
+Type: EXEC 
+Run:  1075 YYYear:  501 
+Type: EXEC 
+Run:  1081 YYYear:  501 
+Type: EXEC 
+Run:  1087 YYYear:  501 
+Type: EXEC 
+Run:  1093 YYYear:  501 
+Type: EXEC 
+Run:  1099 YYYear:  501 
+Type: EXEC 
+Run:  1105 YYYear:  501 
+Type: EXEC 
+Run:  1111 YYYear:  501 
+Type: EXEC 
+Run:  1117 YYYear:  501 
+Type: EXEC 
+Run:  1123 YYYear:  501 
+Type: EXEC 
+Run:  1129 YYYear:  501 
+Type: EXEC 
+Run:  1135 YYYear:  501 
+Type: EXEC 
+Run:  1141 YYYear:  501 
+Type: EXEC 
+Run:  1147 YYYear:  501 
+Type: EXEC 
+Run:  1153 YYYear:  501 
+Type: EXEC 
+Run:  1160 YYYear:  501 
+Type: EXEC 
+Run:  1166 YYYear:  501 
+Type: EXEC 
+Run:  1172 YYYear:  501 
+Type: EXEC 
+Run:  1178 YYYear:  501 
+Type: EXEC 
+Run:  1184 YYYear:  501 
+Type: EXEC 
+Run:  1190 YYYear:  501 
+Type: EXEC 
+Run:  1196 YYYear:  501 
+Type: EXEC 
+Run:  1202 YYYear:  501 
+Type: EXEC 
+Run:  1208 YYYear:  501 
+Type: EXEC 
+Run:  1214 YYYear:  501 
+Type: EXEC 
+Run:  1220 YYYear:  501 
+Type: EXEC 
+Run:  1226 YYYear:  501 
+Type: EXEC 
+Run:  1232 YYYear:  501 
+Type: EXEC 
+Run:  1238 YYYear:  501 
+Type: EXEC 
+Run:  1244 YYYear:  501 
+Type: EXEC 
+Run:  1250 YYYear:  501 
+Type: EXEC 
+Run:  1256 YYYear:  501 
+Type: EXEC 
+Run:  1262 YYYear:  501 
+Type: EXEC 
+Run:  1268 YYYear:  501 
+Type: EXEC 
+Run:  1274 YYYear:  501 
+Type: EXEC 
+Run:  1280 YYYear:  501 
+Type: EXEC 
+Run:  1286 YYYear:  501 
+Type: EXEC 
+Run:  1292 YYYear:  501 
+Type: EXEC 
+Run:  1298 YYYear:  501 
+Type: EXEC 
+Run:  1304 YYYear:  501 
+Type: EXEC 
+Run:  1310 YYYear:  501 
+Type: EXEC 
+Run:  1316 YYYear:  501 
+Type: EXEC 
+Run:  1322 YYYear:  501 
+Type: EXEC 
+Run:  1328 YYYear:  501 
+Type: EXEC 
+Run:  1334 YYYear:  501 
+Type: EXEC 
+Run:  1340 YYYear:  501 
+Type: EXEC 
+Run:  1346 YYYear:  501 
+Type: EXEC 
+Run:  1352 YYYear:  501 
+Type: EXEC 
+Run:  1359 YYear:  501 
+Type: EXEC 
+Run:  1365 YYear:  501 
+Type: EXEC 
+Run:  1371 YYear:  501 
+Type: EXEC 
+Run:  1377 YYear:  501 
+Type: EXEC 
+Run:  1383 YYear:  501 
+Type: EXEC 
+Run:  1389 YYear:  501 
+Type: EXEC 
+Run:  1395 YYear:  501 
+Type: EXEC 
+Run:  1401 YYear:  501 
+Type: EXEC 
+Run:  1407 YYear:  501 
+Type: EXEC 
+Run:  1413 YYear:  501 
+Type: EXEC 
+Run:  1419 YYear:  501 
+Type: EXEC 
+Run:  1425 YYear:  501 
+Type: EXEC 
+Run:  1431 YYear:  501 
+Type: EXEC 
+Run:  1437 YYear:  501 
+Type: EXEC 
+Run:  1443 YYear:  501 
+Type: EXEC 
+Run:  1449 YYear:  501 
+Type: EXEC 
+Run:  1455 YYear:  501 
+Type: EXEC 
+Run:  1461 YYear:  501 
+Type: EXEC 
+Run:  1467 YYear:  501 
+Type: EXEC 
+Run:  1473 YYear:  501 
+Type: EXEC 
+Run:  1479 YYear:  501 
+Type: EXEC 
+Run:  1485 YYear:  501 
+Type: EXEC 
+Run:  1491 YYear:  501 
+Type: EXEC 
+Run:  1497 YYear:  501 
+Type: EXEC 
+Run:  1503 YYear:  501 
+Type: EXEC 
+Run:  1509 YYear:  501 
+Type: EXEC 
+Run:  1515 YYear:  501 
+Type: EXEC 
+Run:  1521 YYear:  501 
+Type: EXEC 
+Run:  1527 YYear:  501 
+Type: EXEC 
+Run:  1533 YYear:  501 
+Type: EXEC 
+Run:  1539 YYear:  501 
+Type: EXEC 
+Run:  1545 YYear:  501 
+Type: EXEC 
+Run:  1551 YYear:  501 
+Type: EXEC 
+Run:  1557 YYear:  501 
+Type: EXEC 
+Run:  1563 YYear:  501 
+Type: EXEC 
+Run:  1569 YYear:  501 
+Type: EXEC 
+Run:  1575 YYear:  501 
+Type: EXEC 
+Run:  1581 YYear:  501 
+Type: EXEC 
+Run:  1587 YYear:  501 
+Type: EXEC 
+Run:  1593 YYear:  501 
+Type: EXEC 
+Run:  1599 YYear:  501 
+Type: EXEC 
+Run:  1605 YYear:  501 
+Type: EXEC 
+Run:  1613 YYear:  501 
+Type: EXEC 
+Run:  1619 YYear:  501 
+Type: EXEC 
+Run:  1625 YYear:  501 
+Type: EXEC 
+Run:  1631 YYear:  501 
+Type: EXEC 
+Run:  1637 YYear:  501 
+Type: EXEC 
+Run:  1643 YYear:  501 
+Type: EXEC 
+Run:  1649 YYear:  501 
+Type: EXEC 
+Run:  1655 YYear:  501 
+Type: EXEC 
+Run:  1661 YYear:  501 
+Type: EXEC 
+Run:  1667 YYear:  501 
+Type: EXEC 
+Run:  1673 YYear:  501 
+Type: EXEC 
+Run:  1679 YYear:  501 
+Type: EXEC 
+Run:  1685 YYear:  501 
+Type: EXEC 
+Run:  1691 YYear:  501 
+Type: EXEC 
+Run:  1697 YYear:  501 
+Type: EXEC 
+Run:  1703 YYear:  501 
+Type: EXEC 
+Run:  1709 YYear:  501 
+Type: EXEC 
+Run:  1715 YYear:  501 
+Type: EXEC 
+Run:  1721 YYear:  501 
+Type: EXEC 
+Run:  1727 YYear:  501 
+Type: EXEC 
+Run:  1733 YYear:  501 
+Type: EXEC 
+Run:  1739 YYear:  501 
+Type: EXEC 
+Run:  1745 YYear:  501 
+Type: EXEC 
+Run:  1751 YYear:  501 
+Type: EXEC 
+Run:  1757 YYear:  501 
+Type: EXEC 
+Run:  1763 YYear:  501 
+Type: EXEC 
+Run:  1769 YYear:  501 
+Type: EXEC 
+Run:  1775 YYear:  501 
+Type: EXEC 
+Run:  1781 YYear:  501 
+Type: EXEC 
+Run:  1787 YYear:  501 
+Type: EXEC 
+Run:  1793 YYear:  501 
+Type: EXEC 
+Run:  1799 YYear:  501 
+Type: EXEC 
+Run:  1805 YYear:  501 
+Type: EXEC 
+Run:  1811 YYear:  501 
+Type: EXEC 
+Run:  1817 YYear:  501 
+Type: EXEC 
+Run:  1823 YYear:  501 
+Type: EXEC 
+Run:  1829 YYear:  501 
+Type: EXEC 
+Run:  1835 YYear:  501 
+Type: EXEC 
+Run:  1841 YYear:  501 
+Type: EXEC 
+Run:  1847 YYear:  501 
+Type: EXEC 
+Run:  1853 YYear:  501 
+Type: EXEC 
+Run:  1859 YYear:  501 
+Type: EXEC 
+Run:  1865 YYear:  501 
+Type: EXEC 
+Run:  1871 YYear:  501 
+Type: EXEC 
+Run:  1877 YYear:  501 
+Type: EXEC 
+Run:  1883 YYear:  501 
+Type: EXEC 
+Run:  1889 YYear:  501 
+Type: EXEC 
+Run:  1895 YYear:  501 
+Type: EXEC 
+Run:  1901 YYear:  501 
+Type: EXEC 
+Run:  1908 
+Year:  501 
+Type: EXEC 
+Run:  1914 
+Year:  501 
+Type: EXEC 
+Run:  1920 
+Year:  501 
+Type: EXEC 
+Run:  1925 YYear:  501 
+Type: EXEC 
+Run:  1932 
+Year:  501 
+Type: EXEC 
+Run:  1938 
+Year:  501 
+Type: EXEC 
+Run:  1944 
+Year:  501 
+Type: EXEC 
+Run:  1950 
+Year:  501 
+Type: EXEC 
+Run:  1956 
+Year:  501 
+Type: EXEC 
+Run:  1962 
+Year:  501 
+Type: EXEC 
+Run:  1968 
+Year:  501 
+Type: EXEC 
+Run:  1974 
+Year:  501 
+Type: EXEC 
+Run:  1980 
+Year:  501 
+Type: EXEC 
+Run:  1986 
+Year:  501 
+Type: EXEC 
+Run:  1992 
+Year:  501 
+Type: EXEC 
+Run:  1998 
+Year:  501 
+Type: EXEC 
+Run:  2004 
+Year:  501 
+Type: EXEC 
+Run:  2010 
+Year:  501 
+Type: EXEC 
+Run:  2017 
+Year:  501 
+Type: EXEC 
+Run:  2023 
+Year:  501 
+Type: EXEC 
+Run:  2029 
+Year:  501 
+Type: EXEC 
+Run:  2035 
+Year:  501 
+Type: EXEC 
+Run:  2041 
+Year:  501 
+Type: EXEC 
+Run:  2047 
+Year:  501 
+Type: EXEC 
+Run:  2053 
+Year:  501 
+Type: EXEC 
+Run:  2059 
+Year:  501 
+Type: EXEC 
+Run:  2065 
+Year:  501 
+Type: EXEC 
+Run:  2071 
+Year:  501 
+Type: EXEC 
+Run:  2077 
+Year:  501 
+Type: EXEC 
+Run:  2083 
+Year:  501 
+Type: EXEC 
+Run:  2089 
+Year:  501 
+Type: EXEC 
+Run:  2095 
+Year:  501 
+Type: EXEC 
+Run:  2101 
+Year:  501 
+Type: EXEC 
+Run:  2107 
+Year:  501 
+Type: EXEC 
+Run:  2113 
+Year:  501 
+Type: EXEC 
+Run:  2119 
+Year:  501 
+Type: EXEC 
+Run:  2125 
+Year:  501 
+Type: EXEC 
+Run:  2131 
+Year:  501 
+Type: EXEC 
+Run:  2137 
+Year:  501 
+Type: EXEC 
+Run:  2143 
+Year:  501 
+Type: EXEC 
+Run:  2149 
+Year:  501 
+Type: EXEC 
+Run:  2155 
+Year:  501 
+Type: EXEC 
+Run:  2161 
+Year:  501 
+Type: EXEC 
+Run:  2167 
+Year:  501 
+Type: EXEC 
+Run:  2173 
+Year:  501 
+Type: EXEC 
+Run:  2179 
+Year:  501 
+Type: EXEC 
+Run:  2185 
+Year:  501 
+Type: EXEC 
+Run:  2191 
+Year:  501 
+Type: EXEC 
+Run:  2197 
+Year:  501 
+Type: EXEC 
+Run:  2203 
+Year:  501 
+Type: EXEC 
+Run:  2209 
+Year:  501 
+Type: EXEC 
+Run:  2215 
+Year:  501 
+Type: EXEC 
+Run:  2221 
+Year:  501 
+Type: EXEC 
+Run:  2227 
+Year:  501 
+Type: EXEC 
+Run:  2233 
+Year:  501 
+Type: EXEC 
+Run:  2239 
+Year:  501 
+Type: EXEC 
+Run:  2246 
+Year:  501 
+Type: EXEC 
+Run:  2252 
+Year:  501 
+Type: EXEC 
+Run:  2258 
+Year:  501 
+Type: EXEC 
+Run:  2264 
+Year:  501 
+Type: EXEC 
+Run:  2270 
+Year:  501 
+Type: EXEC 
+Run:  2276 
+Year:  501 
+Type: EXEC 
+Run:  2282 
+Year:  501 
+Type: EXEC 
+Run:  2288 
+Year:  501 
+Type: EXEC 
+Run:  2294 
+Year:  501 
+Type: EXEC 
+Run:  2300 
+Year:  501 
+Type: EXEC 
+Run:  2306 
+Year:  501 
+Type: EXEC 
+Run:  2312 
+Year:  501 
+Type: EXEC 
+Run:  2318 
+Year:  501 
+Type: EXEC 
+Run:  2324 
+Year:  501 
+Type: EXEC 
+Run:  2330 
+Year:  501 
+Type: EXEC 
+Run:  2336 
+Year:  501 
+Type: EXEC 
+Run:  2342 
+Year:  501 
+Type: EXEC 
+Run:  2348 
+Year:  501 
+Type: EXEC 
+Run:  2354 
+Year:  501 
+Type: EXEC 
+Run:  2360 
+Year:  501 
+Type: EXEC 
+Run:  2366 
+Year:  501 
+Type: EXEC 
+Run:  2372 
+Year:  501 
+Type: EXEC 
+Run:  2378 
+Year:  501 
+Type: EXEC 
+Run:  2384 
+Year:  501 
+Type: EXEC 
+Run:  2390 
+Year:  501 
+Type: EXEC 
+Run:  2396 
+Year:  501 
+Type: EXEC 
+Run:  2403 
+Year:  501 
+Type: EXEC 
+Run:  2409 
+Year:  501 
+Type: EXEC 
+Run:  2415 
+Year:  501 
+Type: EXEC 
+Run:  2421 
+Year:  501 
+Type: EXEC 
+Run:  2427 
+Year:  501 
+Type: EXEC 
+Run:  2433 
+Year:  501 
+Type: EXEC 
+Run:  2440 
+Year:  501 
+Type: EXEC 
+Run:  2446 
+Year:  501 
+Type: EXEC 
+Run:  2452 
+Year:  501 
+Type: EXEC 
+Run:  2458 
+Year:  501 
+Type: EXEC 
+Run:  2464 
+Year:  501 
+Type: EXEC 
+Run:  2470 
+Year:  501 
+Type: EXEC 
+Run:  2476 
+Year:  501 
+Type: EXEC 
+Run:  2482 
+Year:  501 
+Type: EXEC 
+Run:  2488 
+Year:  501 
+Type: EXEC 
+Run:  2494 
+Year:  501 
+Type: EXEC 
+Run:  2500 
+Year:  501 
+Type: EXEC 
+Run:  2506 
+Year:  501 
+Type: EXEC 
+Run:  2512 
+Year:  501 
+Type: EXEC 
+Run:  2518 
+Year:  501 
+Type: EXEC 
+Run:  2524 
+Year:  501 
+Type: EXEC 
+Run:  2530 
+Year:  501 
+Type: EXEC 
+Run:  2536 
+Year:  501 
+Type: EXEC 
+Run:  2542 
+Year:  501 
+Type: EXEC 
+Run:  2548 
+Year:  501 
+Type: EXEC 
+Run:  2554 
+Year:  501 
+Type: EXEC 
+Run:  2560 
+Year:  501 
+Type: EXEC 
+Run:  2566 
+Year:  501 
+Type: EXEC 
+Run:  2572 
+Year:  501 
+Type: EXEC 
+Run:  2578 
+Year:  501 
+Type: EXEC 
+Run:  2584 
+Year:  501 
+Type: EXEC 
+Run:  2590 
+Year:  501 
+Type: EXEC 
+Run:  2596 
+Year:  501 
+Type: EXEC 
+Run:  2602 
+Year:  501 
+Type: EXEC 
+Run:  2608 
+Year:  501 
+Type: EXEC 
+Run:  2614 
+Year:  501 
+Type: EXEC 
+Run:  2620 
+Year:  501 
+Type: EXEC 
+Run:  2626 
+Year:  501 
+Type: EXEC 
+Run:  2632 
+Year:  501 
+Type: EXEC 
+Run:  2638 
+Year:  501 
+Type: EXEC 
+Run:  2644 
+Year:  501 
+Type: EXEC 
+Run:  2650 
+Year:  501 
+Type: EXEC 
+Run:  2656 
+Year:  501 
+Type: EXEC 
+Run:  2662 
+Year:  501 
+Type: EXEC 
+Run:  2668 
+Year:  501 
+Type: EXEC 
+Run:  2674 
+Year:  501 
+Type: EXEC 
+Run:  2680 
+Year:  501 
+Type: EXEC 
+Run:  2686 
+Year:  501 
+Type: EXEC 
+Run:  2692 
+Year:  501 
+Type: EXEC 
+Run:  2698 
+Year:  501 
+Type: EXEC 
+Run:  2704 
+Year:  501 
+Type: EXEC 
+Run:  2710 
+Year:  501 
+Type: EXEC 
+Run:  2716 
+Year:  501 
+Type: EXEC 
+Run:  2722 
+Year:  501 
+Type: EXEC 
+Run:  2728 
+Year:  501 
+Type: EXEC 
+Run:  2734 
+Year:  501 
+Type: EXEC 
+Run:  2740 
+Year:  501 
+Type: EXEC 
+Run:  2746 
+Year:  501 
+Type: EXEC 
+Run:  2752 
+Year:  501 
+Type: EXEC 
+Run:  2758 
+Year:  501 
+Type: EXEC 
+Run:  2764 
+Year:  501 
+Type: EXEC 
+Run:  2770 
+Year:  501 
+Type: EXEC 
+Run:  2776 
+Year:  501 
+Type: EXEC 
+Run:  2782 
+Year:  501 
+Type: EXEC 
+Run:  2788 
+Year:  501 
+Type: EXEC 
+Run:  2794 
+Year:  501 
+Type: EXEC 
+Run:  2800 
+Year:  501 
+Type: EXEC 
+Run:  2807 
+Year:  501 
+Type: EXEC 
+Run:  2813 
+Year:  501 
+Type: EXEC 
+Run:  2819 
+Year:  501 
+Type: EXEC 
+Run:  2825 
+Year:  501 
+Type: EXEC 
+Run:  2831 
+Year:  501 
+Type: EXEC 
+Run:  2837 
+Year:  501 
+Type: EXEC 
+Run:  2843 
+Year:  501 
+Type: EXEC 
+Run:  2849 
+Year:  501 
+Type: EXEC 
+Run:  2855 
+Year:  501 
+Type: EXEC 
+Run:  2861 
+Year:  501 
+Type: EXEC 
+Run:  2867 
+Year:  501 
+Type: EXEC 
+Run:  2873 
+Year:  501 
+Type: EXEC 
+Run:  2880 
+Year:  501 
+Type: EXEC 
+Run:  2886 
+Year:  501 
+Type: EXEC 
+Run:  2892 
+Year:  501 
+Type: EXEC 
+Run:  2898 
+Year:  501 
+Type: EXEC 
+Run:  2904 
+Year:  501 
+Type: EXEC 
+Run:  2910 
+Year:  501 
+Type: EXEC 
+Run:  2916 
+Year:  501 
+Type: EXEC 
+Run:  2922 
+Year:  501 
+Type: EXEC 
+Run:  2928 
+Year:  501 
+Type: EXEC 
+Run:  2934 
+Year:  501 
+Type: EXEC 
+Run:  2940 
+Year:  501 
+Type: EXEC 
+Run:  2946 
+Year:  501 
+Type: EXEC 
+Run:  2952 
+Year:  501 
+Type: EXEC 
+Run:  2958 
+Year:  501 
+Type: EXEC 
+Run:  2964 
+Year:  501 
+Type: EXEC 
+Run:  2970 
+Year:  501 
+Type: EXEC 
+Run:  2976 
+Year:  501 
+Type: EXEC 
+Run:  2982 
+Year:  501 
+Type: EXEC 
+Run:  2988 
+Year:  501 
+Type: EXEC 
+Run:  2994 
+Year:  501 
+Type: EXEC 
+Run:  3000 
+Year:  501 
+Type: EXEC 
+Run:  3006 
+Year:  501 
+Type: EXEC 
+Run:  3012 
+Year:  501 
+Type: EXEC 
+Run:  3018 
+Year:  501 
+Type: EXEC 
+Run:  3024 
+Year:  501 
+Type: EXEC 
+Run:  3030 
+Year:  501 
+Type: EXEC 
+Run:  3036 
+Year:  501 
+Type: EXEC 
+Run:  3042 
+Year:  501 
+Type: EXEC 
+Run:  3048 
+Year:  501 
+Type: EXEC 
+Run:  3054 
+Year:  501 
+Type: EXEC 
+Run:  3060 
+Year:  501 
+Type: EXEC 
+Run:  3066 
+Year:  501 
+Type: EXEC 
+Run:  3072 
+Year:  501 
+Type: EXEC 
+Run:  3078 
+Year:  501 
+Type: EXEC 
+Run:  3084 
+Year:  501 
+Type: EXEC 
+Run:  3090 
+Year:  501 
+Type: EXEC 
+Run:  3096 
+Year:  501 
+Type: EXEC 
+Run:  3102 
+Year:  501 
+Type: EXEC 
+Run:  3108 
+Year:  501 
+Type: EXEC 
+Run:  3114 
+Year:  501 
+Type: EXEC 
+Run:  3120 
+Year:  501 
+Type: EXEC 
+Run:  3126 
+Year:  501 
+Type: EXEC 
+Run:  3132 
+Year:  501 
+Type: EXEC 
+Run:  3138 
+Year:  501 
+Type: EXEC 
+Run:  3144 
+Year:  501 
+Type: EXEC 
+Run:  3150 
+Year:  501 
+Type: EXEC 
+Run:  3156 
+Year:  501 
+Type: EXEC 
+Run:  3162 
+Year:  501 
+Type: EXEC 
+Run:  3168 
+Year:  501 
+Type: EXEC 
+Run:  3174 
+Year:  501 
+Type: EXEC 
+Run:  3180 
+Year:  501 
+Type: EXEC 
+Run:  3186 
+Year:  501 
+Type: EXEC 
+Run:  3192 
+Year:  501 
+Type: EXEC 
+Run:  3198 
+Year:  501 
+Type: EXEC 
+Run:  3204 
+Year:  501 
+Type: EXEC 
+Run:  3210 
+Year:  501 
+Type: EXEC 
+Run:  3216 
+Year:  501 
+Type: EXEC 
+Run:  3222 
+Year:  501 
+Type: EXEC 
+Run:  3228 
+Year:  501 
+Type: EXEC 
+Run:  3234 
+Year:  501 
+Type: EXEC 
+Run:  3240 
+Year:  501 
+Type: EXEC 
+Run:  3246 
+Year:  501 
+Type: EXEC 
+Run:  3252 
+Year:  501 
+Type: EXEC 
+Run:  3258 
+Year:  501 
+Type: EXEC 
+Run:  3264 
+Year:  501 
+Type: EXEC 
+Run:  3270 
+Year:  501 
+Type: EXEC 
+Run:  3276 
+Year:  501 
+Type: EXEC 
+Run:  3282 
+Year:  501 
+Type: EXEC 
+Run:  3288 
+Year:  501 
+Type: EXEC 
+Run:  3294 
+Year:  501 
+Type: EXEC 
+Run:  3300 
+Year:  501 
+Type: EXEC 
+Run:  3306 
+Year:  501 
+Type: EXEC 
+Run:  3312 
+Year:  501 
+Type: EXEC 
+Run:  3318 
+Year:  501 
+Type: EXEC 
+Run:  3324 
+Year:  501 
+Type: EXEC 
+Run:  3330 
+Year:  501 
+Type: EXEC 
+Run:  3336 
+Year:  501 
+Type: EXEC 
+Run:  3342 
+Year:  501 
+Type: EXEC 
+Run:  3348 
+Year:  501 
+Type: EXEC 
+Run:  3354 
+Year:  501 
+Type: EXEC 
+Run:  3360 
+Year:  501 
+Type: EXEC 
+Run:  3366 
+Year:  501 
+Type: EXEC 
+Run:  3372 
+Year:  501 
+Type: EXEC 
+Run:  3378 
+Year:  501 
+Type: EXEC 
+Run:  3384 
+Year:  501 
+Type: EXEC 
+Run:  3390 
+Year:  501 
+Type: EXEC 
+Run:  3396 
+Year:  501 
+Type: EXEC 
+Run:  3402 
+Year:  501 
+Type: EXEC 
+Run:  3408 
+Year:  501 
+Type: EXEC 
+Run:  3414 
+Year:  501 
+Type: EXEC 
+Run:  3420 
+Year:  501 
+Type: EXEC 
+Run:  3426 
+Year:  501 
+Type: EXEC 
+Run:  3432 
+Year:  501 
+Type: EXEC 
+Run:  3439 
+Year:  501 
+Type: EXEC 
+Run:  3445 
+Year:  501 
+Type: EXEC 
+Run:  3451 
+Year:  501 
+Type: EXEC 
+Run:  3457 
+Year:  501 
+Type: EXEC 
+Run:  3463 
+Year:  501 
+Type: EXEC 
+Run:  3469 
+Year:  501 
+Type: EXEC 
+Run:  3475 
+Year:  501 
+Type: EXEC 
+Run:  3481 
+Year:  501 
+Type: EXEC 
+Run:  3487 
+Year:  501 
+Type: EXEC 
+Run:  3493 
+Year:  501 
+Type: EXEC 
+Run:  3500 
+Year:  501 
+Type: EXEC 
+Run:  3506 
+Year:  501 
+Type: EXEC 
+Run:  3512 
+Year:  501 
+Type: EXEC 
+Run:  3518 
+Year:  501 
+Type: EXEC 
+Run:  3524 
+Year:  501 
+Type: EXEC 
+Run:  3530 
+Year:  501 
+Type: EXEC 
+Run:  3536 
+Year:  501 
+Type: EXEC 
+Run:  3542 
+Year:  501 
+Type: EXEC 
+Run:  3548 
+Year:  501 
+Type: EXEC 
+Run:  3554 
+Year:  501 
+Type: EXEC 
+Run:  3560 
+Year:  501 
+Type: EXEC 
+Run:  3566 
+Year:  501 
+Type: EXEC 
+Run:  3572 
+Year:  501 
+Type: EXEC 
+Run:  3578 
+Year:  501 
+Type: EXEC 
+Run:  3584 
+Year:  501 
+Type: EXEC 
+Run:  3590 
+Year:  501 
+Type: EXEC 
+Run:  3596 
+Year:  501 
+Type: EXEC 
+Run:  3602 
+Year:  501 
+Type: EXEC 
+Run:  3608 
+Year:  501 
+Type: EXEC 
+Run:  3614 
+Year:  501 
+Type: EXEC 
+Run:  3620 
+Year:  501 
+Type: EXEC 
+Run:  3626 
+Year:  501 
+Type: EXEC 
+Run:  3632 
+Year:  501 
+Type: EXEC 
+Run:  3638 
+YeYear:  501 
+Type: EXEC 
+Run:  3644 Year:  501 
+Type: EXEC 
+Run:  3650 
+Year:  501 
+Type: EXEC 
+Run:  3656 
+Year:  501 
+Type: EXEC 
+Run:  3662 
+Year:  501 
+Type: EXEC 
+Run:  3668 
+YeYear:  501 
+Type: EXEC 
+Run:  3674 YeYear:  501 
+Type: EXEC 
+Run:  3680 YeYear:  501 
+Type: EXEC 
+Run:  3687 YeYear:  501 
+Type: EXEC 
+Run:  3693 YeYear:  501 
+Type: EXEC 
+Run:  3699 YeYear:  501 
+Type: EXEC 
+Run:  3705 YeYear:  501 
+Type: EXEC 
+Run:  3711 YeYear:  501 
+Type: EXEC 
+Run:  3717 YeYear:  501 
+Type: EXEC 
+Run:  3723 YeYear:  501 
+Type: EXEC 
+Run:  3729 YeYear:  501 
+Type: EXEC 
+Run:  3735 YeYear:  501 
+Type: EXEC 
+Run:  3741 YeYear:  501 
+Type: EXEC 
+Run:  3747 YeYear:  501 
+Type: EXEC 
+Run:  3753 YeYear:  501 
+Type: EXEC 
+Run:  3759 YeYear:  501 
+Type: EXEC 
+Run:  3765 YeYear:  501 
+Type: EXEC 
+Run:  3771 YeYear:  501 
+Type: EXEC 
+Run:  3777 YeYear:  501 
+Type: EXEC 
+Run:  3783 YeYear:  501 
+Type: EXEC 
+Run:  3789 YeYear:  501 
+Type: EXEC 
+Run:  3795 YeYear:  501 
+Type: EXEC 
+Run:  3801 YeYear:  501 
+Type: EXEC 
+Run:  3807 YeYear:  501 
+Type: EXEC 
+Run:  3813 YeYear:  501 
+Type: EXEC 
+Run:  3819 YeYear:  501 
+Type: EXEC 
+Run:  3825 YeYear:  501 
+Type: EXEC 
+Run:  3831 YeYear:  501 
+Type: EXEC 
+Run:  3837 YeYear:  501 
+Type: EXEC 
+Run:  3843 YeYear:  501 
+Type: EXEC 
+Run:  3849 YeYear:  501 
+Type: EXEC 
+Run:  3856 YeYear:  501 
+Type: EXEC 
+Run:  3862 YeYear:  501 
+Type: EXEC 
+Run:  3868 YeYear:  501 
+Type: EXEC 
+Run:  3874 YeYear:  501 
+Type: EXEC 
+Run:  3880 YeYear:  501 
+Type: EXEC 
+Run:  3886 YeYear:  501 
+Type: EXEC 
+Run:  3892 YeYear:  501 
+Type: EXEC 
+Run:  3898 YeYear:  501 
+Type: EXEC 
+Run:  3904 YeYear:  501 
+Type: EXEC 
+Run:  3910 YeYear:  501 
+Type: EXEC 
+Run:  3916 YeYear:  501 
+Type: EXEC 
+Run:  3923 YeYear:  501 
+Type: EXEC 
+Run:  3928 YeYear:  501 
+Type: EXEC 
+Run:  3934 YeYear:  501 
+Type: EXEC 
+Run:  3940 YeYear:  501 
+Type: EXEC 
+Run:  3946 YeYear:  501 
+Type: EXEC 
+Run:  3953 YeYear:  501 
+Type: EXEC 
+Run:  3959 YeYear:  501 
+Type: EXEC 
+Run:  3964 YeYear:  501 
+Type: EXEC 
+Run:  3970 YeYear:  501 
+Type: EXEC 
+Run:  3977 YeYear:  501 
+Type: EXEC 
+Run:  3983 YeYear:  501 
+Type: EXEC 
+Run:  3988 YeYear:  501 
+Type: EXEC 
+Run:  3994 YeYear:  501 
+Type: EXEC 
+Run:  4001 YeYear:  501 
+Type: EXEC 
+Run:  4006 YeYear:  501 
+Type: EXEC 
+Run:  4013 YeYear:  501 
+Type: EXEC 
+Run:  4018 YeYear:  501 
+Type: EXEC 
+Run:  4025 YeYear:  501 
+Type: EXEC 
+Run:  4031 YeYear:  501 
+Type: EXEC 
+Run:  4037 YeYear:  501 
+Type: EXEC 
+Run:  4043 YeYear:  501 
+Type: EXEC 
+Run:  4049 YeYear:  501 
+Type: EXEC 
+Run:  4055 YeYear:  501 
+Type: EXEC 
+Run:  4061 YeYear:  501 
+Type: EXEC 
+Run:  4067 YeYear:  501 
+Type: EXEC 
+Run:  4074 YeYear:  501 
+Type: EXEC 
+Run:  4080 YeYear:  501 
+Type: EXEC 
+Run:  4086 YeYear:  501 
+Type: EXEC 
+Run:  4092 YeYear:  501 
+Type: EXEC 
+Run:  4098 YeYear:  501 
+Type: EXEC 
+Run:  4104 YeYear:  501 
+Type: EXEC 
+Run:  4110 YeYear:  501 
+Type: EXEC 
+Run:  4116 YeYear:  501 
+Type: EXEC 
+Run:  4122 YeYear:  501 
+Type: EXEC 
+Run:  4128 YeYear:  501 
+Type: EXEC 
+Run:  4134 YeYear:  501 
+Type: EXEC 
+Run:  4140 YeYear:  501 
+Type: EXEC 
+Run:  4146 YeYear:  501 
+Type: EXEC 
+Run:  4152 YeYear:  501 
+Type: EXEC 
+Run:  4158 YeYear:  501 
+Type: EXEC 
+Run:  4164 YeYear:  501 
+Type: EXEC 
+Run:  4170 YeYear:  501 
+Type: EXEC 
+Run:  4176 YeYear:  501 
+Type: EXEC 
+Run:  4182 YeYear:  501 
+Type: EXEC 
+Run:  4188 YeYear:  501 
+Type: EXEC 
+Run:  4195 YeYear:  501 
+Type: EXEC 
+Run:  4201 YeYear:  501 
+Type: EXEC 
+Run:  4207 YeYear:  501 
+Type: EXEC 
+Run:  4213 YeYear:  501 
+Type: EXEC 
+Run:  4219 YeYear:  501 
+Type: EXEC 
+Run:  4225 YeYear:  501 
+Type: EXEC 
+Run:  4231 YeYear:  501 
+Type: EXEC 
+Run:  4237 YeYear:  501 
+Type: EXEC 
+Run:  4243 YeYear:  501 
+Type: EXEC 
+Run:  4249 YeYear:  501 
+Type: EXEC 
+Run:  4255 YeYear:  501 
+Type: EXEC 
+Run:  4261 YeYear:  501 
+Type: EXEC 
+Run:  4267 YeYear:  501 
+Type: EXEC 
+Run:  4273 YeYear:  501 
+Type: EXEC 
+Run:  4279 YeYear:  501 
+Type: EXEC 
+Run:  4285 YeYear:  501 
+Type: EXEC 
+Run:  4291 YeYear:  501 
+Type: EXEC 
+Run:  4297 YeYear:  501 
+Type: EXEC 
+Run:  4303 YeYear:  501 
+Type: EXEC 
+Run:  4309 YeYear:  501 
+Type: EXEC 
+Run:  4315 YeYear:  501 
+Type: EXEC 
+Run:  4321 YeYear:  501 
+Type: EXEC 
+Run:  4327 YeYear:  501 
+Type: EXEC 
+Run:  4333 YeYear:  501 
+Type: EXEC 
+Run:  4339 YeYear:  501 
+Type: EXEC 
+Run:  4345 YeYear:  501 
+Type: EXEC 
+Run:  4351 YeYear:  501 
+Type: EXEC 
+Run:  4357 YeYear:  501 
+Type: EXEC 
+Run:  4363 YeYear:  501 
+Type: EXEC 
+Run:  4369 YeYear:  501 
+Type: EXEC 
+Run:  4375 YeYear:  501 
+Type: EXEC 
+Run:  4381 YeYear:  501 
+Type: EXEC 
+Run:  4387 YeYear:  501 
+Type: EXEC 
+Run:  4393 YeYear:  501 
+Type: EXEC 
+Run:  4399 YeYear:  501 
+Type: EXEC 
+Run:  4405 YeYear:  501 
+Type: EXEC 
+Run:  4411 YeYear:  501 
+Type: EXEC 
+Run:  4417 YeYear:  501 
+Type: EXEC 
+Run:  4423 YeYear:  501 
+Type: EXEC 
+Run:  4429 YeYear:  501 
+Type: EXEC 
+Run:  4435 YeYear:  501 
+Type: EXEC 
+Run:  4441 YeYear:  501 
+Type: EXEC 
+Run:  4447 YeYear:  501 
+Type: EXEC 
+Run:  4453 YeYear:  501 
+Type: EXEC 
+Run:  4459 YeYear:  501 
+Type: EXEC 
+Run:  4465 YeYear:  501 
+Type: EXEC 
+Run:  4471 YeYear:  501 
+Type: EXEC 
+Run:  4477 YeYear:  501 
+Type: EXEC 
+Run:  4483 YeYear:  501 
+Type: EXEC 
+Run:  4489 YeYear:  501 
+Type: EXEC 
+Run:  4495 YeYear:  501 
+Type: EXEC 
+Run:  4501 YeYear:  501 
+Type: EXEC 
+Run:  4507 YeYear:  501 
+Type: EXEC 
+Run:  4513 YeYear:  501 
+Type: EXEC 
+Run:  4519 YeYear:  501 
+Type: EXEC 
+Run:  4525 YeYear:  501 
+Type: EXEC 
+Run:  4531 YeYear:  501 
+Type: EXEC 
+Run:  4537 YeYear:  501 
+Type: EXEC 
+Run:  4543 YeYear:  501 
+Type: EXEC 
+Run:  4549 YeYear:  501 
+Type: EXEC 
+Run:  4555 YeYear:  501 
+Type: EXEC 
+Run:  4561 YeYear:  501 
+Type: EXEC 
+Run:  4567 YeYear:  501 
+Type: EXEC 
+Run:  4573 YeYear:  501 
+Type: EXEC 
+Run:  4579 YeYear:  501 
+Type: EXEC 
+Run:  4585 YeYear:  501 
+Type: EXEC 
+Run:  4591 YeYear:  501 
+Type: EXEC 
+Run:  4597 YeYear:  501 
+Type: EXEC 
+Run:  4603 YeYear:  501 
+Type: EXEC 
+Run:  4610 YeYear:  501 
+Type: EXEC 
+Run:  4616 YeYear:  501 
+Type: EXEC 
+Run:  4622 YeYear:  501 
+Type: EXEC 
+Run:  4628 YeYear:  501 
+Type: EXEC 
+Run:  4634 YeYear:  501 
+Type: EXEC 
+Run:  4640 YeYear:  501 
+Type: EXEC 
+Run:  4646 YeYear:  501 
+Type: EXEC 
+Run:  4652 YeYear:  501 
+Type: EXEC 
+Run:  4658 YeYear:  501 
+Type: EXEC 
+Run:  4664 YeYear:  501 
+Type: EXEC 
+Run:  4670 YeYear:  501 
+Type: EXEC 
+Run:  4676 YeYear:  501 
+Type: EXEC 
+Run:  4682 YeYear:  501 
+Type: EXEC 
+Run:  4688 YeYear:  501 
+Type: EXEC 
+Run:  4694 YeYear:  501 
+Type: EXEC 
+Run:  4701 YeYear:  501 
+Type: EXEC 
+Run:  4707 YeYear:  501 
+Type: EXEC 
+Run:  4713 YeYear:  501 
+Type: EXEC 
+Run:  4719 YeYear:  501 
+Type: EXEC 
+Run:  4725 YeYear:  501 
+Type: EXEC 
+Run:  4731 YeYear:  501 
+Type: EXEC 
+Run:  4737 YeYear:  501 
+Type: EXEC 
+Run:  4743 YeYear:  501 
+Type: EXEC 
+Run:  4749 YeYear:  501 
+Type: EXEC 
+Run:  4755 YeYear:  501 
+Type: EXEC 
+Run:  4761 YeYear:  501 
+Type: EXEC 
+Run:  4767 YeYear:  501 
+Type: EXEC 
+Run:  4773 YeYear:  501 
+Type: EXEC 
+Run:  4779 YeYear:  501 
+Type: EXEC 
+Run:  4785 YeYear:  501 
+Type: EXEC 
+Run:  4791 YeYear:  501 
+Type: EXEC 
+Run:  4797 YeYear:  501 
+Type: EXEC 
+Run:  4803 YeYear:  501 
+Type: EXEC 
+Run:  4809 YeYear:  501 
+Type: EXEC 
+Run:  4815 YeYear:  501 
+Type: EXEC 
+Run:  4821 YeYear:  501 
+Type: EXEC 
+Run:  4827 YeYear:  501 
+Type: EXEC 
+Run:  4833 YeYear:  501 
+Type: EXEC 
+Run:  4839 YeYear:  501 
+Type: EXEC 
+Run:  4845 YeYear:  501 
+Type: EXEC 
+Run:  4851 YeYear:  501 
+Type: EXEC 
+Run:  4857 YeYear:  501 
+Type: EXEC 
+Run:  4863 YeYear:  501 
+Type: EXEC 
+Run:  4869 YeYear:  501 
+Type: EXEC 
+Run:  4876 YeYear:  501 
+Type: EXEC 
+Run:  4881 YeYear:  501 
+Type: EXEC 
+Run:  4887 YeYear:  501 
+Type: EXEC 
+Run:  4893 YeYear:  501 
+Type: EXEC 
+Run:  4900 YeYear:  501 
+Type: EXEC 
+Run:  4905 YeYear:  501 
+Type: EXEC 
+Run:  4911 YeYear:  501 
+Type: EXEC 
+Run:  4918 YeYear:  501 
+Type: EXEC 
+Run:  4923 YeYear:  501 
+Type: EXEC 
+Run:  4930 YeYear:  501 
+Type: EXEC 
+Run:  4936 YeYear:  501 
+Type: EXEC 
+Run:  4942 YeYear:  501 
+Type: EXEC 
+Run:  4948 YeYear:  501 
+Type: EXEC 
+Run:  4954 YeYear:  501 
+Type: EXEC 
+Run:  4960 YeYear:  501 
+Type: EXEC 
+Run:  4966 YeYear:  501 
+Type: EXEC 
+Run:  4972 YeYear:  501 
+Type: EXEC 
+Run:  4978 YeYear:  501 
+Type: EXEC 
+Run:  4984 YeYear:  501 
+Type: EXEC 
+Run:  4990 YeYear:  501 
+Type: EXEC 
+Run:  4996 YeYear:  501 
+Type: EXEC 
+Run:  5002 YeYear:  501 
+Type: EXEC 
+Run:  5008 YeYear:  501 
+Type: EXEC 
+Run:  5015 YeYear:  501 
+Type: EXEC 
+Run:  5021 YeYear:  501 
+Type: EXEC 
+Run:  5027 YeYear:  501 
+Type: EXEC 
+Run:  5033 YeYear:  501 
+Type: EXEC 
+Run:  5039 YeYear:  501 
+Type: EXEC 
+Run:  5045 YeYear:  501 
+Type: EXEC 
+Run:  5051 YeYear:  501 
+Type: EXEC 
+Run:  5057 YeYear:  501 
+Type: EXEC 
+Run:  5063 YeYear:  501 
+Type: EXEC 
+Run:  5069 YeYear:  501 
+Type: EXEC 
+Run:  5075 YeYear:  501 
+Type: EXEC 
+Run:  5081 YeYear:  501 
+Type: EXEC 
+Run:  5087 YeYear:  501 
+Type: EXEC 
+Run:  5093 YeYear:  501 
+Type: EXEC 
+Run:  5099 YeYear:  501 
+Type: EXEC 
+Run:  5105 YeYear:  501 
+Type: EXEC 
+Run:  5111 YeYear:  501 
+Type: EXEC 
+Run:  5117 YeYear:  501 
+Type: EXEC 
+Run:  5123 YeYear:  501 
+Type: EXEC 
+Run:  5129 YeYear:  501 
+Type: EXEC 
+Run:  5135 YeYear:  501 
+Type: EXEC 
+Run:  5141 YeYear:  501 
+Type: EXEC 
+Run:  5147 YeYear:  501 
+Type: EXEC 
+Run:  5153 YeYear:  501 
+Type: EXEC 
+Run:  5159 YeYear:  501 
+Type: EXEC 
+Run:  5165 YeYear:  501 
+Type: EXEC 
+Run:  5171 YeYear:  501 
+Type: EXEC 
+Run:  5177 YeYear:  501 
+Type: EXEC 
+Run:  5183 YeYear:  501 
+Type: EXEC 
+Run:  5189 YeYear:  501 
+Type: EXEC 
+Run:  5195 YeYear:  501 
+Type: EXEC 
+Type: DONE 
+ar:  501 
+Type: EXEC 
+Type: DONE 
+ear:  501 
+Type: EXEC 
+Run:  5197 
+Year:  501 
+Type: EXEC 
+Type: DONE 
+ear:  501 
+Type: EXEC 
+Run:  5199 
+Year:  501 
+Type: EXEC 
+Type: DONE 
+ear:  501 
+Type: EXEC 
+Run:  5190 
+Year:  501 
+Type: EXEC 
+Run:  5196 
+Year:  501 
+Type: EXEC 
+Type: DONE 
+Year:  501 
+Type: EXEC 
+Run:  5186 
+Year:  501 
+Type: EXEC 
+Run:  5192 
+Year:  501 
+Type: EXEC 
+Run:  5198 
+Year:  501 
+Type: EXEC 
+Type: DONE 

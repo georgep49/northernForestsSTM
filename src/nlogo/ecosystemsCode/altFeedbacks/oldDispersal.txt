@@ -1,0 +1,134 @@
+THIS IS CODE FROM THE Regen VERSION OF THE MODEL THAT HAS BEEN REFACTORED TOTALLY
+
+;; let target nobody
+   
+   ;; what is dispersed is one-year old seedlings (effectively): we deal with class 3 and then class 4 (refactor????)
+    
+    ask patches
+    [
+      set new-rct-3 0
+      set new-rct-4 0
+      set ldd-this-tick 0
+    ] 
+     
+    ;; for each patch first calculate local dispersal and then LDD 
+    let m-appx-pred base-seed-prod-3 * (1 - seed-pred)
+    let s-appx-pred base-seed-prod-3 * seed-pred * (1 - seed-pred)
+      
+    ask patches with [class = 3]
+    [
+      
+      ;; first divvy up the seed rain
+      let N random-normal m-appx-pred s-appx-pred   ;; seeds after predation
+      if N < 0 [ set N 0 ]
+      
+      let local-N round N - ( random-normal (N * fraction-consumed) (N * fraction-consumed * (1 - fraction-consumed)) )
+      set ldd-this-tick N - local-N
+;      show N
+;      show local-N
+;      show ldd-this-tick
+;      show "-----------"
+      ;; local dispersal:: this is the total produced by the patch - dispersed locally via diffuse later     
+      set new-rct-3 local-N     
+    ]  
+      
+    diffuse new-rct-3 0.5
+    
+    ;; and now the LDD component
+    
+    let total-ldd round (sum [ldd-this-tick] of patches with [class = 3])
+    show total-ldd
+    repeat total-ldd
+    [
+    ask one-of patches ;; with [class = 3 and ldd-this-tick > 0.5]
+    [
+      ;; show ldd-this-tick
+      ;;repeat floor ldd-this-tick
+      ;;[
+
+           ;; let target one-of patches
+        
+            ;;ask n-of (round ldd-this-tick) patches
+            ;;[ 
+                  set new-rct-3 new-rct-3 + 1
+                 ;; set propagules replace-item idx propagules (pr + 1)
+                 ;; if (pr + 1) = 3 [set t-colonised replace-item idx t-colonised ticks]
+              ;; ]
+             ;;]
+           ]   
+     ] 
+    ;;]
+  ;;]   
+
+ 
+  ;;; ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  ;; And now deal with the class 4 patches
+  set m-appx-pred base-seed-prod-4 * (1 - seed-pred)
+  set s-appx-pred base-seed-prod-4 * seed-pred * (1 - seed-pred)
+  
+  ask patches [ set ldd-this-tick 0 ]
+     
+  ask patches with [class = 4]
+    [
+      
+      ;; first divvy up the seed rain
+      let N random-normal m-appx-pred s-appx-pred   ;; seeds after predation
+      if N < 0 [set N 0]
+      
+      
+      let local-N N - ( random-normal (N * fraction-consumed) (N * fraction-consumed * (1 - fraction-consumed)) )
+      set ldd-this-tick N - local-N
+      
+      ;; local dispersal:: this is the total produced by the patch - dispersed locally via diffuse later     
+      set new-rct-4 local-N     
+    ]  
+      
+    diffuse new-rct-4 0.5
+    
+    ;; and now the LDD component
+    ask patches with [class = 4 and ldd-this-tick > 0.5]
+    [
+      ;; repeat ldd-this-tick
+      ;; [
+       
+        ask n-of (round ldd-this-tick) patches [ 
+          if class >= 3 [set new-rct-4 new-rct-4 + 1]
+        ]
+                 
+       ;;if random-float 1 >= seed-pred    ;; avoids predation?
+       ;;[
+;         ifelse random-float 1 <= fraction-consumed  ;; consumed and dispersed by pigeon
+;         [
+;           let d random-exponential mean-ldd
+;           set target patch-at-heading-and-distance (random-float 360) d
+;         ]
+;         [
+;           set target one-of (patch-set self neighbors)
+;         ]
+;     
+;         if target != nobody
+;         [
+;        ;; assume that seedlings of class 3 can establish under any sort of veg
+        ;; but class 4 needs to be under class 2 or 3
+        
+;           let target one-of other patches
+;           
+;           
+;           if [class] of target >= 2
+;           [
+;             ;;[
+;           ;;    let idx class - 3   ; so 3 -> 0 and 4 -> 1
+;              ;; let pr item idx ([propagules] of target) 
+;           
+;               ask target 
+;               [ 
+;                ;; let r item 0 new-rcts
+;                set new-rct-4 new-rct-4 + 1
+;                 ;; set propagules replace-item idx propagules (pr + 1)
+;                 ;; if (pr + 1) = 3 [set t-colonised replace-item idx t-colonised ticks]
+;               ]
+;             ]
+;           ]   
+     ] 
+    ;;]
+ ;; ] 

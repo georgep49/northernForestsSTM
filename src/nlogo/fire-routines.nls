@@ -55,39 +55,37 @@ to fire-spread [extrinsic]
   [  
      let new-fire-front patch-set nobody      ;Empty set of patches for the next 'round' of the fire
    
-     ask fire-front                           ;Ask patches nieghbouring the fireFront to see if they ignite
+     ask fire-front                           ;Ask patches neighbouring the fireFront to see if they ignite
      [
        
        let fx pxcor
        let fy pycor
        
        ask neighbors with [ not burned? ]
-       [
-          
-          let nx pxcor
-          let ny pycor
-          
+       [  
          ; slope as per Millington EMS
          ; lt -25 = 0.8; -25 to -15 = 0.9; -15 to -5 = 0.95; -5 to 5 = 0; 5 to 15 = 1.05; 15 to 25 = 1.1; 25+ = 1.2  
          ; to add
         
           ; wind calculations   
-          let cellBearing atan (nx - fx)  (ny - fy)        ; Bearing from ignited patch (fx,fy) to candidate patch (nx,ny)
+          let cellBearing atan (pxcor - fx)  (pycor - fy)        ; Bearing from ignited patch (pxcor, pycor) to candidate patch (nx,ny)
           let relDirn abs(windDirection - cellBearing)     ; Dir of fire spread relative to wind (difference)
-          if relDirn > 180 [set relDirn 360 - relDirn]     ; Corrected to bound angle (0, 180) 
+          if relDirn > 180 [set relDirn 360 - relDirn]     ; Corrected to bound angle (0,180) 
+          
           let windWgt item (relDirn / 45) (item (windSpeed - 1) windModifiers) 
-        
         
           ; edge drying calculations
           let edge-wgt count neighbors with [ class = "d-sh" or class = "m-sh" or class = "gr" ] * 0.025
           
           ; compute the base flammability multiplier 
-           ;forest cells on edge of open veg are more flammable (as per Tepley et al. in Ecosystems) 
-          let baseMultiplier (windWgt * (1 + extrinsic) * edge-wgt)
+          ; forest cells on edge of open veg are more flammable (as per Tepley et al. in Ecosystems) 
           
-
+        ; let baseMultiplier (windWgt * (1 + extrinsic) * edge-wgt)
+        let baseMultiplier (windWgt * (1 + extrinsic) * (1 + edge-wgt))
           set pSpread flammability * baseMultiplier
           
+          ; show pSpread 
+        
           if random-float 1 < (pSpread )
           [
             set burned? true                                             ;Need to change status here so they don't get ignited twice
