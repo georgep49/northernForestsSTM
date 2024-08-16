@@ -3,8 +3,6 @@
 ;; This sorts out what happens after a fire - this is where pyrophyllic invasion takes place
 to post-fire
 
-   show "fix up post-fire grassland transitions"
-
    let new-invasions 0
    ask patches with [burned?]
    [
@@ -15,7 +13,7 @@ to post-fire
      let local-weeds count neighbors with [class = "d-sh"]
 
 
-     ;; assume regen bank destroyed
+     ;; assume regen bank destroyed( 1 - ((1 / forest-nhb) ^ 0.5) )
      set regenbank-yfor (list 0 0)
      set regenbank-ofor (list 0 0)
 
@@ -89,9 +87,17 @@ to succession
         let forest-nhb count neighbors with [class != "gr" and class != "d-sh"]
         let trans 0
 
-        ;; TO DO - should this be a non-zero chance?
-        ifelse  forest-nhb = 0 [set trans 0 ] [set trans 1 - ((1 / forest-nhb) ^ 0.5)]
-
+        ;; Greassland that ahs been in grass for lt base years -> no change
+        ;; Base chance after 20 years, increased by having nhbs in woody veg
+        ifelse forest-nhb = 0 
+        [
+          ifelse last-change > table:get base-changes-dict class 
+          [ set trans 0.1 ]     ;; base change of transitioning from grsas to m-sh after base years
+          [ set trans 0 ]
+        
+        ] 
+        [set trans 0.1 + ( 1 - ((1 / forest-nhb) ^ 0.5) )]    ;; prob based on nhb
+          
         if random-float 1 < trans
         [
           set class "m-sh"
@@ -128,33 +134,32 @@ to succession
 
       ;; manuka shrubland -> kanuka-x
       if class = "m-sh" and last-change != ticks
-      [
-        ;; *** TO DO ***
-        ;; pohut, kauri, no kauri??????
-        ;;show "fix trans out of manuka!!"
-
-        ;; set class one-of (list "ksh-nok" "ksh-k" "ksh-p")
-        
+      [ 
         ;; Distance based test for transition to pohutakawa
-        ;; TO DO - needs to be some sort of asymptotic function
-        if random-float 1 < 1 - ((1 / 25) * distance-to-coast)
+        ;; TO DO - needs to be slider to add or parameter file to read in
+        
+        if random-float 1 < (decr-limit-fx 0 1 5 (distance-to-coast / 500))
         [
           set class "ksh-p"
         ]
         
-        ;; if not pohutakawa then coin toss on gradient
-       ;; TO DO - needs to be weighted by neighboiuring env (so if lots of kauri adjacent....) 
+        ;; if not pohutakawa, nhb weighted coin toss on gradient
         if class != "ksh-p"
         [
-          ifelse random-float 1 < edaphic-grad
-          [ set class "ksh-k"]
-          [ set class "ksh-nok" ]  
+          let kauri-nhb count neighbors with [ class = "ksh-k" ] 
+          let k-wgt 0
+          if kauri-nhb > 0 [set k-wgt ( 1 - ((1 / kauri-nhb) ^ 0.25) )]
+          
+          ifelse random-float 1 < edaphic-grad + k-wgt
+          [ set class "ksh-k" ]
+          [ set class "ksh-nok" ]
+          
         ] 
         
-        let last30 length filter [ ?1 -> ?1 >= ticks - 30 ] fire-history
+        let last30 length filter [ f -> f >= ticks - 30 ] fire-history
         let base table:get base-changes-dict class
 
-        set next-change ceiling ((ticks + (base + (last30 * 2)))  * (0.9 + random-float 0.2))
+        set next-change ceiling ((ticks + (base + (last30 * 2))) * (0.9 + random-float 0.2))
 
         set last-change ticks
         set times-change times-change + 1
@@ -166,7 +171,7 @@ to succession
       ;; kanuka-x -> young forest-x
       if (class = "ksh-p" or class = "ksh-k" or class = "ksh-nok") and last-change != ticks
       [
-        let n-saps max (list item 1 regenbank-yfor  item 1 regenbank-ofor)    ;; n-trees is max of type 3 or 4 to stop spurious stalling
+        let n-saps max (list item 1 regenbank-yfor item 1 regenbank-ofor)    ;; n-trees is max of type 3 or 4 to stop spurious stalling
         ifelse n-saps >= crit-density-yng
         [
           if track-stalled?
@@ -237,100 +242,92 @@ to succession
 end
 
 to dispersal
-    let target nobody
-    let forest-age ""
+  let target nobody
+  let forest-age ""
 
-   ;; what is dispersed is 1.5 m high saps (effectively)
+  ;; what is dispersed is established saps (effectively)
+   ask repro-patches
 
-    ; ask patches with [ class >= 3 ]
-    ask repro-patches
-
-    [
-     let seed-rain 0
-     if class = "yf-p" or class = "yf-k" or class = "yf-nok" [
-       set seed-rain round (random-poisson base-seed-prod-yf)
-       set forest-age "young"
-     ]
-
-     if class = "old-p" or class = "old-f" [
-       set seed-rain round (random-poisson base-seed-prod-of)
-      set forest-age "old"
+   [
+    let seed-rain 0
+    
+    if class = "yf-p" or class = "yf-k" or class = "yf-nok" [
+      set seed-rain random-poisson base-seed-prod-yf
+      set forest-age "young"
     ]
 
-     repeat seed-rain
-     [
-       if random-float 1 >= seed-pred    ;; avoids predation?
-       [
-         ifelse random-float 1 <= fraction-consumed  ;; consumed and dispersed by pigeon
-         [
-           let d random-exponential mean-ldd
-           set target patch-at-heading-and-distance (random-float 360) d
-         ]
-         [
-           set target one-of (patch-set self neighbors)
-         ]
-
-         if target != nobody
-         [
-        ;; assume that seedlings of young forest spp can establish under any sort of veg, except invaded shrubland
-
-           ;; no establishment of class 'yfor-x' in invaded shrubland OR grassland
-           if forest-age = "young" and [class] of target != "d-sh" and [class] of target != "gr"
-           [
-             let n-sdl item 0 regenbank-yfor ; abundance of sdl of class x in the patch
-
-             ask target
-             [
-               set regenbank-yfor replace-item 0 regenbank-yfor (n-sdl + 1)
-               if (n-sdl + 1) >= crit-density-yng [set t-colonised replace-item 0 t-colonised ticks]  ;; 0 as first item in list
-             ]
-
-           ]
-
-           ;; old forest spp only establish in kanuka shrubland [2] or older
-           if forest-age = "old" and [class] of target != "d-sh" and [class] of target != "gr" and [class] of target != "m-sh"
-
-           [
-             let n-sdl (item 0 regenbank-ofor)    ; abundance of sdl of class x in the patch
-
-             ask target
-             [
-               set regenbank-ofor replace-item 0 regenbank-ofor (n-sdl + 1)       ;; matrix:set matrix row-i col-j new-value
-               if (n-sdl + 1) >= crit-density-old [set t-colonised replace-item 1 t-colonised ticks] ;; 0 as second item in list
-             ]
-           ]
-
-
-           ]
-         ]
-     ]
+    if class = "old-p" or class = "old-f" [
+     set seed-rain random-poisson base-seed-prod-of
+     set forest-age "old"
    ]
 
-
-end
-
-to thin-regenbank
-
-  let sap-mortality 0
-  if sap-mortality > 0
-  [
-    ask patches
+    repeat seed-rain
     [
-      if regenbank-yfor > 0
+      if random-float 1 >= seed-pred    ;; avoids predation?
       [
-        set regenbank-yfor( map [i -> random-binomial i (1 - sap-mortality)] regenbank-yfor)
-      ]
+        ifelse random-float 1 <= fraction-seed-ldd  ;; consumed and dispersed by pigeon
+        [
+          let d random-exponential mean-ldd
+          set target patch-at-heading-and-distance (random-float 360) d
+        ]
+        [
+          set target one-of (patch-set self neighbors)
+        ]
 
-      if regenbank-ofor > 0
-      [
-        set regenbank-ofor( map [i -> random-binomial i (1 - sap-mortality)] regenbank-ofor)
-      ]
+        if target != nobody
+        [
+          ;; assume that seedlings of young forest spp can establish under any sort of veg, except invaded shrubland
+          
+          ;; no establishment of class 'yfor-x' in invaded shrubland OR grassland
+          if forest-age = "young" and [class] of target != "d-sh" and [class] of target != "gr"
+          [
+            let n-sdl item 0 regenbank-yfor ; abundance of sdl of class x in the patch
 
+            ask target
+            [
+              set regenbank-yfor replace-item 0 regenbank-yfor (n-sdl + 1)
+              if (n-sdl + 1) >= crit-density-yng [set t-colonised replace-item 0 t-colonised ticks]  ;; 0 as first item in list
+            ]
+          ]
+
+          ;; old forest spp only establish in kanuka shrubland [2] or older
+          if forest-age = "old" and [class] of target != "d-sh" and [class] of target != "gr" and [class] of target != "m-sh"
+
+          [
+            let n-sdl (item 0 regenbank-ofor)    ; abundance of sdl of class x in the patch
+
+            ask target
+            [
+              set regenbank-ofor replace-item 0 regenbank-ofor (n-sdl + 1)
+              if (n-sdl + 1) >= crit-density-old [set t-colonised replace-item 1 t-colonised ticks] ;; 0 as second item in list
+            ]
+          ]
+
+
+          ]
+        ]
     ]
   ]
 end
 
+;; Thin the regeneration bank to simulate effects of herbivory
+to herbivory-patch-bank
+  
+   ask patches
+   [
+     if regenbank-yfor > 0
+     [
+       set regenbank-yfor( map [i -> random-binomial i (1 - sap-herbivory)] regenbank-yfor)
+     ]
 
+     if regenbank-ofor > 0
+     [
+       set regenbank-ofor( map [i -> random-binomial i (1 - sap-herbivory)] regenbank-ofor)
+     ]
+
+   ]
+ 
+end
 
 ;; Deals with regeneration in the seedling and sapling banks
 to regenerate-patch-bank

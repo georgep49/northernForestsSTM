@@ -45,9 +45,7 @@ globals [
   base-changes-dict
   tr-mtx-bank-yfor
   tr-mtx-bank-ofor
-  sum-stalled       ;; total stalled list 0 = 2 -> 3, 1 = 3 -> 4
-  sum-changes       ;; no. stalled list 0 = 2 -> 3, 1 = 3 -> 4
-  n-changes
+  sap-herbivory
 
   ;; fire-related
   flammability-list
@@ -59,6 +57,13 @@ globals [
   extinguished?
 
   ;; pathogen-related
+  rust-susc-dict
+  rust-global-inf  ; global prob uninfected become infected
+
+  phy-susc-dict
+  phy-global-inf   ; global prob uninfected become infected
+  phy-local-inf   ; prob of local spread to nhb susc cells
+  phy-radius-inf   ; radius of local spread
 
   ;; fire history
   ;; two lists to deal with individual fires and their characteristics
@@ -72,11 +77,15 @@ globals [
   enso-list
   enso-state
   enso-record
+  extrinsic-sd
 
   ;; lsp reporters
   abundances
   beyond-flamm-time
   old-growth-abund
+  sum-stalled       ;; total stalled list 0 = 2 -> 3, 1 = 3 -> 4
+  sum-changes       ;; no. stalled list 0 = 2 -> 3, 1 = 3 -> 4
+  n-changes
 
   ;; these globals control the MRC algorithm
   colour-list        ;; list of spectral colors
@@ -104,7 +113,12 @@ patches-own
   distance-to-coast
 
   myrtle-rust?
+  myrtle-rust-time
+
+
   kauri-mate?
+  kauri-mate-time
+  kauri-mate-nhb
 
   stalled
 
@@ -128,58 +142,60 @@ to go
     ;if ticks = 0 [print date-and-time]
     ;if ticks = 300 [print date-and-time  stop ]
 
-    while [ ticks <= max-ticks and old-growth-abund <= max-forest ]
+   while [ ticks <= max-ticks and old-growth-abund <= max-forest ]
+   [
+
+
+    ;; Get the climate conditions for the year
+    transition-enso
+    let extrinsic random-normal 0 extrinsic-sd
+
+    let fire-this-tick false
+    if ticks > burn-in-regen
     [
-
-
-      ;; Get the climate conditions for the year
-      transition-enso
-      let extrinsic random-normal 0 0
-
-
-      let fire-this-tick false
-      if ticks > burn-in-regen
+      if random-float 1 <= fire-frequency
       [
-        if random-float 1 <= fire-frequency
+        let start? ignite-fire
+        if start? = true
         [
-          let start? ignite-fire
-          if start? = true
-          [
-          fire-spread extrinsic
-            post-fire
-            set fire-this-tick true
-          ]
+        fire-spread extrinsic
+          post-fire
+          set fire-this-tick true
         ]
       ]
+    ]
 
-      set n-changes 0
+    set n-changes 0
 
-      dispersal
-      regenerate-patch-bank
+    dispersal
+    regenerate-patch-bank
+    if sap-herbivory > 0 [ herbivory-patch-bank ]
 
-      if ticks > burn-in-regen
-      [
-        succession
+     if ticks > burn-in-regen
+     [
+       succession
 
-        if n-changes > 0 or fire-this-tick = true
-        [
-          color-by-class
-          update-abundances
+       if n-changes > 0 or fire-this-tick = true
+       [
+         color-by-class
+         update-abundances
 
-          if abund-flammable < 0.3 and ticks < beyond-flamm-time
-          [
-            set beyond-flamm-time ticks
-          ]
-        ]
-      ]
+         if abund-flammable < 0.3 and ticks < beyond-flamm-time
+         [
+           set beyond-flamm-time ticks
+         ]
+       ]
+     ]
 
+   spread-rust
+   spread-kauri-mate
 
 ;      profiler:stop          ;; stop profiling
 ;      print profiler:report  ;; view the results
 ;      profiler:reset
 
-      tick
-    ]
+     tick
+   ]
   ;write-record
 end
 
@@ -371,6 +387,16 @@ to-report mle-exponent [size-list xmin]
   ;]
 end
 
+;; b1 upper, b0, lower, b2 steep
+to-report decr-limit-fx [b0 b1 b2 x]
+  report b1 *  exp(- b2 * x) + b0
+end
+
+;; b1 upper, b1 steep
+to-report incr-limit-fx [b1 b2 x]
+  report b1 * (1 - exp(- b2 * x))
+end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 241
@@ -466,10 +492,10 @@ NIL
 1
 
 PLOT
-837
-11
-1185
-225
+662
+10
+1010
+224
 Abundances
 NIL
 NIL
@@ -507,11 +533,11 @@ SLIDER
 130
 202
 163
-fraction-consumed
-fraction-consumed
+fraction-seed-ldd
+fraction-seed-ldd
 0
 1
-0.0
+0.05
 .01
 1
 NIL
@@ -559,10 +585,10 @@ track-stalled?
 -1000
 
 PLOT
-837
-228
-1186
-378
+662
+227
+1011
+377
 Lsp flammability
 NIL
 NIL
@@ -669,10 +695,10 @@ RGN
 1
 
 SWITCH
-838
-386
-944
-419
+664
+385
+777
+418
 invasion?
 invasion?
 1
@@ -680,10 +706,10 @@ invasion?
 -1000
 
 INPUTBOX
-1068
-383
-1187
-443
+892
+386
+1072
+454
 init-composition
 initial_composition.csv
 1
@@ -781,10 +807,10 @@ Minimum 'density' of juvenile saps to make transition - this is effectively an i
 1
 
 BUTTON
-949
-387
-1050
-420
+784
+386
+882
+419
 show-stalled
 color-by-stall
 NIL
@@ -798,10 +824,10 @@ NIL
 1
 
 BUTTON
-959
-423
-1059
-456
+784
+422
+884
+455
 show-class
 color-by-class
 NIL
@@ -815,10 +841,10 @@ NIL
 1
 
 SLIDER
-842
-463
-1014
-496
+667
+462
+839
+495
 max-ticks
 max-ticks
 1
@@ -830,10 +856,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-841
-499
-1013
-532
+666
+498
+838
+531
 burn-in-regen
 burn-in-regen
 0
@@ -845,10 +871,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-1018
-464
-1138
-497
+843
+463
+963
+496
 show-r3
 color-by-regen3
 NIL
@@ -862,10 +888,10 @@ NIL
 1
 
 BUTTON
-1019
-501
-1139
-534
+844
+500
+964
+533
 show-r4
 color-by-regen4
 NIL
@@ -879,10 +905,10 @@ NIL
 1
 
 SLIDER
-841
-535
-1013
-568
+666
+534
+838
+567
 max-forest
 max-forest
 0
@@ -894,10 +920,10 @@ NIL
 HORIZONTAL
 
 SWITCH
-839
-422
-949
-455
+664
+421
+774
+454
 write-record?
 write-record?
 0
@@ -905,13 +931,13 @@ write-record?
 -1000
 
 PLOT
-1189
-12
-1553
-222
-plot 1
-NIL
-NIL
+1014
+11
+1378
+221
+Fire size history
+Year
+Fire size
 0.0
 10.0
 0.0
@@ -930,6 +956,40 @@ TEXTBOX
 Blues - no kauri, Oranges - kauri, Turquises - pohutakawa\nDark green - oldgrowth\n
 11
 0.0
+1
+
+BUTTON
+972
+464
+1113
+497
+highlight-kauri-mate
+ask patches with [kauri-mate?] [ set pcolor red ]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+972
+499
+1113
+532
+highlight-rust
+ask patches with [myrtle-rust?] [ set pcolor yellow ]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 1
 
 @#$#@#$#@

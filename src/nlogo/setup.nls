@@ -59,11 +59,51 @@ to setup
     ["yf-p" 120]
     ["old-p" 0]
   ]
+  
+  set rust-susc-dict table:from-list [
+    ["gr" FALSE]
+    ["d-sh" TRUE]
+    ["m-sh" TRUE]
+    ["ksh-k" TRUE]
+    ["yf-k" FALSE]
+    ["ksh-nok" TRUE]
+    ["yf-nok" FALSE]
+    ["old-f" FALSE]
+    ["ksh-p" TRUE]
+    ["yf-p" TRUE]
+    ["old-p" TRUE]
+  ]
+  
+  set phy-susc-dict table:from-list [
+    ["gr" FALSE]
+    ["d-sh" FALSE]
+    ["m-sh" TRUE]
+    ["ksh-k" TRUE]
+    ["yf-k" TRUE]
+    ["ksh-nok" FALSE]
+    ["yf-nok" FALSE]
+    ["old-f" TRUE]
+    ["ksh-p" FALSE]
+    ["yf-p" FALSE]
+    ["old-p" FALSE]
+  ]
 
   ;; Set up the transition matrices for seedling/sapling dynamics -> ROW wise
   set tr-mtx-bank-yfor (list [0.8 0] [0.1 0.9])    ;; transitions from 1.5m -> 5 cm dbh individuals in yng forest
   set tr-mtx-bank-ofor (list [0.8 0] [0.1 0.9])    ;; ... and old forest
+  
+  set sap-herbivory 0
+  
+  ;; Pathogens - myrtle rust
+  ;; sliders eventually 
+  set rust-global-inf 0.01  ; global prob uninfected become infected
 
+  ;; Pathogens - kauri-mate
+  ;; sliders eventually 
+  set phy-global-inf 0.01  ; global prob uninfected become infected
+  set phy-local-inf 0.1   ; prob of local spread to nhb susc cells
+  set phy-radius-inf (sqrt 2)     ; radius of local spread 
+  
   ;; Set up fire history 
   set fire-record []
   set fire-stats []
@@ -71,10 +111,12 @@ to setup
   set fire-year []
   set beyond-flamm-time 99999
 
-  ;; Setup ENSO
+  ;; Setup clamate, ENSO, ...
   set enso-record []
-  init-enso
+  set extrinsic-sd 0.0
  
+  init-enso
+  
   ;; Build the landscape using the MRC code...
   build-landscape
 
@@ -102,20 +144,19 @@ to build-landscape
     ask patches with [class = "d-sh"] [set class "m-sh"]
   ]
 
-  init-patch-dynamics
+  init-patches
   find-clusters
   id-clusters
   age-by-cluster
 
   update-abundances
 
-
   ask patches [set distance-to-coast pxcor * patch-grain]
 
 end
 
 ;; initialise the patch fire and regen history
-to init-patch-dynamics
+to init-patches
 
   ask patches
   [
@@ -131,6 +172,10 @@ to init-patch-dynamics
     set prev-class class
     
     set distance-to-coast pxcor * patch-grain
+    
+    set myrtle-rust? false
+    set kauri-mate? false
+    set kauri-mate-nhb other patches in-radius phy-radius-inf
   ]
   
   build-fbm
