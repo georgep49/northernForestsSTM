@@ -2,18 +2,19 @@
 
 ;; This sorts out what happens after a fire - this is where pyrophyllic invasion takes place
 to post-fire
-
+  
+  let fire-hist-len table:get aux-params-dict "fire-hist-len"
+  
    let new-invasions 0
    ask patches with [burned?]
    [
      set prev-class class
 
      set fire-history lput ticks fire-history
-     let last30 length filter [ f -> f >= ticks - 30 ] fire-history
+     let last-x-fires length filter [ f -> f >= ticks - fire-hist-len ] fire-history
      let local-weeds count neighbors with [class = "d-sh"]
 
-
-     ;; assume regen bank destroyed( 1 - ((1 / forest-nhb) ^ 0.5) )
+     ;; assume regen bank destroyed
      set regenbank-yfor (list 0 0)
      set regenbank-ofor (list 0 0)
 
@@ -23,23 +24,23 @@ to post-fire
      ;; transition to manuka or invaded shrubland?
      ifelse invasion? = true and class != "gr"
      [
-       ifelse random-float 1 <= (base-invasion + (fire-invasion * last30)) * (1 + (local-weeds / 8))
+       ifelse random-float 1 <= (base-invasion + (fire-invasion * last-x-fires)) * (1 + (local-weeds / 8))
        [
          set class "d-sh"   ;; to degraded shrubland
-         set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
+         set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
          set flammability table:get flammability-dict class
 
        ]
        [
          set class "m-sh"   ;; to manuka
-         set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
+         set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
          set flammability table:get flammability-dict class
        ]
      ]
 
      [
          set class "m-sh"
-         set next-change ticks + (table:get base-changes-dict class) + (last30 * fire-slow)
+         set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
          set flammability table:get flammability-dict class
      ]
    ]
@@ -96,7 +97,9 @@ to succession
           [ set trans 0 ]
         
         ] 
-        [set trans 0.1 + ( 1 - ((1 / forest-nhb) ^ 0.5) )]    ;; prob based on nhb
+        [
+          set trans 0.1 + ( 1 - ((1 / forest-nhb) ^ (table:get aux-params-dict "gass-to-sh-exp") ))
+        ]    ;; prob based on nhb
           
         if random-float 1 < trans
         [
@@ -106,7 +109,7 @@ to succession
           let base table:get base-changes-dict class    ;; so time to *next* change estimated here
         
           ;;next change yr = base change + fire slowing + random noise  
-          set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float 0.2)
+          set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float (table:get aux-params-dict "succ-noise"))
         
           set last-change ticks
           set times-change times-change + 1
@@ -123,7 +126,7 @@ to succession
         let last30 length filter [ f -> f >= ticks - 30 ] fire-history
         let base (table:get base-changes-dict class)    ;; so time to *next* change estimated here
 
-        set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float 0.2)
+        set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float (table:get aux-params-dict "succ-noise"))
         ;;next change yr = base change + fire slowing + random noise
 
         set last-change ticks
@@ -136,9 +139,12 @@ to succession
       if class = "m-sh" and last-change != ticks
       [ 
         ;; Distance based test for transition to pohutakawa
-        ;; TO DO - needs to be slider to add or parameter file to read in
         
-        if random-float 1 < (decr-limit-fx 0 1 5 (distance-to-coast / 500))
+        let b0 table:get aux-params-dict "poh-coast-b0"
+        let b1 table:get aux-params-dict "poh-coast-b1"
+        let b2 table:get aux-params-dict "poh-coast-b1"
+        
+        if random-float 1 < (decr-limit-fx b0 b1 b2 (distance-to-coast / table:get aux-params-dict "max-poh-coast"))
         [
           set class "ksh-p"
         ]
@@ -148,7 +154,7 @@ to succession
         [
           let kauri-nhb count neighbors with [ class = "ksh-k" ] 
           let k-wgt 0
-          if kauri-nhb > 0 [set k-wgt ( 1 - ((1 / kauri-nhb) ^ 0.25) )]
+          if kauri-nhb > 0 [set k-wgt ( 1 - ((1 / kauri-nhb) ^ (table:get aux-params-dict "kauri-nhb-exp") ))]
           
           ifelse random-float 1 < edaphic-grad + k-wgt
           [ set class "ksh-k" ]
@@ -159,7 +165,7 @@ to succession
         let last30 length filter [ f -> f >= ticks - 30 ] fire-history
         let base table:get base-changes-dict class
 
-        set next-change ceiling ((ticks + (base + (last30 * 2))) * (0.9 + random-float 0.2))
+        set next-change ceiling ((ticks + (base + (last30 * 2))) * (0.9 + random-float (table:get aux-params-dict "succ-noise")))
 
         set last-change ticks
         set times-change times-change + 1
@@ -189,7 +195,7 @@ to succession
           if class = "ksh-p" [set new-class "yf-p"]
 
           set class new-class
-          let base table:get base-changes-dict class * (0.9 + random-float 0.2)
+          let base table:get base-changes-dict class * (0.9 + random-float(table:get aux-params-dict "succ-noise"))
 
           set next-change ticks + round base
           set last-change ticks

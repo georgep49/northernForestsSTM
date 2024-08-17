@@ -76,7 +76,8 @@ to fire-spread [extrinsic]
         
         ; edge drying calculations
         ; forest cells on edge of open veg are more flammable (as per Tepley et al. in Ecosystems) 
-        let edge-wgt count neighbors with [ class = "d-sh" or class = "m-sh" or class = "gr" ] * 0.025
+        let n-edge-nhb count neighbors with [ class = "d-sh" or class = "m-sh" or class = "gr" ]
+        let edge-wgt n-edge-nhb * (table:get aux-params-dict "edge-flamm-wgt")
           
         ; compute the base flammability multiplier 
         let baseMultiplier (windWgt * (1 + extrinsic) * (1 + edge-wgt))

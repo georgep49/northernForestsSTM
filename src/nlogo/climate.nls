@@ -2,7 +2,7 @@
 
 to init-enso
 
-  set enso-mtx csv:from-file "enso_matrix.csv"   ; load the matrix
+  set enso-mtx csv:from-file enso-matrix-file   ; load the matrix
   set enso-list first enso-mtx                   ; get the states possible (headers)
   set enso-mtx but-first enso-mtx                ; strip to mtx only
   
@@ -17,7 +17,7 @@ end
 ;; get a new ENSO state
 to transition-enso
   
-  ;; this is a littl eopaque but what we do is get the position of the current 
+  ;; this is a little eopaque but what we do is get the position of the current 
   ;; ENSO state and then use that to index the frequencies of occurence of each
   ;; state, and use that in a multinomial trial...
   

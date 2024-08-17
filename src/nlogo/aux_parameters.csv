@@ -1,0 +1,9 @@
+﻿fire-hist-len,30
+grass-to-sh-exp,0.5
+succ-noise,0.2
+poh-coast-b0,0
+poh-coast-b1,1
+poh-coast-b2,5
+kauri-nhb-exp,0.25
+edge-flamm-wgt,0.025
+max-poh-coast,500
