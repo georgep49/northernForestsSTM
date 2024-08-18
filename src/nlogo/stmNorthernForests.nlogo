@@ -49,6 +49,7 @@ globals [
   ;; fire-related
   flammability-dict
   flamm-wind-list
+  flamm-slope-list
 
   fire-front
   fire-size
