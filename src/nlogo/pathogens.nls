@@ -58,5 +58,29 @@ to switch-kauri-traj
   
 end  
   
+;; for patches with kauri mate does retrogression occur?  
+to kauri-mate-retro
   
-
+  ;; critical time is the time with PTA before any risk of retrogression
+  let crit-time table:get aux-params-dict "kauri-mate-retro-age"
+  
+  
+  ask patches with [ kauri-mate? = true and kauri-mate-time > (ticks + crit-time) ]
+  [
+    if random-float 1 <= 0.1   ;; rand number test based on asym incr func
+    [
+      if class = "yf-k" set class ["yf-nok"]   
+      if class = "ksh-k"       ;; ksh goes to either alt state based on age
+      [
+        ifelse last-change < (ticks + 40)  ; 40 = 1/2 base change
+        [
+          set class "ksh-nok"
+        ]
+        [
+          set class "m-sh"  
+        ]
+      ]
+    ]   
+  ]
+  
+end  

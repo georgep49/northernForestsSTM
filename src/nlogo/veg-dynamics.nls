@@ -45,7 +45,7 @@ to post-fire
      ]
    ]
 
-   set new-invasions count patches with [class = 0 and prev-class > 0]
+  set new-invasions count patches with [class = 0 and prev-class > 0]
 
   set fire-size count patches with [burned?]
   set fire-year lput ticks fire-year 
@@ -55,7 +55,7 @@ to post-fire
 
   let types-burned map [ cl -> count patches with [burned? and prev-class = cl] ]  class-names-list
 
-  foreach types-burned[ cl -> set fire-stats lput (cl / world-size) fire-stats ]
+  foreach types-burned [ cl -> set fire-stats lput (cl / world-size) fire-stats ]
 
   set fire-stats lput mean [flammability] of patches fire-stats
   set fire-stats lput new-invasions fire-stats

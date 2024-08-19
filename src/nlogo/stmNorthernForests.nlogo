@@ -59,12 +59,7 @@ globals [
 
   ;; pathogen-related
   rust-susc-dict
-  ; rust-global-inf  ; global prob uninfected become infected
-
   phy-susc-dict
-  ;phy-global-inf   ; global prob uninfected become infected
-  ;phy-local-inf   ; prob of local spread to nhb susc cells
-  ;phy-radius-inf   ; radius of local spread
 
   ;; fire history
   ;; two lists to deal with individual fires and their characteristics
@@ -261,134 +256,59 @@ to-report abund-stalled
   report count patches with [stalled > 0] / world-size
 end
 
-
-to write-record
-  if write-record? = true
-  [
-    ;; let exists? file-exists? "fireRecord.txt"
-    let tag 0
-    if from-r? = FALSE
-    [ set run-id behaviorspace-run-number ]
-
-
-    let file-name ( word record-tag "fireRecord-" run-id ".txt" )
-    file-open file-name
-
-    file-print " Run Year start.veg start.hb pre.flamm pre.inv pre.man pre.kan pre.yfor pre.ofor fire.size burn.inv burn.man burn.kan burn.yfor burn.ofor post.flamm new.invasions"
-
-    let n length fire-record
-    let idx 0
-
-    foreach fire-record
-    [ ?1 ->
-      let data ?1
-      file-write run-id
-
-      foreach data
-      [ ??1 ->
-        file-write precision ??1 3
-      ]
-      file-newline
-      set idx idx + 1
-    ]
-
-    file-close
-  ]
-end
-
-to file-newline
-  file-print ""
-end
-
-
-;to-report get-binomial [sz pr]
-;  r:put "p" pr
-;  r:put "s" sz
+;parameter_files/parameter_files/
+;to write-record
+;  if write-record? = true
+;  [
+;    ;; let exists? file-exists? "fireRecord.txt"
+;    let tag 0
+;    if from-r? = FALSE
+;    [ set run-id behaviorspace-run-number ]
 ;
-;  report r:get "rbinom(1,s,p)"
+;
+;    let file-name ( word record-tag "fireRecord-" run-id ".txt" )
+;    file-open file-name
+;
+;    file-print " Run Year start.veg start.hb pre.flamm pre.inv pre.man pre.kan pre.yfor pre.ofor fire.size burn.inv burn.man burn.kan burn.yfor burn.ofor post.flamm new.invasions"
+;
+;    let n length fire-record
+;    let idx 0
+;
+;    foreach fire-record
+;    [ ?1 ->
+;      let data ?1
+;      file-write run-id
+;
+;      foreach data
+;      [ ??1 ->
+;        file-write precision ??1 3
+;      ]
+;      file-newline
+;      set idx idx + 1
+;    ]
+;
+;    file-close
+;  ]
 ;end
-
-to calibrate-bank
- file-open "calibrate-bank.txt"
- file-print "class last.change n5.d3 n5.d4 n10.d3 n10.d4 dist.d3 last.d3 last.d4 dist.d4  r3.sdl r3.sap r4.sdl r4.sap"
-
- ask patches
- [
-   let d3 patches in-radius 10 with [ class = 3 ]
-   let d4 patches in-radius 10 with [ class = 4 ]
-
-
-   file-write class
-   file-write last-change
-
-   file-write count d3 in-radius 5 with [ class = 3 ]
-   file-write count d4 in-radius 5 with [ class = 4 ]
-
-   file-write count d3
-   file-write count d4
-
-
-   ifelse any? d3
-     [
-       let nn-d3 min-one-of d3 [distance myself]
-       file-write precision distance nn-d3 3
-       file-write precision (mean [last-change] of d3) 2
-     ]
-     [ repeat 2 [ file-write -1 ] ]
-
-   ifelse any? d4
-     [
-       let nn-d4 min-one-of d4 [distance myself]
-       file-write precision distance nn-d4 3
-       file-write precision (mean [last-change] of d4) 2
-     ]
-     [ repeat 2 [ file-write -1 ] ]
-
-   file-write matrix:to-column-list regenbank-yfor
-   file-write matrix:to-column-list regenbank-ofor
-
-   file-print ""
- ]
- file-close
-end
-
-;; ret <- data.frame(x, NLReport("max-ticks"), NLReport("burn-in-regen"), NLReport("fire-frequency"), NLReport("item 3 abundances"))
-to-report report-evaluation-variables
-    ;; LENGTH = 11 + 1 for X
-
-
-    let dump lput beyond-flamm-time abundances
-    set dump lput ticks dump
-    ifelse length fire-size-list > 0
-    [
-      set dump lput (length fire-size-list) dump
-      set dump lput (max fire-size-list) dump
-      set dump lput (sum fire-size-list) dump
-      set dump lput (mean fire-size-list) dump
-    ]
-    [
-      set dump lput 0 dump
-      set dump lput 0 dump
-      set dump lput 0 dump
-      set dump lput 0 dump
-    ]
-
-
-    report dump
-end
-
-to-report mle-exponent [size-list xmin]
-  ;carefully
-  ;[
-    let b 1
-    let mle-est map [ ?1 -> (log ?1 2) / xmin ] size-list
-    set b 1 + ((sum mle-est) ^ -1)
-    report b
-  ;]
-  ;[
-    ;report -999
-  ;]
-end
+;
+;to file-newline
+;  file-print ""
+;end
+;
+;
+;
+;to-report mle-exponent [size-list xmin]
+;  ;carefully
+;  ;[
+;    let b 1
+;    let mle-est map [ ?1 -> (log ?1 2) / xmin ] size-list
+;    set b 1 + ((sum mle-est) ^ -1)
+;    report b
+;  ;]
+;  ;[
+;    ;report -999
+;  ;]
+;end
 
 ;; b1 upper, b0, lower, b2 steep
 to-report decr-limit-fx [b0 b1 b2 x]
@@ -436,7 +356,7 @@ perc-seed
 perc-seed
 0
 1
-0.54
+0.57
 0.01
 1
 NIL
@@ -509,8 +429,8 @@ true
 true
 "" ""
 PENS
-"invaded" 1.0 0 -6459832 true "" "plot count patches with [class = \"d-sh\" or class = \"gr\"] / world-size"
-"manuka" 1.0 0 -7171555 true "" "plot count patches with [class = \"m-sh\"] / world-size"
+"invaded" 1.0 0 -2570826 true "" "plot count patches with [class = \"d-sh\" or class = \"gr\"] / world-size"
+"manuka" 1.0 0 -8431303 true "" "plot count patches with [class = \"m-sh\"] / world-size"
 "kanuka" 1.0 0 -5509967 true "" "plot count patches with [class = \"ksh-p\" or class = \"ksh-k\" or class = \"ksh-nok\"] / world-size"
 "yngfor" 1.0 0 -13840069 true "" "plot count patches with [class = \"yf-p\" or class = \"yf-k\" or class = \"yf-nok\"] / world-size"
 "oldfor" 1.0 0 -15575016 true "" "plot count patches with [class = \"old-p\" or class = \"old-f\"] / world-size"
@@ -712,8 +632,8 @@ INPUTBOX
 386
 1072
 454
-init-composition
-initial_composition.csv
+init-composition-file
+parameter_files/initial_composition.csv
 1
 0
 String
@@ -851,7 +771,7 @@ max-ticks
 max-ticks
 1
 4000
-250.0
+261.0
 10
 1
 NIL
@@ -1063,7 +983,7 @@ phy-radius-inf
 phy-radius-inf
 0
 3
-1.4142135623730951
+1.5
 0.5
 1
 NIL
@@ -1072,19 +992,19 @@ HORIZONTAL
 INPUTBOX
 1167
 303
-1340
+1375
 363
 enso-matrix-file
-enso_matrix.csv
+parameter_files/enso_matrix.csv
 1
 0
 String
 
 SLIDER
-327
-615
-499
-648
+197
+591
+369
+624
 sap-herbivory
 sap-herbivory
 0

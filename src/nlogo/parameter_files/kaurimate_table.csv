@@ -1,0 +1,11 @@
+gr, FALSE
+d-sh,FALSE
+m-sh, TRUE
+ksh-k, TRUE
+yf-k,TRUE
+ksh-nok,FALSE
+yf-nok,FALSE
+old-f,TRUE
+ksh-p,FALSE
+yf-p,FALSE
+old-p,FALSE

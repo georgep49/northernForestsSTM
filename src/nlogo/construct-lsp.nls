@@ -1,47 +1,29 @@
 ;; Code to build landscapes using the MRC method - adapted from the book.
 
-
-to test-csv
-  let class-abund csv:from-file "initial_composition.csv"
-  show class-abund
-end  
-
 to init-patch-mrc-variables
+  
+  ifelse file-exists? init-composition-file = true
+  [
+    read-class-file-csv init-composition-file 
+  ]
+  [
+    print "Initial class compisition file missing!"
+  ]
+
   ask patches [
     set class -1
     set in-perc-cluster? false
     set cluster-leader nobody
-  ]
+  ] 
+  
 end
 
-;;; Retrieve the list of relative probabilities of 
-;;; suitability classes from a file
-;to read-class-file [class-file]
-;  carefully [
-;    file-open class-file
-;    set num-classes file-read ;; first item in file is the number of classes
-;    set class-CFD (list 0) ;; initialise the CFD to 0
-;    set class-FD [] ;; empty FD
-;    while [ not file-at-end? ] [
-;      let prev-n last class-CFD
-;      let next-n file-read
-;      set class-CFD lput (next-n + prev-n) class-CFD
-;      set class-FD lput next-n class-FD
-;    ]
-;    set class-CFD but-first class-CFD ;; throw away the zero
-;    let tot-rel-p last class-CFD
-;    set class-CFD map [ i -> i / tot-rel-p ] class-CFD   ;; cumulative freq dist of classes
-;    set class-FD map [ i -> i / tot-rel-p ] class-FD     ;; freq of classes
-;
-;    file-close
-;  ] [ file-close ]
-;end
 
 ;;; Retrieve the list of relative probabilities of 
 ;;; suitability classes from a CSV file with names
 to read-class-file-csv [class-file]
   carefully [
-    let class-abund csv:from-file "initial_composition.csv"; csv:from-file class-file
+    let class-abund csv:from-file class-file
     set num-classes length class-abund
     set class-FD slice unnest class-abund range-from-to-by 1 (num-classes * 2) 2
     let sum-class-p sum class-FD
@@ -68,7 +50,7 @@ to setup-mrc [remove-singleton-patches? sequentially-assign-clusters?]
   ask patches [ 
     if random-float 1 < perc-seed [ 
       set in-perc-cluster? true 
-      set pcolor white 
+      ; set pcolor white 
     ]
   ]
   mark-habitat-patches
@@ -184,8 +166,7 @@ to find-clusters
 end
 
 to grow-cluster  ;; patch procedure
-  ask neighbors4 with [(cluster-leader = nobody) and
-    (pcolor = [pcolor] of myself)]
+  ask neighbors4 with [(cluster-leader = nobody) and (class = [class] of myself)]
   [ set cluster-leader [cluster-leader] of myself
     grow-cluster ]
 end
@@ -224,6 +205,74 @@ to age-by-cluster
      ]  
   ] 
 end  
+
+;; this is code to switch patch classes around so pohutakawa appears close to coast
+;; at start up.
+to starting-coastal-forest
+  
+  ;; loop over patches using their cluster id from MRC
+  foreach [cluster-id] of patches
+  [  i ->
+     
+    let focal-cl patches with [cluster-id = i]
+    let mean-dist mean [distance-to-coast] of focal-cl
+    
+    ;; if closer than critical dist to coast (average) then see if change to *-p
+    if (mean-dist <= table:get aux-params-dict "max-poh-coast") and (any? focal-cl with [class = "ksh-k" or class = "yf-k" or class = "ksh-nok" or class = "yf-nok" or class = "old-f"])
+    [ 
+           
+      let b0 table:get aux-params-dict "poh-coast-b0"
+      let b1 table:get aux-params-dict "poh-coast-b1"
+      let b2 table:get aux-params-dict "poh-coast-b1"
+        
+      if random-float 1 < (decr-limit-fx b0 b1 b2 (mean-dist / table:get aux-params-dict "max-poh-coast"))
+      [  
+        ; print "changing"(mean [edaphic-grad] of focal-cl)
+        ask focal-cl
+        [
+          if class = "ksh-k" [set class "ksh-p" ]
+          if class = "yf-k" [set class "yf-p"]
+          if class = "ksh-bok" [set class "ksh-p"]
+          if class = "yf-nok" [set class "yf-p"]
+          if class = "old-f" [set class "old-p"]
+          
+          set prev-class class
+        ]
+      ]    
+    ]
+    
+    ;; and the opposite *-p to X, with X also considering the edaphic conditions
+    if (mean-dist > table:get aux-params-dict "max-poh-coast") and (any? focal-cl with [class = "ksh-p" or class = "yf-p" or class = "old-p"])
+    [ 
+      let edaphic-flip random-float 1    ;; do it outside ask so whole patch changes
+      let mean-ed (mean [edaphic-grad] of focal-cl)
+      ask focal-cl
+      [
+        if class = "ksh-p" 
+        [
+          ifelse edaphic-flip < mean-ed  ;; *-nok or *-k based on edaphics
+          [ set class "ksh-k"]
+          [ set class "ksh-nok" ]
+          
+        ]
+      
+        if class = "yf-p" 
+        [
+          ifelse edaphic-flip < mean-ed
+          [ set class "yf-k" set prev-class class]
+          [ set class "yf-nok" set prev-class class]
+        ]
+      
+        if class = "old-p" [ set class "old-f" ]
+        
+        set prev-class class
+      ]  
+   ]
+    
+    
+  ]
+end  
+
 
 
 ;; code to access the NLMR package via the simpleR extension

@@ -31,68 +31,18 @@ to setup
   set class-names-list (list "gr" "d-sh" "m-sh" "ksh-k" "yf-k" "ksh-nok" "yf-nok" "old-f" "ksh-p" "yf-p" "old-p")
   set forest-classes-list (list "yf-k" "yf-nok" "old-f" "yf-p" "old-p")
 
-  set flammability-dict table:from-list [
-    ["gr" 0.5]
-    ["d-sh" 0.65]
-    ["m-sh" 0.35]
-    ["ksh-k" 0.25]
-    ["yf-k" 0.1]
-    ["ksh-nok" 0.25]
-    ["yf-nok" 0.1]
-    ["old-f" 0.05]
-    ["ksh-p" 0.25]
-    ["yf-p" 0.1]
-    ["old-p" 0.05]
-  ]
-
-  set base-changes-dict table:from-list [
-    ["gr" 20]
-    ["d-sh" 20]
-    ["m-sh" 30]
-    ["ksh-k" 80]
-    ["yf-k" 120]
-    ["ksh-nok" 80]
-    ["yf-nok" 120]
-    ["old-f" 0]
-    ["ksh-p" 80]
-    ["yf-p" 120]
-    ["old-p" 0]
-  ]
+  ;; load dictionaries (NL tables) from csv files
+  set flammability-dict table:from-list csv:from-file "parameter_files/flammability_table.csv"
+  set base-changes-dict table:from-list csv:from-file "parameter_files/base_changes_table.csv"
+  set rust-susc-dict table:from-list csv:from-file "parameter_files/rust_table.csv"
+  set phy-susc-dict table:from-list csv:from-file "parameter_files/kaurimate_table.csv"
   
-  set rust-susc-dict table:from-list [
-    ["gr" FALSE]
-    ["d-sh" TRUE]
-    ["m-sh" TRUE]
-    ["ksh-k" TRUE]
-    ["yf-k" FALSE]
-    ["ksh-nok" TRUE]
-    ["yf-nok" FALSE]
-    ["old-f" FALSE]
-    ["ksh-p" TRUE]
-    ["yf-p" TRUE]
-    ["old-p" TRUE]
-  ]
-  
-  set phy-susc-dict table:from-list [
-    ["gr" FALSE]
-    ["d-sh" FALSE]
-    ["m-sh" TRUE]
-    ["ksh-k" TRUE]
-    ["yf-k" TRUE]
-    ["ksh-nok" FALSE]
-    ["yf-nok" FALSE]
-    ["old-f" TRUE]
-    ["ksh-p" FALSE]
-    ["yf-p" FALSE]
-    ["old-p" FALSE]
-  ]
-  
-  ;; Other parameters
+  ;; Load other parameter files
   load-aux-parameters
   
   ;; Set up the transition matrices for seedling/sapling dynamics -> ROW wise
-  set tr-mtx-bank-yfor (list [0.8 0] [0.1 0.9])    ;; transitions from 1.5m -> 5 cm dbh individuals in yng forest
-  set tr-mtx-bank-ofor (list [0.8 0] [0.1 0.9])    ;; ... and old forest
+  set tr-mtx-bank-yfor (list [0.8 0] [0.05 0.9])    ;; transitions from 1.5m -> 5 cm dbh individuals in yng forest
+  set tr-mtx-bank-ofor (list [0.8 0] [0.05 0.9])    ;; ... and old forest
   
   ;; Set up fire history 
   set fire-record []
@@ -103,8 +53,6 @@ to setup
 
   ;; Setup clamate, ENSO, ...
   set enso-record []
-  set extrinsic-sd 0.0
- 
   init-enso
   
   ;; Build the landscape using the MRC code...
@@ -117,12 +65,12 @@ end
 to load-aux-parameters
   
   ;; general parameters for curves etc.
-  set aux-params-dict csv:from-file "aux_parameters.csv" 
+  set aux-params-dict csv:from-file "parameter_files/aux_parameters.csv" 
   set aux-params-dict table:from-list aux-params-dict
   
   ;; fire wind and slope modifiers
   ;; we strip off the title so it is a list of numeric lists
-  let X map but-first (csv:from-file "fire_weights.csv")
+  let X map but-first (csv:from-file "parameter_files/fire_weights.csv")
   
   set flamm-wind-list but-last X
   set flamm-slope-list last X
@@ -137,9 +85,10 @@ to build-landscape
   set sum-stalled (list 0 0)
   set sum-changes (list 0 0)
 
+  
   ;; set up the MRC landscape
   init-patch-mrc-variables
-  read-class-file-csv init-composition
+  
   setup-mrc true false ;; args:: remove-singleton-patches? sequentially-assign-clusters?
   
   ask patches [set class item class class-names-list]
@@ -154,11 +103,10 @@ to build-landscape
   find-clusters
   id-clusters
   age-by-cluster
-
+  starting-coastal-forest
   update-abundances
-
-  ask patches [set distance-to-coast pxcor * patch-grain]
-
+  color-by-class
+  
 end
 
 ;; initialise the patch fire and regen history
@@ -185,5 +133,5 @@ to init-patches
   ]
   
   build-fbm
-  color-by-class
+  
 end
