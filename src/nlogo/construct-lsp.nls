@@ -274,9 +274,9 @@ to starting-coastal-forest
 end  
 
 
-
 ;; code to access the NLMR package via the simpleR extension
 ;; just have FBM here but song remains the same for other algorithms
+;; used to byuild synthetic edaphic gradient
 
 to build-fbm
 
