@@ -64,15 +64,28 @@ to kauri-mate-retro
   ;; critical time is the time with PTA before any risk of retrogression
   let crit-time table:get aux-params-dict "kauri-mate-retro-age"
   
-  
+  ;; look for infected patches that have been infected long enough
   ask patches with [ kauri-mate? = true and kauri-mate-time > (ticks + crit-time) ]
   [
-    if random-float 1 <= 0.1   ;; rand number test based on asym incr func
+    if class = "yf-k" 
+    [ 
+      let base table:get base-changes-dict "yf-k"
+      let pc incr-limit-fx ((ticks + crit-time) / base) 0.05 1.0
+  
+      if random-float 1 <= pc  ;; rand number test based on asym incr func
+      [    
+          set class "yf-nok" 
+      ]
+    ]
+    
+    if class = "ksh-k"       ;; ksh goes to either alt state based on age
     [
-      if class = "yf-k" set class ["yf-nok"]   
-      if class = "ksh-k"       ;; ksh goes to either alt state based on age
+      let base table:get base-changes-dict "ksh-k"
+      let pc incr-limit-fx ((ticks + crit-time) /  base) 0.05 1.0
+        
+      if random-float 1 <= pc  ;; rand number test based on asym incr func
       [
-        ifelse last-change < (ticks + 40)  ; 40 = 1/2 base change
+        ifelse last-change < (ticks + base / 2)  ;  1/2 base change
         [
           set class "ksh-nok"
         ]
@@ -82,5 +95,4 @@ to kauri-mate-retro
       ]
     ]   
   ]
-  
 end  
