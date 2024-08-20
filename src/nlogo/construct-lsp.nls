@@ -7,7 +7,7 @@ to init-patch-mrc-variables
     read-class-file-csv init-composition-file 
   ]
   [
-    print "Initial class compisition file missing!"
+    print "Initial class composition file missing!"
   ]
 
   ask patches [
@@ -33,12 +33,11 @@ to read-class-file-csv [class-file]
     set class-CFD map [i -> i / sum-class-p] class-CFD
     set class-FD map [i -> i / sum-class-p] class-FD
     
-    show class-abund
-    show num-classes
-    show class-CFD
-    show class-FD
-    
-    
+;    show class-abund
+;    show num-classes
+;    show class-CFD
+;    show class-FD
+       
     file-close
   ] [ file-close ]
 end
@@ -126,7 +125,7 @@ end
 
 
 ;; patches so far not assigned to a class are
-;; now assigned based on the classes of neighbouring assigned patches 
+;; now assigned based on the classes of neighbouring assigned patches   let ids remove-duplicates sort [cluster-id] of patches   let ids remove-duplicates sort [cluster-id] of patches   let ids remove-duplicates sort [cluster-id] of patches 
 to assign-unassigned-to-habitat-patches
   ask patches with [class < 0] [ 
     let N neighbors with [class >= 0]
@@ -210,15 +209,26 @@ end
 ;; at start up.
 to starting-coastal-forest
   
+  ;let not-coastal-forest patches with 
+  ;let coastal-forest patches 
+  
+  let ids remove-duplicates sort [cluster-id] of patches 
+  
   ;; loop over patches using their cluster id from MRC
-  foreach [cluster-id] of patches
+  foreach ids
   [  i ->
      
     let focal-cl patches with [cluster-id = i]
+    let focal-cl-class [class] of one-of focal-cl
+    
+    
     let mean-dist mean [distance-to-coast] of focal-cl
     
     ;; if closer than critical dist to coast (average) then see if change to *-p
-    if (mean-dist <= table:get aux-params-dict "max-poh-coast") and (any? focal-cl with [class = "ksh-k" or class = "yf-k" or class = "ksh-nok" or class = "yf-nok" or class = "old-f"])
+    ;; the one-of lets us use member? and relies on the fact that the entire cluster is one class.
+    
+    if (mean-dist <= table:get aux-params-dict "max-poh-coast") and 
+                   (focal-cl-class = "ksh-k" or focal-cl-class = "yf-k" or focal-cl-class = "ksh-nok" or focal-cl-class = "yf-nok" or focal-cl-class = "old-f")
     [ 
            
       let b0 table:get aux-params-dict "poh-coast-b0"
@@ -242,7 +252,9 @@ to starting-coastal-forest
     ]
     
     ;; and the opposite *-p to X, with X also considering the edaphic conditions
-    if (mean-dist > table:get aux-params-dict "max-poh-coast") and (any? focal-cl with [class = "ksh-p" or class = "yf-p" or class = "old-p"])
+    
+    if (mean-dist > table:get aux-params-dict "max-poh-coast") and
+                     (focal-cl-class  = "ksh-p" or focal-cl-class = "yf-p" or focal-cl-class = "old-p")
     [ 
       let edaphic-flip random-float 1    ;; do it outside ask so whole patch changes
       let mean-ed (mean [edaphic-grad] of focal-cl)

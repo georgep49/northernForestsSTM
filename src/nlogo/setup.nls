@@ -4,6 +4,7 @@
 
 to setup
   clear-all
+  
   if from-r? != TRUE [set from-r? FALSE]
 
   set world-size count patches
@@ -57,7 +58,7 @@ to setup
   
   ;; Build the landscape using the MRC code...
   build-landscape
-
+  
   reset-ticks
 end
 
@@ -88,7 +89,6 @@ to build-landscape
   
   ;; set up the MRC landscape
   init-patch-mrc-variables
-  
   setup-mrc true false ;; args:: remove-singleton-patches? sequentially-assign-clusters?
   
   ask patches [set class item class class-names-list]
@@ -98,12 +98,13 @@ to build-landscape
   [
     ask patches with [class = "d-sh"] [set class "m-sh"]
   ]
-
+  
   init-patches
   find-clusters
   id-clusters
   age-by-cluster
   starting-coastal-forest
+  
   update-abundances
   color-by-class
   

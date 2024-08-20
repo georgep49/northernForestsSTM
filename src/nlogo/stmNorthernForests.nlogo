@@ -140,7 +140,7 @@ to go
     ;if ticks = 0 [print date-and-time]
     ;if ticks = 300 [print date-and-time  stop ]
 
-   while [ ticks <= max-ticks and old-growth-abund <= max-forest ]
+   while [ ticks < max-ticks and old-growth-abund <= max-forest ]
    [
     ;; Get the climate conditions for the year
     transition-enso
@@ -151,10 +151,7 @@ to go
     if ticks > burn-in-regen
     [
       let enso-wgt 1
-
-      ifelse enso-state = "ENL	EN" or enso-state = "EN"
-      [ set enso-wgt 1.1 ]
-      [ set enso-wgt 1.0 ]
+      if enso-state = "ENL" or enso-state = "EN" [ set enso-wgt enso-freq-wgt ]
 
       if random-float 1 <= (fire-frequency * enso-wgt * (1 + extrinsic))
       [
@@ -271,11 +268,11 @@ end
 GRAPHICS-WINDOW
 241
 10
-633
-403
+761
+531
 -1
 -1
-3.0
+2.0
 1
 10
 1
@@ -286,9 +283,9 @@ GRAPHICS-WINDOW
 0
 1
 0
-127
+255
 0
-127
+255
 1
 1
 1
@@ -304,7 +301,7 @@ perc-seed
 perc-seed
 0
 1
-0.57
+0.59
 0.01
 1
 NIL
@@ -362,9 +359,9 @@ NIL
 1
 
 PLOT
-662
+905
 10
-1010
+1253
 224
 Abundances
 NIL
@@ -407,7 +404,7 @@ fraction-seed-ldd
 fraction-seed-ldd
 0
 1
-0.05
+0.15
 .01
 1
 NIL
@@ -455,9 +452,9 @@ track-stalled?
 -1000
 
 PLOT
-662
+905
 227
-1011
+1254
 377
 Lsp flammability
 NIL
@@ -483,7 +480,7 @@ mean-ldd
 mean-ldd
 0
 10
-3.0
+5.0
 0.5
 1
 NIL
@@ -565,9 +562,9 @@ RGN
 1
 
 SWITCH
-664
+907
 385
-777
+1020
 418
 invasion?
 invasion?
@@ -576,9 +573,9 @@ invasion?
 -1000
 
 INPUTBOX
-892
+1135
 386
-1072
+1315
 454
 init-composition-file
 parameter_files/initial_composition.csv
@@ -677,9 +674,9 @@ Minimum 'density' of juvenile saps to make transition - this is effectively an i
 1
 
 BUTTON
-784
+1027
 386
-882
+1125
 419
 show-stalled
 color-by-stall
@@ -694,9 +691,9 @@ NIL
 1
 
 BUTTON
-784
+1027
 422
-884
+1127
 455
 show-class
 color-by-class
@@ -711,24 +708,24 @@ NIL
 1
 
 SLIDER
-667
+910
 462
-839
+1082
 495
 max-ticks
 max-ticks
 0
 4000
-200.0
+1020.0
 10
 1
 NIL
 HORIZONTAL
 
 SLIDER
-666
+909
 498
-838
+1081
 531
 burn-in-regen
 burn-in-regen
@@ -741,9 +738,9 @@ NIL
 HORIZONTAL
 
 BUTTON
-843
+1086
 463
-963
+1206
 496
 show-r3
 color-by-regen3
@@ -758,9 +755,9 @@ NIL
 1
 
 BUTTON
-844
+1087
 500
-964
+1207
 533
 show-r4
 color-by-regen4
@@ -775,9 +772,9 @@ NIL
 1
 
 SLIDER
-666
+909
 534
-838
+1081
 567
 max-forest
 max-forest
@@ -790,9 +787,9 @@ NIL
 HORIZONTAL
 
 SWITCH
-664
+907
 421
-774
+1017
 454
 write-record?
 write-record?
@@ -801,9 +798,9 @@ write-record?
 -1000
 
 PLOT
-1014
+1257
 11
-1378
+1621
 221
 Fire size history
 Year
@@ -819,19 +816,19 @@ PENS
 "default" 1.0 1 -16777216 true "" "(foreach fire-year fire-size-list [ [y f ] -> plotxy y f] )"
 
 TEXTBOX
-244
-412
-650
-454
+242
+534
+648
+576
 Blues - no kauri, Oranges - kauri, Turquoises - pohutakawa\nDark green - old-growth\n
 11
 0.0
 1
 
 BUTTON
-972
+1215
 464
-1113
+1356
 497
 highlight-kauri-mate
 ask patches with [kauri-mate?] [ set pcolor red ]
@@ -846,9 +843,9 @@ NIL
 1
 
 BUTTON
-972
+1215
 499
-1113
+1356
 532
 highlight-rust
 ask patches with [myrtle-rust?] [ set pcolor yellow ]
@@ -863,10 +860,10 @@ NIL
 1
 
 SLIDER
-1168
-371
-1340
-404
+1410
+324
+1582
+357
 extrinsic-sd
 extrinsic-sd
 0
@@ -878,9 +875,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-1174
+1417
 451
-1346
+1589
 484
 rust-global-inf
 rust-global-inf
@@ -893,9 +890,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-1363
+1606
 451
-1535
+1778
 484
 phy-global-inf
 phy-global-inf
@@ -908,9 +905,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-1364
+1607
 488
-1536
+1779
 521
 phy-local-inf
 phy-local-inf
@@ -923,9 +920,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-1364
+1607
 524
-1536
+1779
 557
 phy-radius-inf
 phy-radius-inf
@@ -938,10 +935,10 @@ NIL
 HORIZONTAL
 
 INPUTBOX
-1167
-303
-1375
-363
+1409
+256
+1617
+316
 enso-matrix-file
 parameter_files/enso_matrix.csv
 1
@@ -958,6 +955,21 @@ sap-herbivory
 0
 1.0
 0.0
+.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1411
+360
+1583
+393
+enso-freq-wgt
+enso-freq-wgt
+0.75
+1.25
+1.0
 .01
 1
 NIL
