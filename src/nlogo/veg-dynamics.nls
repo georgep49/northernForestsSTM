@@ -5,46 +5,48 @@ to post-fire
   
   let fire-hist-len table:get aux-params-dict "fire-hist-len"
   
-   let new-invasions 0
-   ask patches with [burned?]
-   [
-     set prev-class class
+  let new-invasions 0
+  ask patches with [burned?]
+  [
+    set prev-class class
 
-     set fire-history lput ticks fire-history
-     let last-x-fires length filter [ f -> f >= ticks - fire-hist-len ] fire-history
-     let local-weeds count neighbors with [class = "d-sh"]
+    set fire-history lput ticks fire-history
+    let last-x-fires length filter [ f -> f >= ticks - fire-hist-len ] fire-history
+    let local-weeds count neighbors with [class = "d-sh"]
 
-     ;; assume regen bank destroyed
-     set regenbank-yfor (list 0 0)
-     set regenbank-ofor (list 0 0)
+    ;; assume regen bank destroyed
+    set regenbank-yfor (list 0 0)
+    set regenbank-ofor (list 0 0)
 
-     ;; grass returns to grass (prob redundant code but makes things clear)
-     if class = "gr" [ set class "gr"]
+    ;; grass returns to grass (prob redundant code but makes things clear)
+    if class = "gr" [ set class "gr"]
 
-     ;; transition to manuka or invaded shrubland?
-     ifelse invasion? = true and class != "gr"
-     [
-       ifelse random-float 1 <= (base-invasion + (fire-invasion * last-x-fires)) * (1 + (local-weeds / 8))
-       [
-         set class "d-sh"   ;; to degraded shrubland
-         set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
-         set flammability table:get flammability-dict class
+    ;; transition to manuka or invaded shrubland?
+    ifelse invasion? = true and class != "gr"
+    [
+      ifelse random-float 1 <= (base-invasion + (fire-invasion * last-x-fires)) * (1 + (local-weeds / 8))
+      [
+        set class "d-sh"   ;; to degraded shrubland
+        set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
+        set flammability table:get flammability-dict class
 
-       ]
-       [
-         set class "m-sh"   ;; to manuka
-         set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
-         set flammability table:get flammability-dict class
-       ]
-     ]
+      ]
+      [
+        set class "m-sh"   ;; to manuka
+        set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
+        set flammability table:get flammability-dict class
+      ]
+    ]
 
-     [
-         set class "m-sh"
-         set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
-         set flammability table:get flammability-dict class
-     ]
-   ]
+    [
+        set class "m-sh"
+        set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
+        set flammability table:get flammability-dict class
+    ]
+  ]
 
+  
+  ;; update the fire history records
   set new-invasions count patches with [class = 0 and prev-class > 0]
 
   set fire-size count patches with [burned?]
@@ -52,7 +54,7 @@ to post-fire
   set fire-size-list lput fire-size fire-size-list
   set fire-stats lput fire-size fire-stats
 
-
+  
   let types-burned map [ cl -> count patches with [burned? and prev-class = cl] ]  class-names-list
 
   foreach types-burned [ cl -> set fire-stats lput (cl / world-size) fire-stats ]
@@ -61,9 +63,10 @@ to post-fire
   set fire-stats lput new-invasions fire-stats
 
   set fire-record lput fire-stats fire-record
-
+  
+  
+  ;; reset patches and update colours
   ask patches [set burned? false]
-
   color-by-class
 end
 
@@ -100,7 +103,8 @@ to succession
         [
           set trans 0.1 + ( 1 - ((1 / forest-nhb) ^ (table:get aux-params-dict "grass-to-sh-exp") ))
         ]    ;; prob based on nhb
-          
+        
+        ;; TO DO - what about transition from grass to invaded shrubland? 
         if random-float 1 < trans
         [
           set class "m-sh"
@@ -138,19 +142,18 @@ to succession
       ;; manuka shrubland -> kanuka-x
       if class = "m-sh" and last-change != ticks
       [ 
-        ;; Distance based test for transition to pohutakawa
         
+        ;; Distance based test for transition to pohutakawa
         let b0 table:get aux-params-dict "poh-coast-b0"
         let b1 table:get aux-params-dict "poh-coast-b1"
         let b2 table:get aux-params-dict "poh-coast-b1"
         
-        if random-float 1 < (decr-limit-fx b0 b1 b2 (distance-to-coast / table:get aux-params-dict "max-poh-coast"))
+        ;; based on distance to coast do we transition to pohutukawa
+        ifelse random-float 1 < (decr-limit-fx b0 b1 b2 (distance-to-coast / table:get aux-params-dict "max-poh-coast"))
         [
           set class "ksh-p"
-        ]
-        
+        ]       
         ;; if not pohutakawa, nhb weighted coin toss on gradient
-        if class != "ksh-p"
         [
           let kauri-nhb count neighbors with [ class = "ksh-k" ] 
           let k-wgt 0
@@ -159,10 +162,9 @@ to succession
           ifelse random-float 1 < edaphic-grad + k-wgt
           [ set class "ksh-k" ]
           [ set class "ksh-nok" ]
-          
         ] 
         
-        let last30 length filter [ f -> f >= ticks - 30 ] fire-history
+        let last30 length filter [ f -> f >= (ticks - (table:get aux-params-dict "fire-hist-len")) ] fire-history
         let base table:get base-changes-dict class
 
         set next-change ceiling ((ticks + (base + (last30 * 2))) * (0.9 + random-float (table:get aux-params-dict "succ-noise")))
@@ -222,7 +224,7 @@ to succession
             let stl item 1 sum-stalled
 
             set sum-changes replace-item 1 sum-changes (n + 1)
-            set sum-stalled replace-item 1 sum-stalled  (stl + stalled)    ; replace-item index list value
+            set sum-stalled replace-item 1 sum-stalled  (stl + stalled)
           ]
 
           let new-class ""

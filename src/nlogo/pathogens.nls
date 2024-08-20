@@ -40,29 +40,15 @@ to spread-kauri-mate
       ]  
     ]
   ]  
-    
-  
-  ;; local infection - spread from infected cells to nhbs within radius
-; global infection
-; min symptomatic age
-; prob become symptomatic
-; mortality rate
-; age of transmission
   
 end
 
-;; if cell infected for long wenough lose shift to nok pathway?
-to switch-kauri-traj
-  
-  if class = "ksh-nok" or class = "yf-k" []
-  
-end  
-  
-;; for patches with kauri mate does retrogression occur?  
-to kauri-mate-retro
+    
+;; for patches with kauri mate does loss of kauri or retrogression occur?  
+to kauri-mate-switch
   
   ;; critical time is the time with PTA before any risk of retrogression
-  let crit-time table:get aux-params-dict "kauri-mate-retro-age"
+  let crit-time table:get aux-params-dict "kaurimate-retro-age"
   
   ;; look for infected patches that have been infected long enough
   ask patches with [ kauri-mate? = true and kauri-mate-time > (ticks + crit-time) ]

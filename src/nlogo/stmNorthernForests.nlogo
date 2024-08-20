@@ -15,10 +15,10 @@ extensions [
   palette  ;; nicer colours
   table    ;; dictionary like tables for storing lots of the input parameters
   csv      ;; easy reading of CSVs
-  sr        ;; because...
+  sr       ;; because...
 ]
 
-;; As per the Ecosystems paper (perry et al. 2015)
+;; As per the Ecosystems paper (Perry et al. 2015)
 ;; classes: 0 = invaded, 1 = manuka, 2 = kanuka, 3 = yng forest (mid-succ), 4 = mature forest (late-succ)
 
 ;; New names for STM for northern forests under pathogens, fire. etc.:
@@ -142,16 +142,21 @@ to go
 
    while [ ticks <= max-ticks and old-growth-abund <= max-forest ]
    [
-
-
     ;; Get the climate conditions for the year
     transition-enso
     let extrinsic random-normal 0 extrinsic-sd
 
+    ;; fire dynamics
     let fire-this-tick false
     if ticks > burn-in-regen
     [
-      if random-float 1 <= fire-frequency
+      let enso-wgt 1
+
+      ifelse enso-state = "ENL	EN" or enso-state = "EN"
+      [ set enso-wgt 1.1 ]
+      [ set enso-wgt 1.0 ]
+
+      if random-float 1 <= (fire-frequency * enso-wgt * (1 + extrinsic))
       [
         let start? ignite-fire
         if start? = true
@@ -165,28 +170,28 @@ to go
 
     set n-changes 0
 
+    ;; dispersal and regeneratio bank dynamics
     dispersal
     regenerate-patch-bank
     if sap-herbivory > 0 [ herbivory-patch-bank ]
 
-     if ticks > burn-in-regen
-     [
-       succession
+    ;; succesional dynamics
+    if ticks > burn-in-regen
+    [
+      succession
 
-       if n-changes > 0 or fire-this-tick = true
-       [
-         color-by-class
-         update-abundances
+      if n-changes > 0 or fire-this-tick = true
+      [
+        color-by-class
+        update-abundances
+        if abund-flammable < 0.3 and ticks < beyond-flamm-time [ set beyond-flamm-time ticks ]
+      ]
+    ]
 
-         if abund-flammable < 0.3 and ticks < beyond-flamm-time
-         [
-           set beyond-flamm-time ticks
-         ]
-       ]
-     ]
-
-   spread-rust
-   spread-kauri-mate
+  ;; pathogen dynamics
+  spread-rust
+  spread-kauri-mate
+  kauri-mate-switch
 
 ;      profiler:stop          ;; stop profiling
 ;      print profiler:report  ;; view the results
@@ -197,10 +202,7 @@ to go
   ;write-record
 end
 
-
-
-
-
+;; Various helper functions...
 to update-abundances
   let n [class] of patches
   set abundances (map [ i -> occurrences i n ] class-list)
@@ -255,60 +257,6 @@ end
 to-report abund-stalled
   report count patches with [stalled > 0] / world-size
 end
-
-;parameter_files/parameter_files/
-;to write-record
-;  if write-record? = true
-;  [
-;    ;; let exists? file-exists? "fireRecord.txt"
-;    let tag 0
-;    if from-r? = FALSE
-;    [ set run-id behaviorspace-run-number ]
-;
-;
-;    let file-name ( word record-tag "fireRecord-" run-id ".txt" )
-;    file-open file-name
-;
-;    file-print " Run Year start.veg start.hb pre.flamm pre.inv pre.man pre.kan pre.yfor pre.ofor fire.size burn.inv burn.man burn.kan burn.yfor burn.ofor post.flamm new.invasions"
-;
-;    let n length fire-record
-;    let idx 0
-;
-;    foreach fire-record
-;    [ ?1 ->
-;      let data ?1
-;      file-write run-id
-;
-;      foreach data
-;      [ ??1 ->
-;        file-write precision ??1 3
-;      ]
-;      file-newline
-;      set idx idx + 1
-;    ]
-;
-;    file-close
-;  ]
-;end
-;
-;to file-newline
-;  file-print ""
-;end
-;
-;
-;
-;to-report mle-exponent [size-list xmin]
-;  ;carefully
-;  ;[
-;    let b 1
-;    let mle-est map [ ?1 -> (log ?1 2) / xmin ] size-list
-;    set b 1 + ((sum mle-est) ^ -1)
-;    report b
-;  ;]
-;  ;[
-;    ;report -999
-;  ;]
-;end
 
 ;; b1 upper, b0, lower, b2 steep
 to-report decr-limit-fx [b0 b1 b2 x]
@@ -769,9 +717,9 @@ SLIDER
 495
 max-ticks
 max-ticks
-1
+0
 4000
-261.0
+200.0
 10
 1
 NIL
@@ -875,7 +823,7 @@ TEXTBOX
 412
 650
 454
-Blues - no kauri, Oranges - kauri, Turquoises - pohutakawa\nDark green - oldgrowth\n
+Blues - no kauri, Oranges - kauri, Turquoises - pohutakawa\nDark green - old-growth\n
 11
 0.0
 1

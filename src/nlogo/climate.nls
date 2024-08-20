@@ -17,7 +17,7 @@ end
 ;; get a new ENSO state
 to transition-enso
   
-  ;; this is a little eopaque but what we do is get the position of the current 
+  ;; this is a little opaque but what we do is get the position of the current 
   ;; ENSO state and then use that to index the frequencies of occurence of each
   ;; state, and use that in a multinomial trial...
   
@@ -29,3 +29,5 @@ to transition-enso
   set enso-record lput enso-state enso-record  
   
 end  
+
+;; "The Influence of ENSO on NZ Fire Danger - How Does the 15/16 En-Nino Compare?"
