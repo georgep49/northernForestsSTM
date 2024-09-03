@@ -311,3 +311,24 @@ to build-fbm
   
   (foreach x y fbm [[xc yc z] -> ask patch xc yc  [ set edaphic-grad z ]])
 end
+
+
+to edge-farmland
+  
+  let edge-patches patches with [pxcor = max-pxcor]
+ 
+  ask n-of (random-poisson farm-edge-nodes) edge-patches [set farm-node? true] 
+
+  ask patches with [farm-node? = true]
+  [
+    let sz random-poisson mean-farm-depth
+    let px pxcor
+    let py pycor
+    
+    ask patches with [(pycor < py + sz) and (pycor > py - sz) and (pxcor > px - sz)]
+    [
+      set class "gr"
+      set prev-class class
+    ]
+  ]  
+end  

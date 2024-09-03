@@ -109,6 +109,7 @@ patches-own
 
   edaphic-grad
   distance-to-coast
+  farm-node?
 
   myrtle-rust?
   myrtle-rust-time
@@ -389,7 +390,7 @@ fire-frequency
 fire-frequency
 0
 1
-0.15
+0.05
 .01
 1
 NIL
@@ -971,6 +972,47 @@ enso-freq-wgt
 1.25
 1.0
 .01
+1
+NIL
+HORIZONTAL
+
+SWITCH
+912
+592
+1083
+625
+farm-edge?
+farm-edge?
+0
+1
+-1000
+
+SLIDER
+1092
+572
+1264
+605
+farm-edge-nodes
+farm-edge-nodes
+1
+40
+30.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1093
+611
+1265
+644
+mean-farm-depth
+mean-farm-depth
+1
+40
+10.0
+1
 1
 NIL
 HORIZONTAL

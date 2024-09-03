@@ -104,6 +104,7 @@ to build-landscape
   id-clusters
   age-by-cluster
   starting-coastal-forest
+  if farm-edge? [edge-farmland]
   
   update-abundances
   color-by-class
@@ -120,13 +121,14 @@ to init-patches
     set burned? false
     set regenbank-yfor (list 0 0)
     set regenbank-ofor (list 0 0)
-
+    
     set fire-history []
     set next-change table:get base-changes-dict class
     set t-colonised (list -1 -1)
     set prev-class class
     
     set distance-to-coast pxcor * patch-grain
+    set farm-node? false
     
     set myrtle-rust? false
     set kauri-mate? false
