@@ -22,7 +22,7 @@ to post-fire
     if class = "gr" [ set class "gr"]
 
     ;; transition to manuka or invaded shrubland?
-    ifelse invasion? = true and class != "gr"
+    if invasion? = true and class != "gr"
     [
       ifelse random-float 1 <= (base-invasion + (fire-invasion * last-x-fires)) * (1 + (local-weeds / 8))
       [
@@ -37,7 +37,8 @@ to post-fire
         set flammability table:get flammability-dict class
       ]
     ]
-
+    
+    if invasion? = false and class != "gr"
     [
         set class "m-sh"
         set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
@@ -54,16 +55,14 @@ to post-fire
   set fire-size-list lput fire-size fire-size-list
   set fire-stats lput fire-size fire-stats
 
-  
   let types-burned map [ cl -> count patches with [burned? and prev-class = cl] ]  class-names-list
 
-  foreach types-burned [ cl -> set fire-stats lput (cl / world-size) fire-stats ]
+  foreach types-burned [ cl -> set fire-stats lput (cl / fire-size) fire-stats ]
 
   set fire-stats lput mean [flammability] of patches fire-stats
   set fire-stats lput new-invasions fire-stats
 
   set fire-record lput fire-stats fire-record
-  
   
   ;; reset patches and update colours
   ask patches [set burned? false]
@@ -88,38 +87,42 @@ to succession
       ;; transition from grassland to manuka shrubland
       if class = "gr"
       [
-        let forest-nhb count neighbors with [class != "gr" and class != "d-sh"]
-        let trans 0
-
-        ;; Greassland that ahs been in grass for lt base years -> no change
-        ;; Base chance after 20 years, increased by having nhbs in woody veg
-        ifelse forest-nhb = 0 
+        ;; check whether farmland can revegetate or not
+        if farm-revegetate? = true or (farm-revegetate? = false and farm? = false)
         [
-          ifelse last-change > table:get base-changes-dict class 
-          [ set trans 0.1 ]     ;; base change of transitioning from grsas to m-sh after base years
-          [ set trans 0 ]
-        
-        ] 
-        [
-          set trans 0.1 + ( 1 - ((1 / forest-nhb) ^ (table:get aux-params-dict "grass-to-sh-exp") ))
-        ]    ;; prob based on nhb
-        
-        ;; TO DO - what about transition from grass to invaded shrubland? 
-        if random-float 1 < trans
-        [
-          set class "m-sh"
-
-          let last30 length filter [ f -> f >= ticks - 30 ] fire-history
-          let base table:get base-changes-dict class    ;; so time to *next* change estimated here
-        
-          ;;next change yr = base change + fire slowing + random noise  
-          set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float (table:get aux-params-dict "succ-noise"))
-        
-          set last-change ticks
-          set times-change times-change + 1
-          
-          set n-changes n-changes + 1
-        ]
+         let forest-nhb count neighbors with [class != "gr" and class != "d-sh"]
+         let trans 0
+ 
+         ;; Greassland that ahs been in grass for lt base years -> no change
+         ;; Base chance after 20 years, increased by having nhbs in woody veg
+         ifelse forest-nhb = 0 
+         [
+           ifelse last-change > table:get base-changes-dict class 
+           [ set trans 0.1 ]     ;; base change of transitioning from grsas to m-sh after base years
+           [ set trans 0 ]
+         
+         ] 
+         [
+           set trans 0.1 + ( 1 - ((1 / forest-nhb) ^ (table:get aux-params-dict "grass-to-sh-exp") ))
+         ]    ;; prob based onfarm-revegetate? nhb
+         
+         ;; TO DO - what about transition from grass to invaded shrubland? 
+         if random-float 1 < trans
+         [
+           set class "m-sh"
+ 
+           let last30 length filter [ f -> f >= ticks - 30 ] fire-history
+           let base table:get base-changes-dict class    ;; so time to *next* change estimated here
+         
+           ;;next change yr = base change + fire slowing + random noise  
+           set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float (table:get aux-params-dict "succ-noise"))
+         
+           set last-change ticks
+           set times-change times-change + 1
+           
+           set n-changes n-changes + 1
+         ]
+      ]
       ]
 
       ;; invaded -> manuka shrubland

@@ -329,6 +329,7 @@ to edge-farmland
     [
       set class "gr"
       set prev-class class
+      set farm? true
     ]
   ]  
 end  

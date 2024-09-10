@@ -1,7 +1,7 @@
  ;Select location of potential ignition
  ;TO DO = if burning only occurs under 'good' extrinsic conditions then test for fire at all...
 
-to-report ignite-fire
+to-report ignite-fire [extrinsic]
   set fire-size 0
   let succ-ignition? false
   
@@ -22,7 +22,7 @@ to-report ignite-fire
     if random-float 1 <= ([flammability] of target * 2)
     [
       ; record initial fire conditions
-      set fire-stats (list (ticks) ([class] of target) (count [neighbors with [flammability < 0.25]] of target ) (mean [flammability] of patches) )
+      set fire-stats (list (ticks) extrinsic enso-state ([class] of target) ([farm?] of target) (count [neighbors with [flammability < 0.25]] of target ) (mean [flammability] of patches) )
 
       foreach abundances [ i -> set fire-stats lput (i / world-size) fire-stats ]
 
@@ -49,7 +49,6 @@ to fire-spread [extrinsic]
   
   ; Modifiers from Millington et al in EMS
   let windModifiers (list (list 1.1 1.05 1.0 0.95 0.9) (list 1.2 1.1 1.0 0.9 0.8) (list 1.5 1.0 0.9 0.8 0.7))
-  
   
   while [ any? fire-front ]                   ;Stop when we run out of flaming fireFront
   [  
@@ -100,6 +99,24 @@ to fire-spread [extrinsic]
  
  end
 
+;; Write out the fire history
+to write-fire-record
+
+  ;; first add the header
+  let p1 map [ i -> (word "pre_prop_" i )] class-names-list
+  let p2 map [ i -> (word "post_prop_" i )] class-names-list
+
+  let header (list "ticks" "extrinsic" "enso_state" "start_veg" "start_farm" "n_nhb_flamm" "pre_mean_flamm")
+  set header lput p1 header
+  set header lput "fire_size" header
+  set header lput p2 header
+  set header lput (list "post_mean_flamm" "new_invasions") header
+  
+  set fire-record fput (unnest header) fire-record 
+  
+  csv:to-file (word "fire_record" behaviorspace-run-number ".csv") fire-record
+  
+end
 
 to-report getTheta [x1 y1 x2 y2]
 
@@ -114,3 +131,7 @@ to-report getTheta [x1 y1 x2 y2]
 report theta
 
 end
+
+
+
+  

@@ -110,6 +110,7 @@ patches-own
   edaphic-grad
   distance-to-coast
   farm-node?
+  farm?
 
   myrtle-rust?
   myrtle-rust-time
@@ -156,7 +157,7 @@ to go
 
       if random-float 1 <= (fire-frequency * enso-wgt * (1 + extrinsic))
       [
-        let start? ignite-fire
+        let start? ignite-fire extrinsic
         if start? = true
         [
         fire-spread extrinsic
@@ -197,15 +198,16 @@ to go
 
      tick
    ]
-  ;write-record
+
 end
 
 ;; Various helper functions...
 to update-abundances
   let n [class] of patches
-  set abundances (map [ i -> occurrences i n ] class-list)
-  set old-growth-abund count patches with [class = "old-p" or class = "old-f"] / count patches
+  set abundances (map [ i -> occurrences i n ] class-names-list)
+  set old-growth-abund count patches with [class = "old-p" or class = "old-f"] / world-size
 end
+
 
 to-report occurrences [x the-list]
   report reduce
@@ -226,6 +228,19 @@ to color-by-stall
   ]
 end
 
+to colour-by-lastfire
+  let mx max last [fire-history] of patches with [not empty? fire-history]
+  ask patches
+  [
+    ifelse not empty? fire-history
+    [
+      set pcolor scale-color red (last fire-history) mx 1
+    ]
+    [
+    set pcolor grey
+    ]
+  ]
+end
 
 to color-by-regen3
   ask patches [
@@ -390,7 +405,7 @@ fire-frequency
 fire-frequency
 0
 1
-0.05
+0.18
 .01
 1
 NIL
@@ -521,7 +536,7 @@ fire-slow
 fire-slow
 0
 10
-1.0
+2.0
 1
 1
 NIL
@@ -576,7 +591,7 @@ invasion?
 INPUTBOX
 1135
 386
-1315
+1378
 454
 init-composition-file
 parameter_files/initial_composition.csv
@@ -977,10 +992,10 @@ NIL
 HORIZONTAL
 
 SWITCH
-912
-592
-1083
-625
+911
+620
+1082
+653
 farm-edge?
 farm-edge?
 0
@@ -988,10 +1003,10 @@ farm-edge?
 -1000
 
 SLIDER
-1092
-572
-1264
-605
+1091
+600
+1263
+633
 farm-edge-nodes
 farm-edge-nodes
 1
@@ -1003,10 +1018,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1093
-611
-1265
-644
+1092
+639
+1264
+672
 mean-farm-depth
 mean-farm-depth
 1
@@ -1016,6 +1031,34 @@ mean-farm-depth
 1
 NIL
 HORIZONTAL
+
+SWITCH
+1276
+621
+1430
+654
+farm-revegetate?
+farm-revegetate?
+1
+1
+-1000
+
+BUTTON
+1090
+538
+1232
+571
+highlight-fire-mosaic
+colour-by-lastfire
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1359,63 +1402,6 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="predation" repetitions="20" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <postRun>write-record</postRun>
-    <exitCondition>count patches with [class = 4] &gt;= (0.95 * world-size)</exitCondition>
-    <metric>abundances</metric>
-    <metric>beyond-flamm-time</metric>
-    <enumeratedValueSet variable="p">
-      <value value="0.57"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-frequency">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mean-ldd">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fraction-consumed">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="seed-pred" first="0" step="0.05" last="1"/>
-    <enumeratedValueSet variable="track-stalled?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="flamm-start">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="invasion?">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="ldd-by-pred" repetitions="5" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <exitCondition>count patches with [class = 4] &gt;= (0.95 * world-size)</exitCondition>
-    <metric>abundances</metric>
-    <metric>beyond-flamm-time</metric>
-    <enumeratedValueSet variable="p">
-      <value value="0.57"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-frequency">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mean-ldd">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="fraction-consumed" first="0" step="0.1" last="1"/>
-    <steppedValueSet variable="seed-pred" first="0" step="0.1" last="0.9"/>
-    <enumeratedValueSet variable="track-stalled?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="flamm-start">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="invasion?">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
   <experiment name="fire-noinvasion" repetitions="20" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
@@ -1483,203 +1469,6 @@ NetLogo 6.4.0
       <value value="0.1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="invasion?">
-      <value value="true"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="consumed" repetitions="20" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <exitCondition>count patches with [class = 4] &gt;= world-size * 0.95</exitCondition>
-    <metric>abundances</metric>
-    <metric>beyond-flamm-time</metric>
-    <enumeratedValueSet variable="p">
-      <value value="0.57"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-frequency">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mean-ldd">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="fraction-consumed" first="0.05" step="0.05" last="1"/>
-    <enumeratedValueSet variable="seed-pred">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="track-stalled?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="flamm-start">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="invasion?">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="fire-invasion-regen" repetitions="10" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="500"/>
-    <metric>abundances</metric>
-    <metric>beyond-flamm-time</metric>
-    <enumeratedValueSet variable="fire-slow">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="track-stalled?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fraction-consumed">
-      <value value="0.2"/>
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="fire-frequency" first="0" step="0.01" last="0.2"/>
-    <enumeratedValueSet variable="mean-ldd">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="seed-pred">
-      <value value="0"/>
-      <value value="0.6"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="flamm-start">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="p">
-      <value value="0.57"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="invasion?">
-      <value value="false"/>
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-invasion">
-      <value value="0.05"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-invasion">
-      <value value="0.1"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="test" repetitions="1" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="300"/>
-    <exitCondition>count patches with [class = 4] &gt;= (0.95 * world-size)</exitCondition>
-    <metric>abundances</metric>
-    <metric>beyond-flamm-time</metric>
-    <enumeratedValueSet variable="fire-invasion">
-      <value value="0.1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fraction-consumed">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="burn-in-regen" first="0" step="10" last="50"/>
-    <enumeratedValueSet variable="mean-ldd">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-seed-prod-3">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="init-composition">
-      <value value="&quot;classes.txt&quot;"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="crit-density-old">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-invasion">
-      <value value="0.05"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="seed-pred">
-      <value value="0.1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="crit-density-yng">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-slow">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="invasion?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="flamm-start">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="track-stalled?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-seed-prod-4">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="p">
-      <value value="0.56"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-ticks">
-      <value value="400"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-frequency">
-      <value value="0"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="start-test" repetitions="100" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <postRun>write-record</postRun>
-    <timeLimit steps="35"/>
-    <metric>abundances</metric>
-    <enumeratedValueSet variable="flamm-start">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-seed-prod-4">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="invasion?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fraction-consumed">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="crit-density-yng">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-invasion">
-      <value value="0.1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="init-composition">
-      <value value="&quot;classes.txt&quot;"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="track-stalled?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-slow">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mean-ldd">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-forest">
-      <value value="0.95"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="seed-pred">
-      <value value="0.2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="crit-density-old">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="burn-in-regen">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-frequency">
-      <value value="1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-ticks">
-      <value value="35"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-seed-prod-3">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-invasion">
-      <value value="0.05"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="p">
-      <value value="0.57"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="write-record?">
       <value value="true"/>
     </enumeratedValueSet>
   </experiment>
