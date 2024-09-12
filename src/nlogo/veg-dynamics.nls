@@ -342,21 +342,31 @@ end
 
 ;; Deals with regeneration in the seedling and sapling banks
 to regenerate-patch-bank
-  ask patches
+  
+  ; don't track once in old forest (no change) or no regenbank at all
+  ask patches with [(class != "old" and class != "old-p") and (sum regenbank-yfor + sum regenbank-ofor > 0)]
   [     
-    ; this operates on binomial trials...
+    ; this could operate on binomial trials buit vbery slow and mutiplication
+    ; ok as an approximation given number of calcs...
     
     ; regen-bank for **young** forest species  
-    let nsdl sum (map [ [a b] -> random-binomial a b ] regenbank-yfor (item 0 tr-mtx-bank-yfor))
-    let nsap sum (map [ [a b] -> random-binomial a b ] regenbank-yfor (item 1 tr-mtx-bank-yfor))
+    ;let nsdl sum (map [ [a b] -> random-binomial a b ] regenbank-yfor (item 0 tr-mtx-bank-yfor))
+    ;let nsap sum (map [ [a b] -> random-binomial a b ] regenbank-yfor (item 1 tr-mtx-bank-yfor))
+    
+    let nsdl sum (map [ [a b] -> round (a * b) ] regenbank-yfor (item 0 tr-mtx-bank-yfor))
+    let nsap sum (map [ [a b] -> round (a * b) ] regenbank-yfor (item 1 tr-mtx-bank-yfor))
+    
     
     set regenbank-yfor (list nsdl nsap)
     
    ; if sum regenbank-yfor > 0 [show regenbank-yfor]
     
     ; regen-bank for **old** forest species  
-    set nsdl sum (map [ [a b] -> random-binomial a b ] regenbank-ofor (item 0 tr-mtx-bank-ofor))
-    set nsap sum (map [ [a b] -> random-binomial a b ] regenbank-ofor (item 1 tr-mtx-bank-ofor))
+    ;set nsdl sum (map [ [a b] -> random-binomial a b ] regenbank-ofor (item 0 tr-mtx-bank-ofor))
+    ;set nsap sum (map [ [a b] -> random-binomial a b ] regenbank-ofor (item 1 tr-mtx-bank-ofor))
+    
+    set nsdl sum (map [ [a b] -> round (a * b) ] regenbank-ofor (item 0 tr-mtx-bank-ofor))
+    set nsap sum (map [ [a b] -> round (a * b) ] regenbank-ofor (item 1 tr-mtx-bank-ofor))
     
     set regenbank-ofor (list nsdl nsap)
     

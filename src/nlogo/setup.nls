@@ -5,7 +5,11 @@
 to setup
   clear-all
   
-  if from-r? != TRUE [set from-r? FALSE]
+  ;;sr:setup
+  
+  show "Building parameter dictionaries..."
+  
+  ; if from-r? != TRUE [set from-r? FALSE]
 
   set world-size count patches
   set patch-grain 20
@@ -29,6 +33,7 @@ to setup
     ["old-p" 83]
   ]
   
+  set class-list n-values n-states [ i -> i ]
   set class-names-list (list "gr" "d-sh" "m-sh" "ksh-k" "yf-k" "ksh-nok" "yf-nok" "old-f" "ksh-p" "yf-p" "old-p")
   set forest-classes-list (list "yf-k" "yf-nok" "old-f" "yf-p" "old-p")
 
@@ -53,10 +58,12 @@ to setup
   set beyond-flamm-time 99999
 
   ;; Setup clamate, ENSO, ...
+  show "Setting up ENSO dynamics..."
   set enso-record []
   init-enso
   
   ;; Build the landscape using the MRC code...
+  show "Building starting landscape..."
   build-landscape
   
   reset-ticks
@@ -81,13 +88,14 @@ end
 ;; drive the MRC landscape building
 to build-landscape
   set clusters []
-  set class-list n-values n-states [ i -> i ]
+  
 
   set sum-stalled (list 0 0)
   set sum-changes (list 0 0)
 
   
   ;; set up the MRC landscape
+  show "Building starting landscape (MRC)..."
   init-patch-mrc-variables
   setup-mrc true false ;; args:: remove-singleton-patches? sequentially-assign-clusters?
   
@@ -99,10 +107,13 @@ to build-landscape
     ask patches with [class = "d-sh"] [set class "m-sh"]
   ]
   
+  show "Building starting landscape (cluster id)..."
   init-patches
   find-clusters
   id-clusters
   age-by-cluster
+  
+  show "Building starting landscape (coastal & farmland)..."
   starting-coastal-forest
   if farm-edge? [edge-farmland]
   
@@ -135,6 +146,6 @@ to init-patches
     set kauri-mate-nhb other patches in-radius phy-radius-inf
   ]
   
-  build-fbm
-  
+  ;;build-fbm
+  load-fbm
 end

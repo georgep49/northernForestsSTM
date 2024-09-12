@@ -288,12 +288,10 @@ end
 
 ;; code to access the NLMR package via the simpleR extension
 ;; just have FBM here but song remains the same for other algorithms
-;; used to byuild synthetic edaphic gradient
+;; used to build synthetic edaphic gradient
 
 to build-fbm
-
-  sr:setup
-
+  
   sr:run "library(NLMR)"
   sr:set "ncol" max-pxcor + 1
   sr:set "nrow" max-pycor + 1

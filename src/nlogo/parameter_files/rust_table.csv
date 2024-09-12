@@ -1,11 +1,19 @@
-gr, FALSE
-d-sh, TRUE
-m-sh, TRUE
-ksh-k, TRUE
-yf-k, FALSE
-ksh-nok, TRUE
-yf-nok, FALSE
-old-f, FALSE
-ksh-p, TRUE
-yf-p, TRUE
-old-p, TRUE
+gr,FALSE,,,,,,
+d-sh,TRUE,,,,,,
+m-sh,TRUE,,,,,,
+ksh-k,TRUE,,,,,,
+yf-k,FALSE,,,,,,
+ksh-nok,TRUE,,,,,,
+yf-nok,FALSE,,,,,,
+old-f,FALSE,,,,,,
+ksh-p,TRUE,,,,,,
+yf-p,TRUE,,,,,,
+old-p,TRUE,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,

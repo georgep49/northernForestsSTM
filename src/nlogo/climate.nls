@@ -9,8 +9,8 @@ to init-enso
   set enso-state one-of enso-list         ; get the first state 
   
   set enso-record lput enso-state enso-record
-  show enso-mtx
-  show enso-state
+  ; show enso-mtx
+  ; show enso-state
   
 end  
 
