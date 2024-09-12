@@ -37,6 +37,7 @@ globals [
   patch-grain
   n-states
   record-tag
+  fbm-code
 
   ;; forest composition etc.
   class-list
@@ -314,23 +315,6 @@ GRAPHICS-WINDOW
 1
 Year
 30.0
-
-BUTTON
-0
-0
-0
-0
-NIL
-NIL
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 SLIDER
 30
@@ -1084,6 +1068,23 @@ NIL
 NIL
 1
 
+BUTTON
+1239
+537
+1345
+570
+show edaphic
+ask patches [ \n  set pcolor scale-color black edaphic-grad 0 1]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
 @#$#@#$#@
 ## WHAT IS IT?
 
@@ -1500,6 +1501,7 @@ NetLogo 6.4.0
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="300"/>
+    <metric>fbm-code</metric>
     <metric>abundances</metric>
     <enumeratedValueSet variable="enso-freq-wgt">
       <value value="1"/>

@@ -290,26 +290,36 @@ end
 ;; just have FBM here but song remains the same for other algorithms
 ;; used to build synthetic edaphic gradient
 
-to build-fbm
-  
-  sr:run "library(NLMR)"
-  sr:set "ncol" max-pxcor + 1
-  sr:set "nrow" max-pycor + 1
-  sr:set "fractal_dim" 1.2;; fractal_dim
-   
-  (sr:run 
-    "fbm <- NLMR::nlm_fbm(ncol, nrow, fractal_dim)"
-    "fbm_df <- raster::as.data.frame(fbm, xy = TRUE)"
-  )
-  
-  ;; get the coordinates - did it like this as raster::as.data.frame seemed broken?
-  let x sr:runresult "rep(seq(0, ncol - 1), nrow)"
-  let y sr:runresult "rep(seq(nrow - 1, 0), each = ncol)"
-  let fbm sr:runresult "raster::values(fbm)"
-  
-  (foreach x y fbm [[xc yc z] -> ask patch xc yc  [ set edaphic-grad z ]])
-end
+;to build-fbm
+;  
+;  sr:run "library(NLMR)"
+;  sr:set "ncol" max-pxcor + 1
+;  sr:set "nrow" max-pycor + 1
+;  sr:set "fractal_dim" 1.2;; fractal_dim
+;   
+;  (sr:run 
+;    "fbm <- NLMR::nlm_fbm(ncol, nrow, fractal_dim)"
+;    "fbm_df <- raster::as.data.frame(fbm, xy = TRUE)"
+;  )
+;  
+;  ;; get the coordinates - did it like this as raster::as.data.frame seemed broken?
+;  let x sr:runresult "rep(seq(0, ncol - 1), nrow)"
+;  let y sr:runresult "rep(seq(nrow - 1, 0), each = ncol)"
+;  let fbm sr:runresult "raster::values(fbm)"
+;  
+;  (foreach x y fbm [[xc yc z] -> ask patch xc yc  [ set edaphic-grad z ]])
+;end
 
+
+;; this loads pre-generated FBM surfaces (seems to be issues with simpleR and bhs)
+to load-fbm
+  set fbm-code 1 + random 1000
+  let fm-file (word "fbm_surfaces/fbm_raster" fbm-code ".asc")
+  
+  let fbm-raster gis:load-dataset fm-file
+  gis:apply-raster fbm-raster edaphic-grad
+
+end  
 
 to edge-farmland
   
