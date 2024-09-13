@@ -12,5 +12,9 @@ plot(fx(x = seq(0, 1, 0.01), x0 = 0.5, k = 2))
 ## declining and increasing funcs
 
 incr_limit <- function(b1, b2, x) {b1 * (1 - exp(-b2 * x))}
+decr_limit <- function(b1, b2, b0, x) {b1 *  exp(-b2 * x) + b0}
 
-decr_limit <- function(b1, b2, x) {b1 *  exp(-b2 * x) + b0}
+y <- incr_limit(b1 = 1, b2 = 0.1, x = seq(0, 500, 5) / 10)
+y <- decr_limit(b1 = 1, b2 = 0.1, b0 = 0, x = seq(0, 500, 5) / 10)
+
+1 - ((1 / 1:8) ^ 0.2)

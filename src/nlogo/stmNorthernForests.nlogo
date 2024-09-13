@@ -10,7 +10,7 @@ __includes [
 ]
 
 extensions [
-  profiler ;; in case we need to figure out why things are slow
+;  profiler ;; in case we need to figure out why things are slow
   matrix   ;; matrix maths
   palette  ;; nicer colours
   table    ;; dictionary like tables for storing lots of the input parameters
@@ -1084,6 +1084,17 @@ NIL
 NIL
 NIL
 1
+
+INPUTBOX
+528
+536
+763
+596
+nlrx-info
+NIL
+1
+0
+String
 
 @#$#@#$#@
 ## WHAT IS IT?
