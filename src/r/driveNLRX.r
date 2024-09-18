@@ -23,44 +23,41 @@ nl@experiment <- experiment(expname="test",
                             idsetup="setup",
                             idgo="go",
                             runtime=50,
-                            evalticks=seq(40,50),
+                            evalticks = "true",
                             metrics=c("abundances"),
-                            variables = list(),
-                            constants = list("fire-frequency" = 0.15))
-
-
-# perc-seed
-# fraction-seed-ldd
-# seed-pred
-# flamm-start
-# track-stalled?
-# mean-ldd
-# base-invasion
-# fire-slow
-# fire-invasion
-# invasion?
-# init-composition-file
-# base-seed-prod-of
-# base-seed-prod-yf
-# crit-density-yng
-# crit-density-old
-# max-ticks
-# burn-in-regen
-# max-forest
-# write-record?
-# extrinsic-sd
-# rust-global-inf
-# phy-global-inf
-# phy-local-inf
-# phy-radius-inf
-# enso-matrix-file
-# sap-herbivory
-# enso-freq-wgt
-# farm-edge?
-# farm-edge-nodes
-# mean-farm-depth
-# farm-revegetate?
-# nlrx-info
+                            variables = list("fire-frequency" = list(min = 0.0, max = 0.2, step = 0.01, qfun = "qunif"),
+                                             "flamm-start" = list(min = 0.0, max = 0.2, step = 0.01, qfun = "qunif"),
+                                             "extrinsic-sd" = list(min = -0.1, max = 0.1, step = 0.01, qfun = "qunif"),
+                                             "enso-freq-wgt" = list(min = 0.9, max = 1.1, step = 0.01, qfun = "qunif")),
+                            constants = list("perc-seed" = 0.57,
+                                             "fraction-seed-ldd" = 0.15,
+                                             "seed-pred" = 0.0,
+                                             "track-stalled?" = FALSE,
+                                             "mean-ldd" = 5.0,
+                                             "base-invasion" = 0.05,
+                                             "fire-slow" = 2,
+                                             "fire-invasion" = 0.10,
+                                             "base-seed-prod-of" = 8,
+                                             "base-seed-prod-yf" = 4,
+                                             "crit-density-yng" = 12,
+                                             "crit-density-old" = 14,
+                                             "max-ticks" = 300,
+                                             "burn-in-regen" = 10,
+                                             "max-forest" = 1.0,
+                                             "write-record?" = TRUE,
+                                             "extrinsic-sd" = 0.0,
+                                             "rust-global-inf" = 0.0,
+                                             "phy-global-inf" = 0.0,
+                                             "phy-local-inf" = 0.0,
+                                             "phy-radius-inf" = 1.5,
+                                             "enso-matrix-file" = "",
+                                             "sap-herbivory" = 0.0,
+                                             "enso-freq-wgt" = 1.0,
+                                             "farm-edge?" = FALSE,
+                                             "farm-edge-nodes" = 30,
+                                             "mean-farm-depth" = 10,
+                                             "farm-revegetate?" = true,
+                                             "nlrx-info" = ""))
 
 # Attach simdesign
 nl@simdesign <- simdesign_simple(nl = nl, nseeds = 3)

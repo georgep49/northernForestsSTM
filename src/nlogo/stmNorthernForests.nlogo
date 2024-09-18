@@ -1438,42 +1438,11 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="fire-noinvasion" repetitions="20" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="500"/>
-    <metric>abundances</metric>
-    <metric>beyond-flamm-time</metric>
-    <enumeratedValueSet variable="fire-slow">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="track-stalled?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fraction-consumed">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="fire-frequency" first="0" step="0.01" last="0.2"/>
-    <enumeratedValueSet variable="mean-ldd">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="seed-pred">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="flamm-start">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="p">
-      <value value="0.57"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="invasion?">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
   <experiment name="fire-invasion" repetitions="20" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="500"/>
+    <postRun>write-fire-record</postRun>
+    <timeLimit steps="300"/>
     <metric>abundances</metric>
     <metric>beyond-flamm-time</metric>
     <enumeratedValueSet variable="fire-slow">
@@ -1482,12 +1451,12 @@ NetLogo 6.4.0
     <enumeratedValueSet variable="track-stalled?">
       <value value="false"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="fraction-consumed">
-      <value value="0.4"/>
+    <enumeratedValueSet variable="fraction-seed-ldd">
+      <value value="0.15"/>
     </enumeratedValueSet>
     <steppedValueSet variable="fire-frequency" first="0" step="0.01" last="0.2"/>
     <enumeratedValueSet variable="mean-ldd">
-      <value value="4"/>
+      <value value="5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="seed-pred">
       <value value="0"/>
@@ -1495,7 +1464,7 @@ NetLogo 6.4.0
     <enumeratedValueSet variable="flamm-start">
       <value value="0.5"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="p">
+    <enumeratedValueSet variable="perc-seed">
       <value value="0.57"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="base-invasion">
@@ -1506,6 +1475,13 @@ NetLogo 6.4.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="invasion?">
       <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="farm-edge?">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="farm-revegetate?">
+      <value value="false"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="baseline" repetitions="50" runMetricsEveryStep="true">

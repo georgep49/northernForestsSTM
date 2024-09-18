@@ -48,7 +48,7 @@ to post-fire
 
   
   ;; update the fire history records
-  set new-invasions count patches with [class = 0 and prev-class > 0]
+  set new-invasions count patches with [class = "d-sh" and prev-class > "d-sh"]
 
   set fire-size count patches with [burned?]
   set fire-year lput ticks fire-year 
