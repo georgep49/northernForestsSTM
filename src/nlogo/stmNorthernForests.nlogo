@@ -740,7 +740,7 @@ max-ticks
 max-ticks
 0
 4000
-30.0
+40.0
 10
 1
 NIL
@@ -1484,7 +1484,7 @@ NetLogo 6.4.0
       <value value="false"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="baseline" repetitions="50" runMetricsEveryStep="true">
+  <experiment name="baseline" repetitions="200" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="300"/>

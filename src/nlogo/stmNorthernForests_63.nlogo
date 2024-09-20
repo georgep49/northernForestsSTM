@@ -200,10 +200,16 @@ to go
    ; print profiler:report  ;; view the results
    ; profiler:reset
 
-    if ticks = max-ticks - 1 [print date-and-time]
-    update-abundances
 
-    tick
+    update-abundances
+  if ticks = max-ticks - 1
+  [
+    if write-fire-final? = true [write-fire-record]
+    print date-and-time
+  ]
+
+
+  tick
 
   ; ]
 
@@ -1095,6 +1101,17 @@ NIL
 1
 0
 String
+
+SWITCH
+763
+420
+903
+453
+write-fire-final?
+write-fire-final?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
