@@ -19,9 +19,10 @@ nl@experiment <- experiment(expname = "test",
                             idrunnum = "nlrx-info",
                             outpath = outpath,
                             repetition = 1,
-                            idsetup="setup",
+                            idsetup = "setup",
                             idgo = "go",
-                            runtime = 50,
+                            idfinal = "write-fire-record",
+                            runtime = 300,
                             tickmetrics = "true",
                             metrics = c("abundances"),
                             variables = list("fire-frequency" = list(min = 0.0, max = 0.2, step = 0.01, qfun = "qunif"),
@@ -41,7 +42,7 @@ nl@experiment <- experiment(expname = "test",
                                              "base-seed-prod-yf" = 4,
                                              "crit-density-yng" = 12,
                                              "crit-density-old" = 14,
-                                             "max-ticks" = 50,
+                                             "max-ticks" = 300,
                                              "burn-in-regen" = 10,
                                              "max-forest" = 1.0,
                                              "write-record?" = "true",
@@ -56,7 +57,7 @@ nl@experiment <- experiment(expname = "test",
 
 
 # Attach simdesign
-nl@simdesign <- simdesign_lhs(nl = nl, samples = 5, nseeds = 1, precision = 3)
+nl@simdesign <- simdesign_lhs(nl = nl, samples = 2.5e3, nseeds = 1, precision = 3)
 
 # apply transformation to boolean (netlogo needs booleans as strings)
 # https://stackoverflow.com/questions/71067047/nlrx-package-include-boolean-parameter-as-variable
@@ -68,8 +69,8 @@ eval_variables_constants(nl)
 print(nl)
 
 # Run all simulations (loop over all siminputrows and simseeds)
-#library(future)
-# plan(multisession, workers = 3)
+library(future)
+plan(multisession, workers = 9)
 progressr::handlers("progress")
 results <- progressr::with_progress(run_nl_all(nl))
 
