@@ -153,7 +153,7 @@ to go
     if ticks > burn-in-regen
     [
       let enso-wgt 1
-      if enso-state = "ENL" or enso-state = "EN" [ set enso-wgt enso-freq-wgt ]
+      if enso-state = "ENL" or enso-state = "EN" [ set enso-wgt enso-freq-wgt ] ;;!!
 
       if random-float 1 <= (fire-frequency * enso-wgt * (1 + extrinsic))
       [
