@@ -355,7 +355,7 @@ BUTTON
 45
 NIL
 go
-NIL
+T
 1
 T
 OBSERVER
@@ -978,7 +978,7 @@ sap-herbivory
 sap-herbivory
 0
 1.0
-0.0
+0.09
 .01
 1
 NIL

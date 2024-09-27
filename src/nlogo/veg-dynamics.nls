@@ -323,21 +323,24 @@ end
 
 ;; Thin the regeneration bank to simulate effects of herbivory
 to herbivory-patch-bank
+
+  ask patches
+  [
+    if sum regenbank-yfor > 0
+    [
+      let nsdl random-binomial item 0 regenbank-yfor (1 - sap-herbivory)
+      let nsap random-binomial item 1 regenbank-yfor (1 - sap-herbivory)
+      set regenbank-yfor (list nsdl nsap)
+    ]
   
-   ask patches
-   [
-     if regenbank-yfor > 0
-     [
-       set regenbank-yfor( map [i -> random-binomial i (1 - sap-herbivory)] regenbank-yfor)
-     ]
-
-     if regenbank-ofor > 0
-     [
-       set regenbank-ofor( map [i -> random-binomial i (1 - sap-herbivory)] regenbank-ofor)
-     ]
-
+    if sum regenbank-ofor > 0
+    [
+      let nsdl random-binomial item 0 regenbank-yfor (1 - sap-herbivory)
+      let nsap random-binomial item 1 regenbank-yfor (1 - sap-herbivory)
+      set regenbank-yfor (list nsdl nsap)
+    ]
    ]
- 
+
 end
 
 ;; Deals with regeneration in the seedling and sapling banks
@@ -346,7 +349,7 @@ to regenerate-patch-bank
   ; don't track once in old forest (no change) or no regenbank at all
   ask patches with [(class != "old" and class != "old-p") and (sum regenbank-yfor + sum regenbank-ofor > 0)]
   [     
-    ; this could operate on binomial trials buit vbery slow and mutiplication
+    ; this could operate on binomial trials but very slow and mutiplication
     ; ok as an approximation given number of calcs...
     
     ; regen-bank for **young** forest species  
