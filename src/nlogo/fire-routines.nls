@@ -114,7 +114,10 @@ to write-fire-record
   
   set fire-record fput (unnest header) fire-record 
   
-  csv:to-file (word "fire_record" nlrx-info ".csv") fire-record
+  let tag ""
+  
+  ifelse nlrx-info = "" [ set tag behaviorspace-run-number ] [ set tag nlrx-info ]
+  csv:to-file (word "fire_record" tag ".csv") fire-record
   
 end
 

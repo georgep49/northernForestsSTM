@@ -602,7 +602,7 @@ INPUTBOX
 1378
 454
 init-composition-file
-parameter_files/initial_composition.csv
+parameter_files/initial_forest_composition.csv
 1
 0
 String
@@ -978,7 +978,7 @@ sap-herbivory
 sap-herbivory
 0
 1.0
-0.09
+0.0
 .01
 1
 NIL
@@ -1438,7 +1438,7 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="fire-invasion" repetitions="20" runMetricsEveryStep="false">
+  <experiment name="fire-invasion-forest-start" repetitions="20" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
     <postRun>write-fire-record</postRun>
