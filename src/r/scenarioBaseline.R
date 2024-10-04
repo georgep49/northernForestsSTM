@@ -25,9 +25,10 @@ baseline_long <- baseline |>
     pivot_longer(cols = starts_with("prop_"), names_to = "state", values_to = "prop") |>
     mutate(prop = prop / (256^2)) |>
     left_join(names_lu, by = "state") |>
-    filter(state != "prop_gr" & state != "prop_dSH") 
+    filter(state != "prop_gr" & state != "prop_dSH")
 
 time_states <- baseline_long |>
+    filter(aggreg == FALSE) |>
     group_by(step, state) |>
     summarise(as_tibble_row(quantile(prop, c(0.1, 0.5, 0.9)))) |>
     rename(prop10 = `10%`, median = `50%`, prop90 = `90%`) |>
@@ -35,14 +36,14 @@ time_states <- baseline_long |>
 
 final_state <- baseline_long |>
     filter(step == 300) |>
-    mutate(state_label = forcats::fct_reorder(as.factor(state_label), prop, .desc = TRUE))
-
+    mutate(state_label = forcats::fct_reorder(as.factor(state_label), prop, .desc = TRUE)) |>
+    filter(aggreg == FALSE, state != "prop_dSh")
 
 baseline_time_gg <- ggplot(data = time_states) +
     geom_line(aes(x = step, y = median, col = state_label)) +
     geom_ribbon(aes(x = step, ymin = prop10, ymax = prop90, fill = state_label), alpha = 0.3) + 
     ggrepel::geom_text_repel(data = time_states %>% filter(step == 300),
-            aes(x = step, y = median, label = state_label),  na.rm = TRUE) +
+            aes(x = step + 20, y = median, label = state_label, col = state_label),  na.rm = TRUE) +
     theme_bw() +
     theme(legend.position = "bottom")
 
@@ -54,7 +55,7 @@ baseline_final_gg <- ggplot(data = final_state, aes(x = state_label, y = prop)) 
     scale_fill_brewer(type = "qual", palette = "Dark2") +
     scale_colour_brewer(type = "qual", palette = "Dark2") +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, hjust=1), 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "bottom")
 
 
@@ -64,6 +65,6 @@ library(svglite)
 baseline_gg <- baseline_time_gg + baseline_final_gg +
   plot_annotation(tag_level = "a")
 
-# svglite(file = "baseline.svg", fix_text_size = FALSE)
-# baseline_gg
-# dev.off()
+svglite(file = "baseline.svg", fix_text_size = FALSE)
+baseline_gg
+dev.off()

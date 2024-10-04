@@ -99,7 +99,8 @@ fireForest_farms <- fireForest_farms |>
   mutate(
     prop_ksh = sum(prop_kshK, prop_kshNok, prop_kshP),
     prop_yfor = sum(prop_yfK, prop_yfNok, prop_yfP),
-    prop_ofor = sum(prop_old, prop_oldP))
+    prop_ofor = sum(prop_old, prop_oldP)) |>
+  ungroup()
 
 #######
 # Merge the young and old starts....
@@ -112,13 +113,16 @@ fireForest_farms <- fireForest_farms |>
 fireYng_farms <- fireYng_farms |>
          mutate(start_lsp = "yng")
 
-fire_farms_state <- bind_rows(fireYng_farms, fireForest_farms)
+fire_farms_state <- bind_rows(fireYng_farms, fireForest_farms %>% filter(step == 300))
 
 write_csv(file = "src/data/fireFarms/fire_farms_state.csv", x = fire_farms_state)
 
+
+
 ####################
 firesize_gg <- ggplot(data = fire_farms_state) +
-  geom_boxplot(aes(x = factor(fire_frequency), y = mean_size / (256^2), col = farm_edge)) +
+  geom_jitter(aes(x = fire_frequency, y = mean_size / (256^2), col = farm_edge), alpha = 0.3, width = 0.005) +
+  geom_smooth(aes(x = fire_frequency, y = mean_size / (256^2), col = farm_edge))  +
   labs(x = "Fre frequency", y = "Mean fire size (prop. landscape)") +
   scale_colour_brewer(type = "qual", palette = "Dark2", name = "Farm edge?") +
   facet_wrap(~start_lsp) +
@@ -126,7 +130,8 @@ firesize_gg <- ggplot(data = fire_farms_state) +
   theme(legend.position = "bottom")
 
 ofor_gg <- ggplot(data = fire_farms_state) +
-  geom_boxplot(aes(x = factor(fire_frequency), y = prop_ofor / (256^2), col = farm_edge)) +
+  geom_jitter(aes(x = fire_frequency, y = prop_ofor / (256 ^ 2), col = farm_edge), alpha = 0.3, width = 0.005) +
+  geom_smooth(aes(x = fire_frequency, y = prop_ofor / (256 ^ 2), col = farm_edge))  +
   labs(x = "Fre frequency", y = "Proportional abundance old forest") +
   scale_colour_brewer(type = "qual", palette = "Dark2", name = "Farm edge?") +
   facet_wrap(~start_lsp) +
@@ -145,15 +150,20 @@ ofor_gg <- ggplot(data = fire_farms_state) +
 #   scale_colour_brewer(type = "qual", palette = "Dark2", name = "Farm edge?") +
 #   theme_bw()
 
-
 library(patchwork)
 library(svglite)
 
 freqFarm_gg <- firesize_gg + ofor_gg +
   plot_layout(nrow = 2, guides = "collect", axes = "collect_x") +
-  plot_annotation(tag_level = "a")
+  plot_annotation(tag_level = "a") &
+  theme(legend.position = "bottom")
 
-svglite(file = "freqFarm_plot.svg", fix_text_size = FALSE)
+svglite(file = "freqFarm_plot.svg", fix_text_size = FALSE, width = 5.5, height = 8)
 freqFarm_gg
 dev.off()
 ####
+
+
+traps <- fire_farms_state |>
+  select(fire_frequency, start_lsp, farm_edge, starts_with("prop_")) 
+

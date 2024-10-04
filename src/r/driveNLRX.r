@@ -29,13 +29,14 @@ nl@experiment <- experiment(expname = "test",
                                              "flamm-start" = list(min = 0.0, max = 0.2, step = 0.01, qfun = "qunif"),
                                              "extrinsic-sd" = list(min = 0.0, max = 0.2, step = 0.01, qfun = "qunif"),
                                              "enso-freq-wgt" = list(min = 0.9, max = 1.1, step = 0.01, qfun = "qunif"),
-                                             "farm-edge?" = list(min = 0, max = 1, qfun = "qunif")),
+                                             "farm-edge?" = list(min = 0, max = 1, qfun = "qunif"),
+                                             "invasion?" = list(min = 0, max = 1, qfun = "qunif")),
                             constants = list("perc-seed" = 0.57,
                                              "fraction-seed-ldd" = 0.15,
                                              "seed-pred" = 0.0,
                                              "track-stalled?" = "false",
                                              "mean-ldd" = 5.0,
-                                             "base-invasion" = 0.05,
+                                             "invasion?" = "true",
                                              "fire-slow" = 2,
                                              "fire-invasion" = 0.10,
                                              "base-seed-prod-of" = 8,
@@ -62,7 +63,9 @@ nl@simdesign <- simdesign_lhs(nl = nl, samples = 2.5e3, nseeds = 1, precision = 
 # apply transformation to boolean (netlogo needs booleans as strings)
 # https://stackoverflow.com/questions/71067047/nlrx-package-include-boolean-parameter-as-variable
 nl@simdesign@siminput <- nl@simdesign@siminput %>% 
-  dplyr::mutate(`farm-edge?` = dplyr::if_else(`farm-edge?` < 0.5, "false", "true"))
+  dplyr::mutate(`farm-edge?` = dplyr::if_else(`farm-edge?` < 0.5, "false", "true")) %>%
+  dplyr::mutate(`invasion?` = dplyr::if_else(`invasion?` < 0.5, "false", "true"))
+ 
 
 # Evaluate nl object:
 eval_variables_constants(nl)
