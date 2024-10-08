@@ -60,3 +60,26 @@ state_fireLHC <- state_fireLHC |>
   ungroup()
 
 summary(state_fireLHC$mean_size)
+
+
+###
+
+traps <- state_fireLHC |>
+  select(siminputrow, step, invasion, fire_frequency, flamm_start, extrinsic_sd, enso_freq_wgt,  farm_edge, farm_edge, starts_with("prop_")) |>
+  select(-(20:22)) |>
+  filter(step == 300)
+
+
+dom <- apply(traps[,9:19], 1, function(x) which(x == max(x)))
+traps$dom_state <- names(traps[,9:19])[dom]
+traps$dom_abund <- apply(traps[, 9:19], 1, max) / (256 ^ 2)
+
+trap_gg <- ggplot(data = traps, aes(x  = fire_frequency, y = extrinsic_sd) ) +
+  geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
+  facet_grid(farm_edge ~ invasion) +
+  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1)
+
+library(svglite)
+svglite(file = "figX-fireLHCtraps.svg", height = 8, width = 8, fix_text_size = FALSE)
+trap_gg
+dev.off()
