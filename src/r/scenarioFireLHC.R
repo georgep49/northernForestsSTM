@@ -84,3 +84,28 @@ library(svglite)
 svglite(file = "figX-fireLHCtraps.svg", height = 8, width = 8, fix_text_size = FALSE)
 trap_gg
 dev.off()
+
+####
+library(tidyverse)
+library(svglite)
+
+fireHistory <- read_csv("src/data/fireLHC/fireLHC_allfire_records.csv") |>
+  janitor::clean_names()
+
+fireHistory <- mutate(fireHistory, fire_size_prop = fire_size / (256 ^ 2))
+
+clim_fire <- ggplot(fireHistory %>% slice_sample(prop = 0.2)) +
+      geom_point(aes(x = extrinsic, y = fire_size_prop, col = pre_prop_old_f)) +
+      geom_vline(xintercept = 0) +
+      facet_wrap(~start_farm) +
+      scale_colour_distiller(palette = "Greens", direction = 1)
+
+sf <- tibble(s = fireHistory$fire_size) |>
+  arrange(-s) |>
+  mutate(f = row_number())
+
+sf_fire <- ggplot(data = sf) +
+  geom_point(aes(x = f, y = s)) +
+  scale_x_log10() +
+  scale_y_log10()
+ 
