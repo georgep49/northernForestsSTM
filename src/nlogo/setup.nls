@@ -38,10 +38,10 @@ to setup
   set forest-classes-list (list "yf-k" "yf-nok" "old-f" "yf-p" "old-p")
 
   ;; load dictionaries (NL tables) from csv files
-  set flammability-dict table:from-list csv:from-file "parameter_files/flammability_table.csv"
-  set base-changes-dict table:from-list csv:from-file "parameter_files/base_changes_table.csv"
-  set rust-susc-dict table:from-list csv:from-file "parameter_files/rust_table.csv"
-  set phy-susc-dict table:from-list csv:from-file "parameter_files/kaurimate_table.csv"
+  set flammability-dict table:from-list csv:from-file "parameter_files/flammability_table.dat"
+  set base-changes-dict table:from-list csv:from-file "parameter_files/base_changes_table.dat"
+  set rust-susc-dict table:from-list csv:from-file "parameter_files/rust_table.dat"
+  set phy-susc-dict table:from-list csv:from-file "parameter_files/kaurimate_table.dat"
   
   ;; Load other parameter files
   load-aux-parameters
@@ -73,12 +73,12 @@ end
 to load-aux-parameters
   
   ;; general parameters for curves etc.
-  set aux-params-dict csv:from-file "parameter_files/aux_parameters.csv" 
+  set aux-params-dict csv:from-file "parameter_files/aux_parameters.dat" 
   set aux-params-dict table:from-list aux-params-dict
   
   ;; fire wind and slope modifiers
   ;; we strip off the title so it is a list of numeric lists
-  let X map but-first (csv:from-file "parameter_files/fire_weights.csv")
+  let X map but-first (csv:from-file "parameter_files/fire_weights.dat")
   
   set flamm-wind-list but-last X
   set flamm-slope-list last X
