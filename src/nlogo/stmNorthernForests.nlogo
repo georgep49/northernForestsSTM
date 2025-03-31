@@ -52,6 +52,7 @@ globals [
   flammability-dict
   flamm-wind-list
   flamm-slope-list
+  enso-freq-wgt-list
 
   fire-front
   fire-size
@@ -153,7 +154,8 @@ to go
     if ticks > burn-in-regen
     [
       let enso-wgt 1
-      if enso-state = "ENL" or enso-state = "EN" [ set enso-wgt enso-freq-wgt ]
+      ;if enso-state = "ENL" or enso-state = "EN" [ set enso-wgt enso-freq-wgt ]
+      set enso-wgt item (position enso-state enso-list) enso-freq-wgt-list
 
       if random-float 1 <= (fire-frequency * enso-wgt * (1 + extrinsic))
       [
@@ -413,7 +415,7 @@ fire-frequency
 fire-frequency
 0
 1
-0.0
+0.68
 .01
 1
 NIL
@@ -602,7 +604,7 @@ INPUTBOX
 1378
 454
 init-composition-file
-parameter_files/initial_forest_composition.csv
+parameter_files/initial_forest_composition.dat
 1
 0
 String
@@ -964,7 +966,7 @@ INPUTBOX
 1617
 316
 enso-matrix-file
-parameter_files/enso_matrix.csv
+parameter_files/enso_matrix.dat
 1
 0
 String

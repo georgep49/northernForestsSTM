@@ -79,9 +79,11 @@ to load-aux-parameters
   ;; fire wind and slope modifiers
   ;; we strip off the title so it is a list of numeric lists
   let X map but-first (csv:from-file "parameter_files/fire_weights.dat")
+  show X
   
-  set flamm-wind-list but-last X
-  set flamm-slope-list last X
+  set flamm-wind-list sublist X 0 2
+  set flamm-slope-list item 3 X
+  set enso-freq-wgt-list item 4 X
     
 end
 
