@@ -48,7 +48,7 @@ to fire-spread [extrinsic]
   let windDirection (random 8) * 45    ;For convenience this is the direction blowing *towards*
   
   ; Modifiers from Millington et al in EMS
-  let windModifiers (list (list 1.1 1.05 1.0 0.95 0.9) (list 1.2 1.1 1.0 0.9 0.8) (list 1.5 1.0 0.9 0.8 0.7))
+  ; let windModifiers (list (list 1.1 1.05 1.0 0.95 0.9) (list 1.2 1.1 1.0 0.9 0.8) (list 1.5 1.0 0.9 0.8 0.7))
   
   while [ any? fire-front ]                   ;Stop when we run out of flaming fireFront
   [  
@@ -56,22 +56,23 @@ to fire-spread [extrinsic]
    
      ask fire-front                           ;Ask patches neighbouring the fireFront to see if they ignite
      [
-       
        let fx pxcor
        let fy pycor
+       let fz elevation
        
        ask neighbors with [ not burned? ]
        [  
-         ; slope as per Millington EMS
-         ; lt -25 = 0.8; -25 to -15 = 0.9; -15 to -5 = 0.95; -5 to 5 = 0; 5 to 15 = 1.05; 15 to 25 = 1.1; 25+ = 1.2  
-         ; to add
+        ; slope calculations as per Millington EMS
+        let slopeWgt get-slope-weight (elevation - fz)
         
-        ; wind calculations   
+        ; wind calculations as per Millington EMS    
         let cellBearing atan (pxcor - fx)  (pycor - fy)  ; Bearing from ignited patch (pxcor, pycor) to candidate patch (nx,ny)
         let relDirn abs(windDirection - cellBearing)     ; Dir of fire spread relative to wind (difference)
         if relDirn > 180 [set relDirn 360 - relDirn]     ; Corrected to bound angle (0,180) 
           
-        let windWgt item (relDirn / 45) (item (windSpeed - 1) windModifiers) 
+        let windWgt item (relDirn / 45) (item (windSpeed - 1) flamm-wind-wgt) 
+        
+        
         
         ; edge drying calculations
         ; forest cells on edge of open veg are more flammable (as per Tepley et al. in Ecosystems) 
@@ -134,6 +135,20 @@ to-report getTheta [x1 y1 x2 y2]
 report theta
 
 end
+
+;; this gets the slope weight from the appropriate lists
+to-report get-slope-weight [sl]
+
+  let i 0
+  while [ item i flamm-slope-breaks < sl and i < (length flamm-slope-breaks) - 1] [
+    show item i flamm-slope-breaks
+    ;show sl
+    set i i + 1]
+  
+  if sl > last flamm-slope-breaks [set i i + 1]
+  report item i flamm-slope-wgt
+
+end  
 
 
 

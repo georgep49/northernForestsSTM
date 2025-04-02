@@ -281,7 +281,6 @@ to starting-coastal-forest
       ]  
    ]
     
-    
   ]
 end  
 
@@ -311,15 +310,15 @@ end
 ;end
 
 
-;; this loads pre-generated FBM surfaces (seems to be issues with simpleR and bhs)
-to load-fbm
-  set fbm-code 1 + random 1000
-  let fm-file (word "fbm_surfaces/fbm_raster" fbm-code ".asc")
-  
-  let fbm-raster gis:load-dataset fm-file
-  gis:apply-raster fbm-raster edaphic-grad
-
-end  
+;;; this loads pre-generated FBM surfaces (seems to be issues with simpleR and bhs)
+;to load-fbm
+;  set fbm-code 1 + random 1000
+;  let fm-file (word "fbm_surfaces/fbm_raster" fbm-code ".asc")
+;  
+;  let fbm-raster gis:load-dataset fm-file
+;  gis:apply-raster fbm-raster edaphic-grad
+;
+;end  
 
 to edge-farmland
   

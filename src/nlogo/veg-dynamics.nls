@@ -73,6 +73,8 @@ end
 ;; This is the linear 'time elapsed' component of the succession process
 ;; Work out next state for cells due to change and time until next change in the 
 ;; absence of perturbation
+
+;; edaphic gradient; 0 gully to 1 ridge
 to succession
 
   ;; id patches where change will occur

@@ -1,0 +1,130 @@
+;; Code base for building terrain (ridge-gully sequence) and hydrological metrics
+
+to build-catena
+
+  set nhb-scalar 2 * sqrt 2
+  ridge-gully true 3 5 100 0.1 0.1 ;;  [desc valley-width elev-step curr-elevation noise diffuse-strength]
+  
+  ask patches [
+    set flow-accum 1           ;; Each patch contributes at least itself
+    set flow-to nobody
+  ]
+
+  calculate-D8-flow-direction
+  calculate-slope
+  calculate-optim-flow-accum
+  calculate-TWI
+  calculate-TPI
+  
+  ;; edaphic gradient is TWI rescaled from 0-1 with 0 wettest and 1 driest
+  let max-TWI max [TWI] of patches
+  ask patches [ set edaphic-grad 1 - ( TWI / max-TWI ) ]
+  
+end
+
+;; D8 flow direction: Choose the steepest downhill neighbor from 8 directions
+to calculate-D8-flow-direction
+  ask patches [
+    let downhill-neighbors neighbors with [elevation < [elevation] of myself]
+    if any? downhill-neighbors [
+      set flow-to min-one-of downhill-neighbors [elevation]
+    ]
+  ]
+end
+
+;; Slope calculation based on the steepest descent direction
+to calculate-slope
+  ask patches [
+    if flow-to != nobody [
+      let dz elevation - ([elevation] of flow-to)
+      let di distance flow-to *   patch-grain
+      ;set slope math:atan (dz / di)  ;; Slope in radians
+      set slope atan dz di * (pi / 180)
+    ]
+  ]
+end
+
+;; Flow accumulation using D8 routing
+to calculate-flow-accum
+  let patches-sorted patches with [flow-to != nobody]
+  ask patches-sorted [
+    let receivers patches with [flow-to = myself]
+    ask receivers [
+      set flow-accum flow-accum + [flow-accum] of myself  ;; Accumulate flow
+    ]
+  ]
+end
+
+;; Flow accumulation using D8 routing from high to low
+to calculate-optim-flow-accum
+  let sorted-patches reverse sort-on [elevation] patches
+
+  foreach sorted-patches [ p ->
+    ask p [
+      if flow-to != nobody [
+        ask flow-to [
+          set flow-accum flow-accum + [flow-accum] of p
+        ]
+      ]
+    ]
+  ]
+end
+
+;; Compute Topographic Wetness Index (TWI; 0 dry to ... high wet)
+;; https://en.wikipedia.org/wiki/Topographic_wetness_index
+to calculate-TWI
+  ask patches [
+    if slope > 0 [
+      set TWI ln (flow-accum / ( tan slope * (180 / pi)))
+    ]
+    ; if TWI <= 0 [ set TWI 0 ]  ;; Prevent division errors
+;; https://gis.stackexchange.com/questions/104543/getting-negative-topographic-wetness-index-twi-values-in-saga-gis/113535#113535    
+  ]
+end
+
+to calculate-TPI
+  ask patches
+  [
+    let m mean [elevation] of other patches in-radius nhb-scalar
+    let rel-elevation elevation - m
+    if rel-elevation <= -2 [set TPI 1]   ; gully
+    if rel-elevation >= -2 and rel-elevation < 2 [set TPI 2] ; slope
+    if rel-elevation >= 2 [set TPI 3] ; ridge
+  ]
+end
+
+to ridge-gully [desc valley-width elev-step curr-elevation noise diffuse-strength]
+;  let desc true
+;  let valley-width 3
+;  let elev-step 5
+;  let curr-elevation 100
+  let i 0
+
+  ask patches with [pxcor = i] [ set elevation curr-elevation ]
+
+  while [i <= max-pxcor] [
+    ask patches with [pxcor = i]
+    [
+      ifelse desc = true
+      [set elevation curr-elevation - elev-step]
+      [set elevation curr-elevation + elev-step]
+    ]
+
+    ifelse desc = true
+    [ set curr-elevation curr-elevation - elev-step ]
+    [ set curr-elevation curr-elevation + elev-step ]
+
+    if curr-elevation = 0 [
+      set desc false
+      set i i + (valley-width - 1)
+    ]
+
+    if curr-elevation = 100 [set desc true]
+    set i i + 1
+  ]
+
+  ask patches with [elevation = 0 ] [set elevation elevation + random-float 0.01]
+  ask patches [ set elevation (elevation * (random-normal 1 noise))]
+  diffuse elevation diffuse-strength
+
+end

@@ -61,10 +61,14 @@ to setup
   show "Setting up ENSO dynamics..."
   set enso-record []
   init-enso
+
+  ;; Building terrain
+  show "Building terrain..."
+  build-topo-landscape
   
   ;; Build the landscape using the MRC code...
-  show "Building starting landscape..."
-  build-landscape
+  show "Building initial vegetation landscape..."
+  build-veg-landscape
   
   reset-ticks
 end
@@ -79,22 +83,40 @@ to load-aux-parameters
   ;; fire wind and slope modifiers
   ;; we strip off the title so it is a list of numeric lists
   let X map but-first (csv:from-file "parameter_files/fire_weights.dat")
-  show X
   
-  set flamm-wind-list sublist X 0 2
-  set flamm-slope-list item 3 X
-  set enso-freq-wgt-list item 4 X
+  set flamm-wind-wgt sublist X 0 3 ;; upper is exclusive
+  set flamm-slope-wgt item 3 X
+  set flamm-slope-breaks item 4 X
+  set flamm-aspect-wgt item 5 X
+  set enso-freq-wgt-list item 6 X
     
 end
 
-;; drive the MRC landscape building
-to build-landscape
-  set clusters []
+;; set-up the topography etc.
+to build-topo-landscape
   
+  ifelse flat-terrain? = true
+  [
+    ask patches
+    [
+      set elevation 0
+      set aspect -1
+      set TPI -1
+      set TWI -1
+    ]
+  ]  
+  [
+    build-catena
+  ]
+  
+end
+
+;; drive the MRC landscape building
+to build-veg-landscape
+  set clusters []
 
   set sum-stalled (list 0 0)
   set sum-changes (list 0 0)
-
   
   ;; set up the MRC landscape
   show "Building starting landscape (MRC)..."
@@ -147,7 +169,7 @@ to init-patches
     set kauri-mate? false
     set kauri-mate-nhb other patches in-radius phy-radius-inf
   ]
-  
-  ;;build-fbm
-  load-fbm
+    
 end
+
+
