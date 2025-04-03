@@ -200,7 +200,7 @@ to go
 
       if n-changes > 0 or fire-this-tick = true
       [
-        color-by-class
+        colour-by-class
         update-abundances
         if abund-flammable < 0.3 and ticks < beyond-flamm-time [ set beyond-flamm-time ticks ]
       ]
@@ -242,7 +242,7 @@ to-report occurrences [x the-list]
 end
 
 ;; Colours patches by class
-to color-by-class
+to colour-by-class
   ask patches [
     set pcolor table:get colour-dict class
   ]
@@ -432,7 +432,7 @@ fire-frequency
 fire-frequency
 0
 1
-0.68
+0.0
 .01
 1
 NIL
@@ -1012,7 +1012,7 @@ enso-freq-wgt
 enso-freq-wgt
 0.75
 1.25
-1.0
+0.9
 .01
 1
 NIL
@@ -1105,9 +1105,9 @@ NIL
 1
 
 INPUTBOX
-528
+538
 536
-763
+762
 596
 nlrx-info
 NIL

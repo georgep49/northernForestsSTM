@@ -1,0 +1,125 @@
+globals [
+
+  ;; run control aux
+  from-R?
+  run-id
+
+  ;; model world structure
+  world-size
+  patch-grain
+  n-states
+  record-tag
+  fbm-code
+
+  ;; forest composition etc.
+  class-list
+  class-names-list
+  forest-classes-list
+  ;;base-changes
+  base-changes-dict
+  tr-mtx-bank-yfor
+  tr-mtx-bank-ofor
+
+  ;; fire-related
+  flammability-dict
+  flamm-wind-wgt
+  flamm-slope-wgt
+  flamm-slope-breaks
+  flamm-aspect-wgt
+  enso-freq-wgt-list
+
+  fire-front
+  fire-size
+  fire-year
+  rnd-seed
+  extinguished?
+
+  ;; pathogen-related
+  rust-susc-dict
+  phy-susc-dict
+
+  ;; fire history
+  ;; two lists to deal with individual fires and their characteristics
+  ;; third list keeps track of fire sizes for aggregate stats at end
+  fire-stats
+  fire-record
+  fire-size-list
+
+  ;; climate related
+  enso-mtx
+  enso-list
+  enso-state
+  enso-record
+
+  ;; auxillary (Secondary) parameters
+  aux-params-dict
+
+  ;; lsp reporters
+  abundances
+  beyond-flamm-time
+  old-growth-abund
+  sum-stalled       ;; total stalled list 0 = 2 -> 3, 1 = 3 -> 4
+  sum-changes       ;; no. stalled list 0 = 2 -> 3, 1 = 3 -> 4
+  n-changes
+
+  ;; these globals control the MRC algorithm
+  colour-list        ;; list of spectral colors
+  colour-dict
+  num-classes       ;; the number of suitability classes
+  class-FD          ;; freq distribution of classes requested
+  class-CFD         ;; cumulative freq dist of classes requested
+  clusters          ;; a list of patch-sets of patches in each cluster
+
+  ;; topo
+  nhb-scalar  ;; this is for the topographic metrics
+]
+
+
+patches-own
+[
+  fire-history      ;; list of years in which cell burned
+  last-change
+  next-change
+  times-change
+  t-colonised
+
+  regenbank-yfor
+  regenbank-ofor
+  ldd-this-tick
+
+  ;; topo and hydrological params
+  flow-accum
+  flow-to
+  aspect
+  edaphic-grad
+  elevation
+  slope
+  TPI
+  TWI
+
+  ;; lsp context
+  distance-to-coast
+  farm-node?
+  farm?
+
+  ;; patiogen status
+  myrtle-rust?
+  myrtle-rust-time
+
+  kauri-mate?
+  kauri-mate-time
+  kauri-mate-nhb
+
+  ;; fire history
+  stalled
+  flammability
+  burned?
+
+  ;; MRC stuff
+  class             ;; used to label initial clusters and to index veg class
+  prev-class        ;; class previously occupied
+
+  cluster-leader    ;; patch which 'leads' the cluster (see model lib example)
+  in-perc-cluster?  ;; true if patch is in initial percolation cluster
+  cluster-id
+]

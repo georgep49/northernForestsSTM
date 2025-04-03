@@ -1,0 +1,11 @@
+gr,0.5
+d-sh,0.65
+m-sh,0.35
+ksh-k,0.25
+yf-k,0.1
+ksh-nok,0.25
+yf-nok,0.1
+old-f,0.05
+ksh-p,0.25
+yf-p,0.1
+old-p,0.05

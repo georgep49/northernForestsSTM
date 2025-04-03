@@ -3,7 +3,7 @@
 to build-catena
 
   set nhb-scalar 2 * sqrt 2
-  ridge-gully true 3 5 100 0.1 0.1 ;;  [desc valley-width elev-step curr-elevation noise diffuse-strength]
+  ridge-gully true 3 5 100 0.05 0.1 ;;  [desc valley-width elev-step curr-elevation noise diffuse-strength]
   
   ask patches [
     set flow-accum 1           ;; Each patch contributes at least itself
@@ -39,7 +39,7 @@ to calculate-slope
       let dz elevation - ([elevation] of flow-to)
       let di distance flow-to *   patch-grain
       ;set slope math:atan (dz / di)  ;; Slope in radians
-      set slope atan dz di * (pi / 180)
+      set slope atan dz di * (pi / 180) ;; Slope in radians
     ]
   ]
 end
@@ -77,9 +77,16 @@ to calculate-TWI
     if slope > 0 [
       set TWI ln (flow-accum / ( tan slope * (180 / pi)))
     ]
-    ; if TWI <= 0 [ set TWI 0 ]  ;; Prevent division errors
+    if TWI <= 0 [ set TWI 0 ]  ;; Prevent division errors - this is very steep slopes
 ;; https://gis.stackexchange.com/questions/104543/getting-negative-topographic-wetness-index-twi-values-in-saga-gis/113535#113535    
   ]
+  
+  ;; Need to tidy up the zero slope locales (set to high value, 95th% of TWI aribitrarily)
+  let sort-twi (sort [twi] of patches with [slope > 0 and twi > 0])
+  let n round length sort-twi * 0.95  
+  let zero-twi item n sort-twi
+  ask patches with [slope = 0 ] [ set twi zero-twi ]
+  
 end
 
 to calculate-TPI

@@ -141,8 +141,7 @@ to-report get-slope-weight [sl]
 
   let i 0
   while [ item i flamm-slope-breaks < sl and i < (length flamm-slope-breaks) - 1] [
-    show item i flamm-slope-breaks
-    ;show sl
+
     set i i + 1]
   
   if sl > last flamm-slope-breaks [set i i + 1]
