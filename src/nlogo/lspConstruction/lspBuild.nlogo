@@ -137,7 +137,10 @@ patches-own
   in-perc-cluster?  ;; true if patch is in initial percolation cluster
   cluster-id
 
+  ;; topo helpers
   forest?
+  f-shell
+  valley?
 ]
 
 
@@ -330,6 +333,9 @@ to calculate-TPI
     if rel-elevation >= -2 and rel-elevation < 2 [set TPI 2] ; slope
     if rel-elevation >= 2 [set TPI 3] ; ridge
   ]
+
+  ask patches with [valley? = true] [ set TPI 1]
+  ;; line above is a hack to stop artificial slopes due to valley bottom z noise
 end
 
 to ridge-gully [desc valley-width elev-step curr-elevation noise diffuse-strength]
@@ -355,14 +361,18 @@ to ridge-gully [desc valley-width elev-step curr-elevation noise diffuse-strengt
 
     if curr-elevation = 0 [
       set desc false
-      set i i + (valley-width - 1)
+      set i i + (valley-width - 1) + random-poisson (valley-width / 2)
     ]
 
     if curr-elevation = 100 [set desc true]
     set i i + 1
   ]
 
-  ask patches with [elevation = 0 ] [set elevation elevation + random-float 0.01]
+  ask patches with [elevation = 0 ] [
+    set valley? true
+    set elevation elevation + random-float 0.01
+  ]
+
   ask patches [ set elevation (elevation * (random-normal 1 noise))]
   diffuse elevation diffuse-strength
 
@@ -373,8 +383,8 @@ end
 to build-veg-landscape
   set clusters []
 
-  ;set sum-stalled (list 0 0)
-  ; set sum-changes (list 0 0)
+  set sum-stalled (list 0 0)
+  set sum-changes (list 0 0)
 
   ;; set up the MRC landscape
   show "Building starting landscape (MRC)..."
@@ -383,29 +393,51 @@ to build-veg-landscape
 
   ask patches [set class item class class-names-list]
 
+  ;; This adds forest patches to gullies (preferentially if requested)
+  if forest-cover > 0
+  [
+    show "Adding forest in gullies..."
+    build-gully-forest
+  ]
+
+  show "Building starting landscape (ageing via cluster id, etc.)..."
+  init-patches
+  find-clusters
+  id-clusters
+  if forest-cover > 0 [ tag-gully-forest ]
+  age-by-cluster
+
   ;; Ensure that there are no cells in the 'invaded' state if invasion is false
   if invasion? = false
   [
     ask patches with [class = "d-sh"] [set class "m-sh"]
   ]
 
-  show "Building starting landscape (cluster id)..."
-  init-patches
-  find-clusters
-  id-clusters
-  age-by-cluster
-
   show "Building starting landscape (coastal & farmland)..."
   starting-coastal-forest
   if farm-edge? [edge-farmland]
 
-  ; update-abundances
-  ; color-by-class
+  ;update-abundances
+  colour-by-class
 
 end
 
 
+to tag-gully-forest
 
+  let ids remove-duplicates sort [cluster-id] of patches with [forest? = true]
+
+  foreach ids
+  [  f ->
+
+    let ft random-float 1
+
+    ask patches with [cluster-id = f] [
+      if ft <= 0.3 [ set class "yf-k" ]
+      if ft > 0.7 [ set class "yf-nok" ]
+    ]
+  ]
+end
 
 ;;;;;;;;;;;
 ;; Code to build landscapes using the MRC method - adapted from the book.
@@ -720,7 +752,7 @@ to init-patches
 
   ask patches
   [
-    set forest? false
+    ; set forest? false
 
     set times-change 0
     set flammability table:get flammability-dict class
@@ -788,42 +820,48 @@ to init-enso
 
 end
 
-to build-forest
-  while [count patches with [forest? = true] < (0.2 * max-pxcor * max-pycor)]
+to build-gully-forest
+  let idx 0
+  while [count patches with [forest? = true] < (forest-cover * max-pxcor * max-pycor)]
   [
-    start-disturbance
+    start-forest-grow idx
+    set idx idx + 1
   ]
+
+  ask patches with [forest? = true] [set class "old-f"]
 
 end
 
-to start-disturbance
+to start-forest-grow [idx]
   set forestArea 0
 
   ask one-of patches with [edaphic-grad < 0.4 and tpi = 1] ;; gully
   [
     set forest? true
+    set f-shell idx
     set forestFront patch-set self              ;; a new disturb-front patch-set
   ]
 
-  disturb-spread (0.2 * max-pxcor * max-pycor)
+  forest-grow idx (forest-cover * max-pxcor * max-pycor)
 
 end
 
 
-to disturb-spread [maxArea]
+to forest-grow [idx maxArea]
   while [ any? forestFront and forestArea <= maxArea ]                 ;; Stop when we run out of active disturbance front
   [
     let newForestFront patch-set nobody     ;; Empty set of patches for the next 'round' of the disturbance
 
     ask forestFront
     [
-      let N neighbors with [ forest? != true ]
+      set f-shell idx
+      let N neighbors;;  with [ forest? != true ]
 
       ask N
       [
-        let p 0.15
-        if twi < 0.35 [set p 0.5]
-        if twi > 0.35 and twi < 0.75 [set p 0.3]
+        let p 0.125
+        if twi < 0.35 [set p 0.4]
+        if twi > 0.35 and twi < 0.75 [set p 0.25]
 
         if (random-float 1) <= p [ set newForestFront ( patch-set newForestFront self) ]
 
@@ -838,28 +876,29 @@ to disturb-spread [maxArea]
 end
 
 
+
 @#$#@#$#@
 GRAPHICS-WINDOW
-266
-56
-675
-466
+230
+10
+750
+531
 -1
 -1
-1.0
+2.0
 1
 10
 1
 1
 1
 0
-1
-1
+0
+0
 1
 0
-400
+255
 0
-400
+255
 1
 1
 1
@@ -1119,22 +1158,40 @@ false
 PENS
 "default" 1.0 1 -16777216 true "" "histogram [twi] of patches"
 
-BUTTON
-136
-285
-225
-318
-add forest
-build-forest
-NIL
+TEXTBOX
+336
+480
+351
+498
+*
+11
+0.0
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
+
+TEXTBOX
+469
+480
+619
+498
+*
+11
+0.0
 1
+
+SLIDER
+1063
+301
+1235
+334
+forest-cover
+forest-cover
+0
+1
+0.1
+.01
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
