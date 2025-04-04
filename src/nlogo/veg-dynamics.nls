@@ -66,7 +66,7 @@ to post-fire
   
   ;; reset patches and update colours
   ask patches [set burned? false]
-  color-by-class
+  colour-by-class
 end
 
 

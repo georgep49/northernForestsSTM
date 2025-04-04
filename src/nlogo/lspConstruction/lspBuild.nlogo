@@ -751,8 +751,6 @@ to init-patches
 
   ask patches
   [
-    ; set gully-gully-gully-forest? false
-
     set times-change 0
     set flammability table:get flammability-dict class
     set burned? false
