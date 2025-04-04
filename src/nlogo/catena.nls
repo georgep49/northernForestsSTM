@@ -123,14 +123,18 @@ to ridge-gully [desc valley-width elev-step curr-elevation noise diffuse-strengt
 
     if curr-elevation = 0 [
       set desc false
-      set i i + (valley-width - 1)
+      set i i + (valley-width - 1) + random-poisson (valley-width / 2)
     ]
 
     if curr-elevation = 100 [set desc true]
     set i i + 1
   ]
 
-  ask patches with [elevation = 0 ] [set elevation elevation + random-float 0.01]
+  ask patches with [elevation = 0 ] [
+    set valley? true
+    set elevation elevation + random-float 0.01
+  ]
+  
   ask patches [ set elevation (elevation * (random-normal 1 noise))]
   diffuse elevation diffuse-strength
 

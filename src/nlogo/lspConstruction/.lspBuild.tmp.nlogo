@@ -138,8 +138,7 @@ patches-own
   cluster-id
 
   ;; topo helpers
-  forest?
-  f-shell
+  gully-forest?
   valley?
 ]
 
@@ -394,7 +393,7 @@ to build-veg-landscape
   ask patches [set class item class class-names-list]
 
   ;; This adds forest patches to gullies (preferentially if requested)
-  if forest-cover > 0
+  if forest-gully-cover > 0
   [
     show "Adding forest in gullies..."
     build-gully-forest
@@ -404,7 +403,7 @@ to build-veg-landscape
   init-patches
   find-clusters
   id-clusters
-  if forest-cover > 0 [ tag-gully-forest ]
+  if forest-gully-cover > 0 [ tag-gully-forest ]
   age-by-cluster
 
   ;; Ensure that there are no cells in the 'invaded' state if invasion is false
@@ -425,7 +424,7 @@ end
 
 to tag-gully-forest
 
-  let ids remove-duplicates sort [cluster-id] of patches with [forest? = true]
+  let ids remove-duplicates sort [cluster-id] of patches with [gully-forest? = true]
 
   foreach ids
   [  f ->
@@ -752,7 +751,7 @@ to init-patches
 
   ask patches
   [
-    ; set forest? false
+
 
     set times-change 0
     set flammability table:get flammability-dict class
@@ -821,47 +820,43 @@ to init-enso
 end
 
 to build-gully-forest
-  let idx 0
-  while [count patches with [forest? = true] < (forest-cover * max-pxcor * max-pycor)]
+  while [count patches with [gully-forest? = true] < (forest-gully-cover * max-pxcor * max-pycor)]
   [
-    start-forest-grow idx
-    set idx idx + 1
+    start-forest-grow
   ]
 
-  ask patches with [forest? = true] [set class "old-f"]
+  ask patches with [gully-forest? = true] [set class "old-f"]
 
 end
 
-to start-forest-grow [idx]
+to start-forest-grow
   set forestArea 0
 
   ask one-of patches with [edaphic-grad < 0.4 and tpi = 1] ;; gully
   [
-    set forest? true
-    set f-shell idx
+    set gully-forest? true
     set forestFront patch-set self              ;; a new disturb-front patch-set
   ]
 
-  forest-grow idx (forest-cover * max-pxcor * max-pycor)
+  forest-grow  (forest-gully-cover * max-pxcor * max-pycor)
 
 end
 
 
-to forest-grow [idx maxArea]
+to forest-grow [ maxArea]
   while [ any? forestFront and forestArea <= maxArea ]                 ;; Stop when we run out of active disturbance front
   [
     let newForestFront patch-set nobody     ;; Empty set of patches for the next 'round' of the disturbance
 
     ask forestFront
     [
-      set f-shell idx
-      let N neighbors;;  with [ forest? != true ]
+      let N neighbors;;  with [ gully-gully-gully-forest? != true ]
 
       ask N
       [
         let p 0.125
-        if twi < 0.35 [set p 0.4]
-        if twi > 0.35 and twi < 0.75 [set p 0.25]
+        if twi < 0.35 [set p 0.35]
+        if twi > 0.35 and twi < 0.75 [set p 0.225]
 
         if (random-float 1) <= p [ set newForestFront ( patch-set newForestFront self) ]
 
@@ -869,7 +864,7 @@ to forest-grow [idx maxArea]
    ]
 
    set forestFront newForestFront
-   ask newForestFront [set forest? true]
+   ask newForestFront [set gully-forest? true]
    set forestArea forestArea + ( count newForestFront )
   ]
 
@@ -881,11 +876,11 @@ end
 GRAPHICS-WINDOW
 230
 10
-642
-423
+750
+531
 -1
 -1
-4.0
+2.0
 1
 10
 1
@@ -896,9 +891,9 @@ GRAPHICS-WINDOW
 0
 1
 0
-100
+255
 0
-100
+255
 1
 1
 1
@@ -1183,8 +1178,8 @@ SLIDER
 301
 1235
 334
-forest-cover
-forest-cover
+forest-gully-cover
+forest-gully-cover
 0
 1
 0.1

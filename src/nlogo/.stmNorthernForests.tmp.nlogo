@@ -98,11 +98,9 @@ globals [
   class-FD          ;; freq distribution of classes requested
   class-CFD         ;; cumulative freq dist of classes requested
   clusters          ;; a list of patch-sets of patches in each cluster
-
-  ;;  if we need to add gully forest
+  ;;
   forestFront
   forestArea
-
   ;; topo
   nhb-scalar  ;; this is for the topographic metrics
 ]
@@ -155,10 +153,6 @@ patches-own
   cluster-leader    ;; patch which 'leads' the cluster (see model lib example)
   in-perc-cluster?  ;; true if patch is in initial percolation cluster
   cluster-id
-
-  ;; topo helpers
-  gully-forest?
-  valley?
 ]
 
 

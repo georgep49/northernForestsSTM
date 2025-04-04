@@ -285,41 +285,6 @@ to starting-coastal-forest
 end  
 
 
-;; code to access the NLMR package via the simpleR extension
-;; just have FBM here but song remains the same for other algorithms
-;; used to build synthetic edaphic gradient
-
-;to build-fbm
-;  
-;  sr:run "library(NLMR)"
-;  sr:set "ncol" max-pxcor + 1
-;  sr:set "nrow" max-pycor + 1
-;  sr:set "fractal_dim" 1.2;; fractal_dim
-;   
-;  (sr:run 
-;    "fbm <- NLMR::nlm_fbm(ncol, nrow, fractal_dim)"
-;    "fbm_df <- raster::as.data.frame(fbm, xy = TRUE)"
-;  )
-;  
-;  ;; get the coordinates - did it like this as raster::as.data.frame seemed broken?
-;  let x sr:runresult "rep(seq(0, ncol - 1), nrow)"
-;  let y sr:runresult "rep(seq(nrow - 1, 0), each = ncol)"
-;  let fbm sr:runresult "raster::values(fbm)"
-;  
-;  (foreach x y fbm [[xc yc z] -> ask patch xc yc  [ set edaphic-grad z ]])
-;end
-
-
-;;; this loads pre-generated FBM surfaces (seems to be issues with simpleR and bhs)
-;to load-fbm
-;  set fbm-code 1 + random 1000
-;  let fm-file (word "fbm_surfaces/fbm_raster" fbm-code ".asc")
-;  
-;  let fbm-raster gis:load-dataset fm-file
-;  gis:apply-raster fbm-raster edaphic-grad
-;
-;end  
-
 to edge-farmland
   
   let edge-patches patches with [pxcor = max-pxcor]
@@ -340,3 +305,74 @@ to edge-farmland
     ]
   ]  
 end  
+
+
+;; Functions to add forest to gullies
+to build-gully-forest
+  
+  while [count patches with [gully-forest? = true] < (forest-gully-cover * max-pxcor * max-pycor)]
+  [
+    start-forest-grow
+  ]
+  
+  ask patches with [gully-forest? = true] [set class "old-f"]
+  
+end
+
+to start-forest-grow
+  set forestArea 0
+  
+  ask one-of patches with [edaphic-grad < 0.4 and tpi = 1] ;; gully
+  [
+    set gully-forest? true
+    set forestFront patch-set self              ;; a new disturb-front patch-set
+  ]
+ 
+  forest-grow (forest-gully-cover * max-pxcor * max-pycor)
+
+end
+
+
+to forest-grow [ maxArea ]
+  while [ any? forestFront and forestArea <= maxArea ]                 ;; Stop when we run out of active disturbance front
+  [
+    let newForestFront patch-set nobody     ;; Empty set of patches for the next 'round' of the disturbance
+
+    ask forestFront
+    [
+      let N neighbors;;  with [ gully-forest? != true ]
+
+      ask N    ;; values here arbitrary but designed to given patchy rather than filled shapes
+      [
+        let p 0.125
+        if twi < 0.35 [set p 0.35]
+        if twi > 0.35 and twi < 0.75 [set p 0.225]
+        
+        if (random-float 1) <= p [ set newForestFront ( patch-set newForestFront self) ]
+        
+      ]
+   ]
+
+   set forestFront newForestFront
+   ask newForestFront [set gully-forest? true]
+   set forestArea forestArea + ( count newForestFront )
+  ]
+
+end
+
+;; this is to identify gully patches and then change their classes prior to coast etc.
+to tag-gully-forest
+      
+  let ids remove-duplicates sort [cluster-id] of patches with [gully-forest? = true]
+    
+  foreach ids
+  [  f ->
+    
+    let ft random-float 1
+    
+    ask patches with [cluster-id = f] [
+      if ft <= 0.3 [ set class "yf-k" ]
+      if ft > 0.7 [ set class "yf-nok" ]
+    ]
+  ]
+end
