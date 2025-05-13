@@ -42,6 +42,7 @@ to setup
   set base-changes-dict table:from-list csv:from-file "parameter_files/base_changes_table.dat"
   set rust-susc-dict table:from-list csv:from-file "parameter_files/rust_table.dat"
   set phy-susc-dict table:from-list csv:from-file "parameter_files/kaurimate_table.dat"
+ 
   
   ;; Load other parameter files
   load-aux-parameters
@@ -75,6 +76,11 @@ end
 
 
 to load-aux-parameters
+  ;; succession weighst for landsacpe variables
+  let X map but-first (csv:from-file "parameter_files/lsp_succ_weights.dat")
+  
+  set succ-tpi-wgt item 0 X
+  set succ-aspect-wgt item 1 X
   
   ;; general parameters for curves etc.
   set aux-params-dict csv:from-file "parameter_files/aux_parameters.dat" 
@@ -82,7 +88,7 @@ to load-aux-parameters
   
   ;; fire wind and slope modifiers
   ;; we strip off the title so it is a list of numeric lists
-  let X map but-first (csv:from-file "parameter_files/fire_weights.dat")
+  set X map but-first (csv:from-file "parameter_files/fire_weights.dat")
   
   set flamm-wind-wgt sublist X 0 3 ;; upper is exclusive
   set flamm-slope-wgt item 3 X
@@ -99,6 +105,7 @@ to build-topo-landscape
   [
     ask patches
     [
+      set slope 0
       set elevation 0
       set aspect -1
       set TPI -1

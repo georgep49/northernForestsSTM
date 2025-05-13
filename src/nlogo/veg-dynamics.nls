@@ -1,11 +1,18 @@
-;; Functions associated with vegetation change (succession, diuspersal, regen)
+;; Functions associated with vegetation change (succession, dispersal, regen)
 
 ;; This sorts out what happens after a fire - this is where pyrophyllic invasion takes place
+
+
+;; TO DO 
+;; ----- need to add landscape effects here
+
 to post-fire
   
   let fire-hist-len table:get aux-params-dict "fire-hist-len"
   
   let new-invasions 0
+  
+  ;; deal with the burned patches
   ask patches with [burned?]
   [
     set prev-class class
@@ -29,7 +36,6 @@ to post-fire
         set class "d-sh"   ;; to degraded shrubland
         set next-change ticks + (table:get base-changes-dict class) + (last-x-fires * fire-slow)
         set flammability table:get flammability-dict class
-
       ]
       [
         set class "m-sh"   ;; to manuka
@@ -74,10 +80,12 @@ end
 ;; Work out next state for cells due to change and time until next change in the 
 ;; absence of perturbation
 
-;; edaphic gradient; 0 gully to 1 ridge
+;; edaphic gradient 
+;; aspect :: 1 N 2 E 3 S 4 W
+;; lform position :: 1 gully, 2 slope, 3 ridge
 to succession
 
-  ;; id patches where change will occur
+  ;; find patches where change will occur
   let change-patches patches with [next-change <= ticks and next-change != -999]
 
   if any? change-patches
@@ -95,7 +103,7 @@ to succession
          let forest-nhb count neighbors with [class != "gr" and class != "d-sh"]
          let trans 0
  
-         ;; Greassland that ahs been in grass for lt base years -> no change
+         ;; Grassland that has been in grass for lt base years -> no change
          ;; Base chance after 20 years, increased by having nhbs in woody veg
          ifelse forest-nhb = 0 
          [
@@ -113,11 +121,11 @@ to succession
          [
            set class "m-sh"
  
-           let last30 length filter [ f -> f >= ticks - 30 ] fire-history
+           let n-fire-window length filter [ f -> f >= ticks - 30 ] fire-history
            let base table:get base-changes-dict class    ;; so time to *next* change estimated here
          
            ;;next change yr = base change + fire slowing + random noise  
-           set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float (table:get aux-params-dict "succ-noise"))
+           set next-change (ticks + (base + (n-fire-window * 2))) * (0.9 + random-float (table:get aux-params-dict "succ-noise"))
          
            set last-change ticks
            set times-change times-change + 1
@@ -131,13 +139,18 @@ to succession
       if class = "d-sh"
       [
         set class "m-sh"
-
-        let last30 length filter [ f -> f >= ticks - 30 ] fire-history
-        let base (table:get base-changes-dict class)    ;; so time to *next* change estimated here
-
-        set next-change (ticks + (base + (last30 * 2))) * (0.9 + random-float (table:get aux-params-dict "succ-noise"))
-        ;;next change yr = base change + fire slowing + random noise
-
+        
+        ;;next change yr = base change + fire slowing + landscape + random noise      
+        let n-fire-window length filter [ f -> f >= (ticks - (table:get aux-params-dict "fire-hist-len")) ] fire-history
+        
+        let n-ch table:get base-changes-dict class
+        
+        ifelse flat-terrain? = false
+        [ set n-ch ceiling ticks + (n-ch + (n-fire-window * 2))] 
+        [ set n-ch ceiling ticks + ((n-ch + (n-fire-window * 2)) * (item (aspect-arc - 1) succ-aspect-wgt) * (item (tpi - 1) succ-tpi-wgt )) ]
+        
+        set n-ch n-ch * (0.9 + random-float (table:get aux-params-dict "succ-noise")) ;; noise
+        
         set last-change ticks
         set times-change times-change + 1
 
@@ -145,7 +158,7 @@ to succession
       ]
 
       ;; manuka shrubland -> kanuka-x
-      if class = "m-sh" and last-change != ticks
+      if class = "m-sh" and last-change != ticks;;next change yr = base change + fire slowing + random noise
       [ 
         
         ;; Distance based test for transition to pohutakawa
@@ -169,11 +182,18 @@ to succession
           [ set class "ksh-nok" ]
         ] 
         
-        let last30 length filter [ f -> f >= (ticks - (table:get aux-params-dict "fire-hist-len")) ] fire-history
-        let base table:get base-changes-dict class
-
-        set next-change ceiling ((ticks + (base + (last30 * 2))) * (0.9 + random-float (table:get aux-params-dict "succ-noise")))
-
+        let n-fire-window length filter [ f -> f >= (ticks - (table:get aux-params-dict "fire-hist-len")) ] fire-history
+        
+        let n-ch table:get base-changes-dict class
+        
+        ifelse flat-terrain? = false
+        [ set n-ch ceiling ticks + (n-ch + (n-fire-window * 2))] 
+        [ set n-ch ceiling ticks + ((n-ch + (n-fire-window * 2)) * (item (aspect-arc - 1) succ-aspect-wgt) * (item (tpi - 1) succ-tpi-wgt )) ]
+        
+        set n-ch n-ch * (0.9 + random-float (table:get aux-params-dict "succ-noise")) ;; noise
+        
+        set next-change ticks + round n-ch
+        
         set last-change ticks
         set times-change times-change + 1
         set stalled 0
@@ -202,9 +222,15 @@ to succession
           if class = "ksh-p" [set new-class "yf-p"]
 
           set class new-class
-          let base table:get base-changes-dict class * (0.9 + random-float(table:get aux-params-dict "succ-noise"))
+          
+          let n-ch table:get base-changes-dict class
+          ifelse flat-terrain? = false
+          [ set n-ch ceiling ticks + n-ch] 
+          [ set n-ch ceiling ticks + (n-ch * (item (aspect-arc - 1) succ-aspect-wgt) * (item (tpi - 1) succ-tpi-wgt )) ]
+          
+          set n-ch next-change * (0.9 + random-float (table:get aux-params-dict "succ-noise")) ;; noise
 
-          set next-change ticks + round base
+          set next-change ticks + round n-ch
           set last-change ticks
           set times-change times-change + 1
           set stalled 0
@@ -212,7 +238,7 @@ to succession
           set n-changes n-changes + 1
         ]
         [
-          set stalled stalled + 1
+          set stalled stalled + 1    ;; stalled for a year...
         ]
       ]
 

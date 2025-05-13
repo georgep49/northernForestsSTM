@@ -12,9 +12,11 @@ to build-catena
 
   calculate-D8-flow-direction
   calculate-slope
+  calculate-slope-aspect-horn
   calculate-optim-flow-accum
   calculate-TWI
   calculate-TPI
+  ;;calculate-hillshade
   
   ;; edaphic gradient is TWI rescaled from 0-1 with 0 wettest and 1 driest
   let max-TWI max [TWI] of patches
@@ -37,11 +39,70 @@ to calculate-slope
   ask patches [
     if flow-to != nobody [
       let dz elevation - ([elevation] of flow-to)
-      let di distance flow-to *   patch-grain
+      let di distance flow-to * patch-grain
       ;set slope math:atan (dz / di)  ;; Slope in radians
       set slope atan dz di * (pi / 180) ;; Slope in radians
     ]
   ]
+end
+
+;; https://www.aazuspan.dev/blog/terrain-algorithms-from-scratch/
+to calculate-slope-aspect-horn
+  
+  ask patches with [pxcor > 0 and pxcor < max-pxcor and pycor > 0 and pycor < max-pycor]
+  [
+  ;; Horn's algorithm (https://people.csail.mit.edu/bkph/papers/Hill-Shading.pdf)
+  ;; Use the same basic calcualtions so do all at once
+  let znw [elevation] of patch-at -1 1
+  let zsw [elevation] of patch-at -1 -1
+  let zne [elevation] of patch-at 1 1
+  let zse [elevation] of patch-at 1 -1
+ 
+  let zn [elevation] of patch-at 0 1
+  let ze [elevation] of patch-at 1 0
+  let zw [elevation] of patch-at -1 0
+  let zs [elevation] of patch-at 0 -1
+  
+  ;; east-west gradient 
+  let dz_ew (((znw + zsw + 2 * zw) - (zne + zse + 2 * ze)) / 8)
+  let dz_ns (((zsw + zse + 2 * zs) - (znw + zne + 2 * zn)) / 8)
+  let dz sqrt (dz_ew ^ 2 + dz_ns ^ 2)
+    
+  set slope-horn atan slope patch-grain * (pi / 180)
+  
+  ;;;;;;;;
+  ;; then aspect
+  set dz_ew ((znw + zsw + 2 * zw) - (zne + zse + 2 * ze)) / (8 * patch-grain)
+  set dz_ns ((zsw + zse + 2 * zs) - (znw + zne + 2 * zn)) / (8 * patch-grain)
+    
+  set aspect atan dz_ew dz_ns   ;; note 0 is N (see ?atan)
+  ifelse aspect > 90
+    [set aspect 450 - aspect]
+    [set aspect 90 - aspect]
+  
+  
+  if aspect > 315 or aspect <= 45 [set aspect-arc 1] ; or as circular
+  if aspect > 45 and aspect <= 135 [set aspect-arc 2]
+  if aspect > 135 and aspect <= 225 [set aspect-arc 3]
+  if aspect > 225 and aspect <= 315 [set aspect-arc 4]
+  
+  ]
+end  
+
+;; https://www.aazuspan.dev/blog/terrain-algorithms-from-scratch/
+to calculate-hillshade
+  let azimuth 315
+  let altitude 45
+
+  ask patches
+  [
+;; Convert solar altitude to zenith and convert everything to radians
+  let zenith 90 - altitude
+  let slope_deg slope * (180 / pi)
+
+    ;; Calculate hillshade and scale to 8-bit
+    set hs 255 * (cos(zenith) * cos(slope_deg) + sin(zenith) * sin(slope_deg) * cos(azimuth - aspect)) 
+  ] 
 end
 
 ;; Flow accumulation using D8 routing
@@ -89,6 +150,7 @@ to calculate-TWI
   
 end
 
+;; get topographic position 
 to calculate-TPI
   ask patches
   [
@@ -97,14 +159,14 @@ to calculate-TPI
     if rel-elevation <= -2 [set TPI 1]   ; gully
     if rel-elevation >= -2 and rel-elevation < 2 [set TPI 2] ; slope
     if rel-elevation >= 2 [set TPI 3] ; ridge
+    
+    ask patches with [valley? = true] [set TPI 1] ; catch valley-bottoms
   ]
 end
 
+;; make a synthetic ridge-gully-ridge sequence
 to ridge-gully [desc valley-width elev-step curr-elevation noise diffuse-strength]
-;  let desc true
-;  let valley-width 3
-;  let elev-step 5
-;  let curr-elevation 100
+
   let i 0
 
   ask patches with [pxcor = i] [ set elevation curr-elevation ]

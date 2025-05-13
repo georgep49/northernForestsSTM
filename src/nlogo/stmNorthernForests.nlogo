@@ -45,6 +45,11 @@ globals [
   class-names-list
   forest-classes-list
   ;;base-changes
+
+
+  ; succession related
+  succ-tpi-wgt
+  succ-aspect-wgt
   base-changes-dict
   tr-mtx-bank-yfor
   tr-mtx-bank-ofor
@@ -124,18 +129,21 @@ patches-own
   flow-accum
   flow-to
   aspect
+  aspect-arc
   edaphic-grad
   elevation
   slope
+  slope-horn
   TPI
   TWI
+  hs
 
   ;; lsp context
   distance-to-coast
   farm-node?
   farm?
 
-  ;; patiogen status
+  ;; pathogen status
   myrtle-rust?
   myrtle-rust-time
 
@@ -715,10 +723,10 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-47
-526
-197
-559
+39
+550
+189
+583
 Minimum 'density' of juvenile saps to make transition - this is effectively an index of dispersal.
 9
 0.0
@@ -1005,7 +1013,7 @@ sap-herbivory
 sap-herbivory
 0
 1.0
-0.0
+0.1
 .01
 1
 NIL
@@ -1182,6 +1190,41 @@ forest-gully-cover
 1
 NIL
 HORIZONTAL
+
+PLOT
+490
+601
+690
+751
+plot 1
+NIL
+NIL
+0.0
+1.0
+0.0
+1.0
+false
+false
+"" ""
+PENS
+"default" 1.0 2 -16777216 true "" "ask patches [plotxy slope slope-horn]"
+
+BUTTON
+1174
+711
+1498
+744
+NIL
+ask patches [ \n  set pcolor scale-color black hs 0 255]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

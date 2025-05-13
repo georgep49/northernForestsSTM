@@ -28,9 +28,9 @@ to-report ignite-fire [extrinsic]
 
       set burned? true
       set pcolor red
-      set fire-front patch-set self           ;A new fire-front patch-set
+      set fire-front patch-set self           ; A new fire-front patch-set
       set fire-size 1
-      set succ-ignition? true                 ;A fire has started!
+      set succ-ignition? true                 ; A fire has started!
     ]
   ]
 
@@ -63,6 +63,7 @@ to fire-spread [extrinsic]
        ask neighbors with [ not burned? ]
        [  
         ; slope calculations as per Millington EMS
+        ;; TO DO THIS NEEDS TO BE CHECKED SEEMS TO JUST BE ELEV DIFF AT THE MOMENT???????
         let slopeWgt get-slope-weight (elevation - fz)
         
         ; wind calculations as per Millington EMS    
@@ -71,8 +72,6 @@ to fire-spread [extrinsic]
         if relDirn > 180 [set relDirn 360 - relDirn]     ; Corrected to bound angle (0,180) 
           
         let windWgt item (relDirn / 45) (item (windSpeed - 1) flamm-wind-wgt) 
-        
-        
         
         ; edge drying calculations
         ; forest cells on edge of open veg are more flammable (as per Tepley et al. in Ecosystems) 
@@ -141,7 +140,6 @@ to-report get-slope-weight [sl]
 
   let i 0
   while [ item i flamm-slope-breaks < sl and i < (length flamm-slope-breaks) - 1] [
-
     set i i + 1]
   
   if sl > last flamm-slope-breaks [set i i + 1]
