@@ -58,13 +58,13 @@ to fire-spread [extrinsic]
      [
        let fx pxcor
        let fy pycor
-       let fz elevation
+       let fp self
        
        ask neighbors with [ not burned? ]
        [  
+        let fn self
         ; slope calculations as per Millington EMS
-        ;; TO DO THIS NEEDS TO BE CHECKED SEEMS TO JUST BE ELEV DIFF AT THE MOMENT???????
-        let slopeWgt get-slope-weight (elevation - fz)
+        let slopeWgt get-slope-weight (slope-btw-patches fp fn false )
         
         ; wind calculations as per Millington EMS    
         let cellBearing atan (pxcor - fx)  (pycor - fy)  ; Bearing from ignited patch (pxcor, pycor) to candidate patch (nx,ny)

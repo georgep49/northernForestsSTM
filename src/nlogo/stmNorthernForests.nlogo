@@ -360,7 +360,7 @@ perc-seed
 perc-seed
 0
 1
-0.56
+0.57
 0.01
 1
 NIL
@@ -637,7 +637,7 @@ INPUTBOX
 1378
 454
 init-composition-file
-parameter_files/initial_forest_composition.dat
+parameter_files/initial_shrub_composition.dat
 1
 0
 String
@@ -1191,29 +1191,11 @@ forest-gully-cover
 NIL
 HORIZONTAL
 
-PLOT
-490
-601
-690
-751
-plot 1
-NIL
-NIL
-0.0
-1.0
-0.0
-1.0
-false
-false
-"" ""
-PENS
-"default" 1.0 2 -16777216 true "" "ask patches [plotxy slope slope-horn]"
-
 BUTTON
-1174
-711
-1498
-744
+1024
+671
+1348
+704
 NIL
 ask patches [ \n  set pcolor scale-color black hs 0 255]
 NIL

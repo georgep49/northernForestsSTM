@@ -19,8 +19,12 @@ to build-catena
   ;;calculate-hillshade
   
   ;; edaphic gradient is TWI rescaled from 0-1 with 0 wettest and 1 driest
+  ;; in a flat landscape set it to 0.5 everywhere
   let max-TWI max [TWI] of patches
-  ask patches [ set edaphic-grad 1 - ( TWI / max-TWI ) ]
+  ask patches 
+  [ ifelse flat-terrain? = false
+    [ set edaphic-grad 1 - ( TWI / max-TWI ) ]
+    [ set edaphic-grad 0.5 ] ]  ;; set to 0.5 if flat
   
 end
 
@@ -201,3 +205,25 @@ to ridge-gully [desc valley-width elev-step curr-elevation noise diffuse-strengt
   diffuse elevation diffuse-strength
 
 end
+
+;; report slope between two patches in degrees (rad = false)
+to-report slope-btw-patches[p1 p2 rad]
+  
+  let dz 0
+  let di 0
+  let sl 0
+  ask p1 [
+      set dz elevation - ([elevation] of p2)
+      set di distance p2 * patch-grain
+  ]
+
+  ifelse rad = true
+      [ set sl (atan abs dz di * (pi / 180)) ]
+      [ set sl (atan abs dz di) ]
+  
+  if dz < 0 [ set sl (- sl) ]
+
+  report sl
+
+end  
+  
