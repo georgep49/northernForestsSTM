@@ -318,6 +318,7 @@ to forest-composition-check
 ;    2. fgc is lt than f-cover -> reduce class-FD to x - fgc / 5 ...
   
   let f-cover sum slice class-FD forest-idx-list ; total forest cover
+  set forest-gully-cover f-cover * forest-gully-prop
   
   ;; too much gully forest
   if forest-gully-cover >= f-cover

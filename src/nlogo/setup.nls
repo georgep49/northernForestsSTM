@@ -155,7 +155,7 @@ to build-veg-landscape
     build-gully-forest
   ]
     
-  show "Building starting landscape (ageing via cluster id, etc.)..."
+  show "Initialising starting landscape (ageing via cluster id, etc.)..."
   init-patches
   find-clusters
   id-clusters
@@ -169,7 +169,11 @@ to build-veg-landscape
   ]
   
   show "Tweaking starting landscape (coastal & farmland)..."
-  starting-coastal-forest
+  if (table:get class-init-abund "ksh-p" + table:get class-init-abund "yf-p" +  table:get class-init-abund "old-p" > 0)
+  [
+    starting-coastal-forest
+  ]
+  
   if farm-edge? [edge-farmland]
   
   update-abundances

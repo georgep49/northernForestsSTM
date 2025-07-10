@@ -46,6 +46,7 @@ globals [
   class-names-list
   forest-classes-list
   forest-idx-list
+  ; forest-gully-cover
   ;;base-changes
 
 
