@@ -103,8 +103,8 @@ globals [
   colour-dict
   num-classes       ;; the number of suitability classes
   class-raw-FD      ;; the raw freq distribution of classes requested
-  class-FD          ;; the modified/scaled (used!) freq distribution of classes requested
-  class-CFD         ;; the modified/scaled (used!) CFD of classes requested
+  class-sc-FD          ;; the modified/scaled (used! )freq distribution of classes requested
+  class-sc-CFD         ;; cumulative freq dist of classes requested
   clusters          ;; a list of patch-sets of patches in each cluster
 
   ;;  if we need to add gully forest

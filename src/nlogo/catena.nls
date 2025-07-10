@@ -22,7 +22,7 @@ to build-catena
   ;; in a flat landscape set it to 0.5 everywhere
   let max-TWI max [TWI] of patches
   ask patches 
-  [ ifelse flat-terrain? = false
+  [ ifelse terrain-type != "flat"
     [ set edaphic-grad 1 - ( TWI / max-TWI ) ]
     [ set edaphic-grad 0.5 ] ]  ;; set to 0.5 if flat
   
@@ -163,9 +163,9 @@ to calculate-TPI
     if rel-elevation <= -2 [set TPI 1]   ; gully
     if rel-elevation >= -2 and rel-elevation < 2 [set TPI 2] ; slope
     if rel-elevation >= 2 [set TPI 3] ; ridge
-    
-    ask patches with [valley? = true] [set TPI 1] ; catch valley-bottoms
   ]
+  
+  ask patches with [valley? = true] [set TPI 1] ; catch valley-bottoms
 end
 
 ;; make a synthetic ridge-gully-ridge sequence

@@ -6,6 +6,7 @@ to setup
   clear-all
   
   ;;sr:setup
+ ; profiler:start 
   
   show "Building parameter dictionaries..."
   
@@ -36,13 +37,13 @@ to setup
   set class-list n-values n-states [ i -> i ]
   set class-names-list (list "gr" "d-sh" "m-sh" "ksh-k" "yf-k" "ksh-nok" "yf-nok" "old-f" "ksh-p" "yf-p" "old-p")
   set forest-classes-list (list "yf-k" "yf-nok" "old-f" "yf-p" "old-p")
+  set forest-idx-list (list 4 6 7 9 10)
 
   ;; load dictionaries (NL tables) from csv files
   set flammability-dict table:from-list csv:from-file "parameter_files/flammability_table.dat"
   set base-changes-dict table:from-list csv:from-file "parameter_files/base_changes_table.dat"
   set rust-susc-dict table:from-list csv:from-file "parameter_files/rust_table.dat"
   set phy-susc-dict table:from-list csv:from-file "parameter_files/kaurimate_table.dat"
- 
   
   ;; Load other parameter files
   load-aux-parameters
@@ -70,6 +71,10 @@ to setup
   ;; Build the landscape using the MRC code...
   show "Building initial vegetation landscape..."
   build-veg-landscape
+  
+;  profiler:stop          ;; stop profiling
+;  print profiler:report  ;; view the results
+;  profiler:reset
   
   reset-ticks
 end
@@ -101,7 +106,7 @@ end
 ;; set-up the topography etc.
 to build-topo-landscape
   
-  ifelse flat-terrain? = true
+  if terrain-type = "flat"
   [
     ask patches
     [
@@ -111,7 +116,9 @@ to build-topo-landscape
       set TPI -1
       set TWI -1
     ]
-  ]  
+  ]
+  
+  if terrain-type = "ridge-gully"  
   [
     build-catena
   ]
@@ -128,12 +135,21 @@ to build-veg-landscape
   ;; set up the MRC landscape
   show "Building starting landscape (MRC)..."
   init-patch-mrc-variables
+  
+  ;; forest in gully check
+  if forest-gully-cover > 0 and terrain-type = "ridge-gully" 
+  [
+    show "Checking forest cover..."
+    forest-composition-check
+  ]
+  
+  ;; Build the modifed rnd clusters landscape
   setup-mrc true false ;; args:: remove-singleton-patches? sequentially-assign-clusters?
   
   ask patches [set class item class class-names-list]
   
   ;; adds forest patch to gullies (preferentially if requested)
-  if forest-gully-cover > 0
+  if forest-gully-cover > 0 and terrain-type = "ridge-gully"
   [
     show "Adding forest in gullies..."
     build-gully-forest
@@ -187,4 +203,48 @@ to init-patches
     
 end
 
+;; Check that forest cover is correct if forest-gully-cover is set
+;; we use the input files as the desired and modify cover to get that
 
+;; forest *type* is allocated at end of forest gully so don't determine it here
+to forest-composition-check    
+;    options are 
+;    1. fgc is gte f-cover, then set yf types in class-FD to zero and reduce fgc (so only gully forest)
+;    2. fgc is lt than f-cover -> reduce class-FD to x - fgc / 5 ...
+  
+  write "class FD before mod"
+  show class-FD
+  
+  let f-cover sum slice class-FD forest-idx-list ; total forest cover
+  
+  ;; too much gully forest
+  if forest-gully-cover >= f-cover
+  [
+    foreach forest-idx-list [x -> set class-FD replace-item x class-FD 0 ]
+    set forest-gully-cover f-cover
+  ]
+   
+  ;; too little gully forest
+  if forest-gully-cover < f-cover
+  [
+    let f-excess f-cover - forest-gully-cover
+    foreach forest-idx-list [x -> 
+      let f item x class-FD
+      set class-FD replace-item x class-FD (f - (f-excess / 5)) ]
+  ]
+  
+  ;; And now rescale the various lsits used in the MRc algorithm
+  let sum-class-p sum class-FD
+
+  set class-CFD cumulative-sum class-FD
+    
+  set class-CFD map [i -> i / sum-class-p] class-CFD
+  set class-FD map [i -> i / sum-class-p] class-FD
+    
+  set class-init-abund table:from-list class-init-abund
+  
+  
+  write "post modification"
+  show class-FD
+   
+end  

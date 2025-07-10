@@ -1,4 +1,5 @@
-;; Code to build landscapes using the MRC method - adapted from the book.
+;; Code to build landscapes using the MRC method 
+;; Adapted from O'S & P (2013).
 
 to init-patch-mrc-variables
   
@@ -23,21 +24,21 @@ end
 ;;; suitability classes from a CSV file with names
 to read-class-file-csv [class-file]
   carefully [
-    let class-abund csv:from-file class-file
-    set num-classes length class-abund
-    set class-FD slice unnest class-abund range-from-to-by 1 (num-classes * 2) 2
-    let sum-class-p sum class-FD
+    set class-init-abund csv:from-file class-file
+    set num-classes length class-init-abund
     
-    set class-CFD cumulative-sum class-FD
+    ;; keep the raw one as used in forest gully stuff
+    set class-raw-FD slice unnest class-init-abund range-from-to-by 1 (num-classes * 2) 2
+    let sum-class-p sum class-raw-FD
+    set class-CFD cumulative-sum class-raw-FD
     
+    ;; rescaled to sum to one
     set class-CFD map [i -> i / sum-class-p] class-CFD
-    set class-FD map [i -> i / sum-class-p] class-FD
+    set class-FD map [i -> i / sum-class-p] class-raw-FD
     
-;    show class-abund
-;    show num-classes
-;    show class-CFD
-;    show class-FD
-       
+    ;; as read in csv to table
+    set class-init-abund table:from-list class-init-abund
+    
     file-close
   ] [ file-close ]
 end
@@ -125,7 +126,7 @@ end
 
 
 ;; patches so far not assigned to a class are
-;; now assigned based on the classes of neighbouring assigned patches   let ids remove-duplicates sort [cluster-id] of patches   let ids remove-duplicates sort [cluster-id] of patches   let ids remove-duplicates sort [cluster-id] of patches 
+;; assigned based on the classes of neighbouring assigned patches
 to assign-unassigned-to-habitat-patches
   ask patches with [class < 0] [ 
     let N neighbors with [class >= 0]
@@ -306,8 +307,44 @@ to edge-farmland
   ]  
 end  
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions to add forest to gullies
+
+;; Function to check we have the right amount of forest cover
+;; forest *type* is allocated at end of forest gully so don't determine it here
+to forest-composition-check    
+;    options are 
+;    1. fgc is gte f-cover, then set yf types in class-FD to zero and reduce fgc (so only gully forest)
+;    2. fgc is lt than f-cover -> reduce class-FD to x - fgc / 5 ...
+  
+  let f-cover sum slice class-FD forest-idx-list ; total forest cover
+  
+  ;; too much gully forest
+  if forest-gully-cover >= f-cover
+  [
+    foreach forest-idx-list [x -> set class-FD replace-item x class-FD 0 ]
+    set forest-gully-cover f-cover
+  ]
+   
+  ;; too little gully forest
+  if forest-gully-cover < f-cover
+  [
+    let f-excess f-cover - forest-gully-cover
+    foreach forest-idx-list [x -> 
+      let f item x class-FD
+      set class-FD replace-item x class-FD max (list 0 (f - (f-excess / 5))) ]
+  ]
+  
+  ;; And now rescale the various lits used in the MRC algorithm
+  let sum-class-p sum class-FD
+
+  set class-CFD cumulative-sum class-FD
+    
+  set class-CFD map [i -> i / sum-class-p] class-CFD
+  set class-FD map [i -> i / sum-class-p] class-FD
+   
+end  
+
 to build-gully-forest
   
   while [count patches with [gully-forest? = true] < (forest-gully-cover * max-pxcor * max-pycor)]
@@ -349,7 +386,6 @@ to forest-grow [ maxArea ]
         if twi > 0.35 and twi < 0.75 [set p 0.225]
         
         if (random-float 1) <= p [ set newForestFront ( patch-set newForestFront self) ]
-        
       ]
    ]
 
@@ -360,19 +396,33 @@ to forest-grow [ maxArea ]
 
 end
 
-;; this is to identify gully patches and then change their classes prior to coast etc.
+;; This is to identify gully patches and then change their classes *prior* to coast etc.
 to tag-gully-forest
-      
+  
+  ;; find clusters where there is gully forest 
   let ids remove-duplicates sort [cluster-id] of patches with [gully-forest? = true]
-    
+  
+  ;; relative probabilities of the different forest types
+  let f-p (slice class-raw-FD forest-idx-list)
+  set f-p cumulative-sum (map [i -> i / (sum f-p)] f-p)
+  
+  ;; allocate forest types
   foreach ids
   [  f ->
-    
-    let ft random-float 1
-    
-    ask patches with [cluster-id = f] [
-      if ft <= 0.3 [ set class "yf-k" ]
-      if ft > 0.7 [ set class "yf-nok" ]
+    let random-draw random-float 1
+    ask patches with [cluster-id = f] [ 
+      let i 0
+      let value-set? false
+      while [ i < num-classes and not value-set? ] [
+        if random-draw <= (item i f-p) [ 
+          set class item i forest-classes-list
+          set value-set? true
+        ]
+        set i i + 1
+      ]
     ]
-  ]
+  ]  
+
 end
+
+

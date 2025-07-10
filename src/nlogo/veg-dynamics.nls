@@ -145,7 +145,7 @@ to succession
         
         let n-ch table:get base-changes-dict class
         
-        ifelse flat-terrain? = false
+        ifelse terrain-type != "flat"
         [ set n-ch ceiling ticks + (n-ch + (n-fire-window * 2))] 
         [ set n-ch ceiling ticks + ((n-ch + (n-fire-window * 2)) * (item (aspect-arc - 1) succ-aspect-wgt) * (item (tpi - 1) succ-tpi-wgt )) ]
         
@@ -186,7 +186,7 @@ to succession
         
         let n-ch table:get base-changes-dict class
         
-        ifelse flat-terrain? = false
+        ifelse terrain-type != "flat"
         [ set n-ch ceiling ticks + (n-ch + (n-fire-window * 2))] 
         [ set n-ch ceiling ticks + ((n-ch + (n-fire-window * 2)) * (item (aspect-arc - 1) succ-aspect-wgt) * (item (tpi - 1) succ-tpi-wgt )) ]
         
@@ -224,7 +224,7 @@ to succession
           set class new-class
           
           let n-ch table:get base-changes-dict class
-          ifelse flat-terrain? = false
+          ifelse terrain-type != "flat"
           [ set n-ch ceiling ticks + n-ch] 
           [ set n-ch ceiling ticks + (n-ch * (item (aspect-arc - 1) succ-aspect-wgt) * (item (tpi - 1) succ-tpi-wgt )) ]
           
@@ -284,7 +284,7 @@ to dispersal
   let target nobody
   let forest-age ""
 
-  ;; what is dispersed is established saps (effectively)
+  ;; what is dispersed is established saplings (effectively)
    ask repro-patches
 
    [
