@@ -91,6 +91,8 @@ to calculate-slope-aspect-horn
   if aspect > 225 and aspect <= 315 [set aspect-arc 4]
   
   ]
+  
+  ask patches with [aspect-arc = 0] [set aspect-arc 2]
 end  
 
 ;; https://www.aazuspan.dev/blog/terrain-algorithms-from-scratch/

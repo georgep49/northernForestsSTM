@@ -1,11 +1,11 @@
 gr,0
 d-sh,0
 m-sh,20
-ksh-k,20
+ksh-k,17.5
 yf-k,10
-ksh-nok,20
+ksh-nok,17.5
 yf-nok,10
-old,0
-ksh-p,20
-yf-p,0
-old-p,0
+old,2.5
+ksh-p,17.5
+yf-p,2.5
+old-p,2.5

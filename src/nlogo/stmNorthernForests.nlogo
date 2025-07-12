@@ -46,7 +46,7 @@ globals [
   class-names-list
   forest-classes-list
   forest-idx-list
-  ; forest-gully-cover
+  forest-gully-cover
   ;;base-changes
 
 
@@ -175,10 +175,10 @@ patches-own
 
 
 to go
-  ;while [ticks <= 5]
-  ;[
-  ;  profiler:start         ;; start profiling
-  if ticks = 0 [print date-and-time]
+  while [ticks <= 5]
+  [
+    ;profiler:start         ;; start profiling
+    ;if ticks = 0 [print date-and-time]
 
    ;while [ ticks < max-ticks and old-growth-abund <= max-forest ]
    ;[
@@ -208,13 +208,13 @@ to go
 
    set n-changes 0
 
-   ;; dispersal and regeneratio bank dynamics
+   ;; dispersal and regeneration bank dynamics
    dispersal
    regenerate-patch-bank
    if sap-herbivory > 0 [ herbivory-patch-bank ]
 
    ;; succesional dynamics
-   if ticks > burn-in-regen
+   if ticks >= burn-in-regen
    [
      succession
 
@@ -239,12 +239,11 @@ to go
    ; print profiler:report  ;; view the results
    ; profiler:reset
 
-   if ticks = 299 [print date-and-time]
-    update-abundances
+   update-abundances
 
     tick
 
-  ; ]
+   ]
 
 end
 
@@ -459,7 +458,7 @@ fire-frequency
 fire-frequency
 0
 1
-0.1
+0.0
 .01
 1
 NIL
@@ -786,7 +785,7 @@ burn-in-regen
 burn-in-regen
 0
 50
-30.0
+15.0
 5
 1
 NIL
@@ -923,7 +922,7 @@ rust-global-inf
 rust-global-inf
 0
 .3
-0.005
+0.0
 .005
 1
 NIL
@@ -1151,11 +1150,11 @@ SLIDER
 626
 945
 659
-forest-gully-cover
-forest-gully-cover
+forest-gully-prop
+forest-gully-prop
 0
 1
-0.1
+0.5
 .01
 1
 NIL
@@ -1669,6 +1668,224 @@ NetLogo 6.4.0
     <enumeratedValueSet variable="terrain-type">
       <value value="&quot;flat&quot;"/>
       <value value="&quot;ridge-gully&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="baseline-iti" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="300"/>
+    <metric>abundances</metric>
+    <enumeratedValueSet variable="enso-freq-wgt">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="farm-revegetate?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="seed-pred">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="enso-matrix-file">
+      <value value="&quot;parameter_files/enso_matrix.dat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="track-stalled?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-farm-depth">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="base-seed-prod-yf">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="invasion?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="crit-density-old">
+      <value value="14"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="rust-global-inf">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-invasion">
+      <value value="0.1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="burn-in-regen">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="flamm-start">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="base-seed-prod-of">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fraction-seed-ldd">
+      <value value="0.15"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="farm-edge?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sap-herbivory">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="phy-radius-inf">
+      <value value="1.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="phy-local-inf">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="crit-density-yng">
+      <value value="12"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-slow">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="write-record?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-ldd">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="extrinsic-sd">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-frequency">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-composition-file">
+      <value value="&quot;parameter_files/initial_forest_composition.csv&quot;"/>
+      <value value="&quot;parameter_files/initial_shrubland_composition.csv&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="farm-edge-nodes">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="perc-seed">
+      <value value="0.57"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="phy-global-inf">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="base-invasion">
+      <value value="0.05"/>
+    </enumeratedValueSet>
+    <subExperiment>
+      <enumeratedValueSet variable="terrain-type">
+        <value value="&quot;flat&quot;"/>
+      </enumeratedValueSet>
+      <enumeratedValueSet variable="forest-gully-prop">
+        <value value="0"/>
+      </enumeratedValueSet>
+    </subExperiment>
+    <subExperiment>
+      <enumeratedValueSet variable="terrain-type">
+        <value value="&quot;ridge-gully&quot;"/>
+      </enumeratedValueSet>
+      <enumeratedValueSet variable="forest-gully-prop">
+        <value value="0.5"/>
+      </enumeratedValueSet>
+    </subExperiment>
+  </experiment>
+  <experiment name="shrub-one" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <postRun>write-fire-record</postRun>
+    <exitCondition>ticks &gt;= 300</exitCondition>
+    <metric>abundances</metric>
+    <metric>abund-stalled</metric>
+    <metric>mean [flammability] of patches</metric>
+    <enumeratedValueSet variable="enso-freq-wgt">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="farm-revegetate?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="seed-pred">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="enso-matrix-file">
+      <value value="&quot;parameter_files/enso_matrix.dat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="track-stalled?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-farm-depth">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="base-seed-prod-yf">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="invasion?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="crit-density-old">
+      <value value="14"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="rust-global-inf">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-invasion">
+      <value value="0.1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="burn-in-regen">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="flamm-start">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="base-seed-prod-of">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fraction-seed-ldd">
+      <value value="0.15"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="farm-edge?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sap-herbivory">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="phy-radius-inf">
+      <value value="1.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="phy-local-inf">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="crit-density-yng">
+      <value value="12"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-slow">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="write-record?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-ldd">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="extrinsic-sd">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-frequency">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-composition-file">
+      <value value="&quot;parameter_files/initial_shrub_composition.dat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="farm-edge-nodes">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="perc-seed">
+      <value value="0.57"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="phy-global-inf">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="base-invasion">
+      <value value="0.05"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="terrain-type">
+      <value value="&quot;flat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="forest-gully-prop">
+      <value value="0"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

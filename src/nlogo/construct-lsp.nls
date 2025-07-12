@@ -40,7 +40,8 @@ to read-class-file-csv [class-file]
     set class-init-abund table:from-list class-init-abund
     
     file-close
-  ] [ file-close ]
+  ] 
+  [ file-close ]
 end
 
 ;; Internal setup based on SIMMAP algorithm
@@ -189,22 +190,45 @@ to id-clusters
     set counter counter + 1 ]
 end
 
+
 ;; this then gives each cluster an age based on its id
+;; classes "gr" (0), "d-sh" (1), m-sh (2), "ksh-k" (3) "ksh-nok" (5)  
+;; "yf-k" (6)  "yf-nok" (7) "old" (8) "ksh-p" (9) "yf-p" (10) "old-p" (11)
+
 to age-by-cluster
   let ids remove-duplicates sort [cluster-id] of patches 
     
   foreach ids
   [  i ->
-     let f-class [class] of one-of patches with [cluster-id = i] 
-     let half-age ((table:get base-changes-dict f-class ) / 2)
-     let nc half-age + random half-age 
+    let f-class [class] of one-of patches with [cluster-id = i] 
+    let half-age ((table:get base-changes-dict f-class ) / 2)
+    let nc half-age + random half-age 
 
-     ask patches with [cluster-id = i]
-     [
-       set next-change nc
+    ask patches with [cluster-id = i]
+    [
+      set next-change nc
+      
+      ;; and stock the regenbank to (try to) avoid artefactual stalling
+      if class = "ksh-k" or class = "ksh-nok" or class = "ksh-p"
+      [
+        let n0 random-poisson (crit-density-yng * (nc / (table:get base-changes-dict class)))
+        let n1 ceiling (n0 * random-float 0.5)
+        set regenbank-yfor replace-item 0 regenbank-yfor n0
+        set regenbank-yfor replace-item 1 regenbank-yfor n1
+      ]
+    
+      if class = "yf-k" or class = "yf-nok" or class = "yf-p"
+      [
+        let n0 random-poisson (crit-density-old * (nc / (table:get base-changes-dict class)))
+        let n1 ceiling (n0 * random-float 0.5)
+        set regenbank-ofor replace-item 0 regenbank-ofor n0
+        set regenbank-ofor replace-item 1 regenbank-ofor n1
+      ]  
+      
      ]  
   ] 
 end  
+
 
 ;; this is code to switch patch classes around so pohutakawa appears close to coast
 ;; at start up.
@@ -221,7 +245,6 @@ to starting-coastal-forest
      
     let focal-cl patches with [cluster-id = i]
     let focal-cl-class [class] of one-of focal-cl
-    
     
     let mean-dist mean [distance-to-coast] of focal-cl
     

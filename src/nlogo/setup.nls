@@ -59,7 +59,7 @@ to setup
   set fire-year []
   set beyond-flamm-time 99999
 
-  ;; Setup clamate, ENSO, ...
+  ;; Setup climate, ENSO, ...
   show "Setting up ENSO dynamics..."
   set enso-record []
   init-enso
@@ -137,19 +137,19 @@ to build-veg-landscape
   init-patch-mrc-variables
   
   ;; forest in gully check
-  if forest-gully-cover > 0 and terrain-type = "ridge-gully" 
+  if forest-gully-prop > 0 and terrain-type = "ridge-gully" 
   [
     show "Checking forest cover..."
     forest-composition-check
   ]
   
-  ;; Build the modifed rnd clusters landscape
+  ;; Build the modifed rnd clusterslandscape
   setup-mrc true false ;; args:: remove-singleton-patches? sequentially-assign-clusters?
   
   ask patches [set class item class class-names-list]
   
   ;; adds forest patch to gullies (preferentially if requested)
-  if forest-gully-cover > 0 and terrain-type = "ridge-gully"
+  if forest-gully-prop > 0 and terrain-type = "ridge-gully"
   [
     show "Adding forest in gullies..."
     build-gully-forest
@@ -159,7 +159,7 @@ to build-veg-landscape
   init-patches
   find-clusters
   id-clusters
-  if forest-gully-cover > 0 [ tag-gully-forest ]
+  if forest-gully-prop > 0 [ tag-gully-forest ]
   age-by-cluster
   
   ;; Ensure that there are no cells in the 'invaded' state if invasion is false
