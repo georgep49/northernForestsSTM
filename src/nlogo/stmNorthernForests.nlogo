@@ -30,6 +30,7 @@ extensions [
 globals [
 
   ;; run control aux
+  starting-seed
   from-R?
   run-id
 
@@ -175,8 +176,8 @@ patches-own
 
 
 to go
-  while [ticks <= 5]
-  [
+  ;while [ticks <= 5]
+  ;[
     ;profiler:start         ;; start profiling
     ;if ticks = 0 [print date-and-time]
 
@@ -241,9 +242,9 @@ to go
 
    update-abundances
 
-    tick
+   tick
 
-   ]
+   ;]
 
 end
 
@@ -1170,6 +1171,17 @@ terrain-type
 "flat" "ridge-gully" "dtm"
 1
 
+MONITOR
+634
+601
+763
+646
+seed
+starting-seed
+0
+1
+11
+
 @#$#@#$#@
 ## WHAT IS IT?
 
@@ -1512,7 +1524,7 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="fire-invasion-forest-start" repetitions="20" runMetricsEveryStep="true">
+  <experiment name="fire-invasion-forest-start-OLD" repetitions="20" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
     <postRun>write-fire-record</postRun>
@@ -1562,7 +1574,7 @@ NetLogo 6.4.0
       <value value="&quot;parameter_files/initial_shrubland_composition.csv&quot;"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="baseline" repetitions="200" runMetricsEveryStep="true">
+  <experiment name="baseline-OLD" repetitions="200" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="300"/>
@@ -1670,11 +1682,15 @@ NetLogo 6.4.0
       <value value="&quot;ridge-gully&quot;"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="baseline-iti" repetitions="10" runMetricsEveryStep="true">
+  <experiment name="baseline-shrub-ridge" repetitions="100" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="300"/>
+    <postRun>write-fire-record</postRun>
+    <exitCondition>ticks &gt;= 300</exitCondition>
+    <metric>starting-seed</metric>
     <metric>abundances</metric>
+    <metric>abund-stalled</metric>
+    <metric>mean [flammability] of patches</metric>
     <enumeratedValueSet variable="enso-freq-wgt">
       <value value="1"/>
     </enumeratedValueSet>
@@ -1751,8 +1767,8 @@ NetLogo 6.4.0
       <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-composition-file">
-      <value value="&quot;parameter_files/initial_forest_composition.csv&quot;"/>
-      <value value="&quot;parameter_files/initial_shrubland_composition.csv&quot;"/>
+      <value value="&quot;parameter_files/initial_forest_composition.dat&quot;"/>
+      <value value="&quot;parameter_files/initial_shrub_composition.dat&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="farm-edge-nodes">
       <value value="30"/>
@@ -1783,7 +1799,7 @@ NetLogo 6.4.0
       </enumeratedValueSet>
     </subExperiment>
   </experiment>
-  <experiment name="shrub-one" repetitions="1" runMetricsEveryStep="true">
+  <experiment name="shrub-one" repetitions="4" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
     <postRun>write-fire-record</postRun>

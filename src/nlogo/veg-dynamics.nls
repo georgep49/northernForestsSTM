@@ -302,8 +302,7 @@ to dispersal
 
     repeat random-binomial seed-rain (1 - seed-pred)
     [
-      ;if random-float 1 >= seed-pred    ;; avoids predation?
-      ;[
+
         ifelse random-float 1 <= fraction-seed-ldd  ;; consumed and dispersed by pigeon
         [
           let d random-exponential mean-ldd
@@ -342,9 +341,8 @@ to dispersal
             ]
           ]
 
-
           ]
-        ;]
+
     ]
   ]
 end

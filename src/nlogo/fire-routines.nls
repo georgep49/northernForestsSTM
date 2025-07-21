@@ -116,7 +116,7 @@ to write-fire-record
   
   let tag ""
   
-  ifelse nlrx-info = "" [ set tag behaviorspace-run-number ] [ set tag nlrx-info ]
+  ifelse nlrx-info = "" [ set tag (word starting-seed "_" behaviorspace-run-number) ] [ set tag nlrx-info ]
   csv:to-file (word "fire_record" tag ".csv") fire-record
   
 end
