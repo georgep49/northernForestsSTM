@@ -7,10 +7,11 @@ __includes [
   "climate.nls"
   "list-utils.nls"
   "dist-utils.nls"
+  "catena.nls"
 ]
 
 extensions [
-;  profiler ;; in case we need to figure out why things are slow
+  profiler ;; in case we need to figure out why things are slow
   matrix   ;; matrix maths
   palette  ;; nicer colours
   table    ;; dictionary like tables for storing lots of the input parameters
@@ -29,6 +30,7 @@ extensions [
 globals [
 
   ;; run control aux
+  starting-seed
   from-R?
   run-id
 
@@ -40,18 +42,29 @@ globals [
   fbm-code
 
   ;; forest composition etc.
+  class-init-abund
   class-list
   class-names-list
   forest-classes-list
+  forest-idx-list
+  forest-gully-cover
   ;;base-changes
+
+
+  ; succession related
+  succ-tpi-wgt
+  succ-aspect-wgt
   base-changes-dict
   tr-mtx-bank-yfor
   tr-mtx-bank-ofor
 
   ;; fire-related
   flammability-dict
-  flamm-wind-list
-  flamm-slope-list
+  flamm-wind-wgt
+  flamm-slope-wgt
+  flamm-slope-breaks
+  flamm-aspect-wgt
+  enso-freq-wgt-list
 
   fire-front
   fire-size
@@ -91,9 +104,17 @@ globals [
   colour-list        ;; list of spectral colors
   colour-dict
   num-classes       ;; the number of suitability classes
-  class-FD          ;; freq distribution of classes requested
-  class-CFD         ;; cumulative freq dist of classes requested
+  class-raw-FD      ;; the raw freq distribution of classes requested
+  class-FD          ;; the modified/scaled (used!) freq distribution of classes requested
+  class-CFD         ;; the modified/scaled (used!) CFD of classes requested
   clusters          ;; a list of patch-sets of patches in each cluster
+
+  ;;  if we need to add gully forest
+  forestFront
+  forestArea
+
+  ;; topo
+  nhb-scalar  ;; this is for the topographic metrics
 ]
 
 
@@ -107,85 +128,104 @@ patches-own
 
   regenbank-yfor
   regenbank-ofor
-  ldd-this-tick
+  ;ldd-this-tick
 
+  ;; topo and hydrological params
+  flow-accum
+  flow-to
+  aspect
+  aspect-arc
   edaphic-grad
+  elevation
+  slope
+  slope-horn
+  TPI
+  TWI
+  hs
+
+  ;; lsp context
   distance-to-coast
   farm-node?
   farm?
 
+  ;; pathogen status
   myrtle-rust?
   myrtle-rust-time
-
 
   kauri-mate?
   kauri-mate-time
   kauri-mate-nhb
 
+  ;; fire history
   stalled
-
   flammability
   burned?
 
+  ;; MRC stuff
   class             ;; used to label initial clusters and to index veg class
   prev-class        ;; class previously occupied
 
   cluster-leader    ;; patch which 'leads' the cluster (see model lib example)
   in-perc-cluster?  ;; true if patch is in initial percolation cluster
   cluster-id
+
+  ;; topo helpers
+  gully-forest?
+  valley?
 ]
 
 
 to go
   ;while [ticks <= 5]
   ;[
-  ;  profiler:start         ;; start profiling
-    if ticks = 0 [print date-and-time]
+    ;profiler:start         ;; start profiling
+    ;if ticks = 0 [print date-and-time]
 
-   ;while [ ticks < max-ticks and old-growth-abund <= max-forest ]
-   ;[
-    ;; Get the climate conditions for the year
-    transition-enso
-    let extrinsic random-normal 0 extrinsic-sd
+   while [ ticks < max-ticks and old-growth-abund <= max-forest ]
+   [
+   ;; Get the climate conditions for the year
+   transition-enso
+   let extrinsic random-normal 0 extrinsic-sd
 
-    ;; fire dynamics
-    let fire-this-tick false
-    if ticks > burn-in-regen
-    [
-      let enso-wgt 1
-      if enso-state = "ENL" or enso-state = "EN" [ set enso-wgt enso-freq-wgt ] ;;!!
+   ;; fire dynamics
+   let fire-this-tick false
+   if ticks > burn-in-regen
+   [
+     let enso-wgt 1
+     ;if enso-state = "ENL" or enso-state = "EN" [ set enso-wgt enso-freq-wgt ]
+     set enso-wgt item (position enso-state enso-list) enso-freq-wgt-list
 
-      if random-float 1 <= (fire-frequency * enso-wgt * (1 + extrinsic))
-      [
-        let start? ignite-fire extrinsic
-        if start? = true
-        [
-          fire-spread extrinsic
-          post-fire
-          set fire-this-tick true
-        ]
-      ]
-    ]
+     if random-float 1 <= (fire-frequency * enso-wgt * (1 + extrinsic))
+     [
+       let start? ignite-fire extrinsic
+       if start? = true
+       [
+         fire-spread extrinsic
+         post-fire
+         set fire-this-tick true
+       ]
+     ]
+   ]
 
-    set n-changes 0
+   set n-changes 0
 
-    ;; dispersal and regeneratio bank dynamics
-    dispersal
-    regenerate-patch-bank
-    if sap-herbivory > 0 [ herbivory-patch-bank ]
+   ;; dispersal and regeneration bank dynamics
+   dispersal
+   regenerate-patch-bank
+   if sap-herbivory > 0 [ herbivory-patch-bank ]
 
-    ;; succesional dynamics
-    if ticks > burn-in-regen
-    [
-      succession
+   ;; succesional dynamics
+   if ticks >= burn-in-regen
+   [
+     succession
 
-      if n-changes > 0 or fire-this-tick = true
-      [
-        color-by-class
-        update-abundances
-        if abund-flammable < 0.3 and ticks < beyond-flamm-time [ set beyond-flamm-time ticks ]
-      ]
-    ]
+     if n-changes > 0 or fire-this-tick = true
+     [
+       colour-by-class
+       update-abundances
+       if abund-flammable < 0.3 and ticks < beyond-flamm-time [ set beyond-flamm-time ticks ]
+     ]
+   ]
 
   ;; pathogen dynamics
   if rust-global-inf > 0 [spread-rust]
@@ -200,17 +240,11 @@ to go
    ; print profiler:report  ;; view the results
    ; profiler:reset
 
+   update-abundances
 
-    update-abundances
-  if ticks = max-ticks - 1
-  [
-    print date-and-time
-  ]
+   tick
 
-
-  tick
-
-  ; ]
+   ]
 
 end
 
@@ -228,7 +262,7 @@ to-report occurrences [x the-list]
 end
 
 ;; Colours patches by class
-to color-by-class
+to colour-by-class
   ask patches [
     set pcolor table:get colour-dict class
   ]
@@ -242,17 +276,24 @@ to color-by-stall
 end
 
 to colour-by-lastfire
-  let mx max last [fire-history] of patches with [not empty? fire-history]
-  ask patches
+
+  if length fire-record > 0  ; check to make sure there have been some fires
   [
-    ifelse not empty? fire-history
+    let burned-patches patches with [not empty? fire-history]
+    let mx max last [fire-history] of burned-patches
+
+    ask patches
     [
-      set pcolor scale-color red (last fire-history) mx 1
-    ]
-    [
-    set pcolor grey
+      ifelse not empty? fire-history
+      [
+        set pcolor scale-color red (last fire-history) mx 1
+      ]
+      [
+        set pcolor grey
+      ]
     ]
   ]
+
 end
 
 to color-by-regen3
@@ -360,7 +401,7 @@ BUTTON
 45
 NIL
 go
-NIL
+T
 1
 T
 OBSERVER
@@ -388,9 +429,9 @@ NIL
 1
 
 PLOT
-905
+806
 10
-1253
+1154
 224
 Abundances
 NIL
@@ -481,9 +522,9 @@ track-stalled?
 -1000
 
 PLOT
-905
+806
 227
-1254
+1155
 377
 Lsp flammability
 NIL
@@ -591,9 +632,9 @@ RGN
 1
 
 SWITCH
-907
+808
 385
-1020
+921
 418
 invasion?
 invasion?
@@ -602,12 +643,12 @@ invasion?
 -1000
 
 INPUTBOX
-1135
-386
-1378
-454
+1032
+388
+1307
+448
 init-composition-file
-parameter_files/initial_composition.csv
+parameter_files/initial_shrub_composition.dat
 1
 0
 String
@@ -693,19 +734,19 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-47
-526
-197
-559
+39
+550
+189
+583
 Minimum 'density' of juvenile saps to make transition - this is effectively an index of dispersal.
 9
 0.0
 1
 
 BUTTON
-1027
+928
 386
-1125
+1026
 419
 show-stalled
 color-by-stall
@@ -720,12 +761,12 @@ NIL
 1
 
 BUTTON
-1027
+928
 422
-1127
+1028
 455
 show-class
-color-by-class
+colour-by-class
 NIL
 1
 T
@@ -737,40 +778,25 @@ NIL
 1
 
 SLIDER
-910
-462
-1082
-495
-max-ticks
-max-ticks
-0
-4000
-30.0
-10
-1
-NIL
-HORIZONTAL
-
-SLIDER
-909
-498
-1081
-531
+198
+628
+370
+661
 burn-in-regen
 burn-in-regen
 0
 50
-10.0
+15.0
 5
 1
 NIL
 HORIZONTAL
 
 BUTTON
-1086
-463
-1206
-496
+807
+461
+927
+494
 show-r3
 color-by-regen3
 NIL
@@ -784,10 +810,10 @@ NIL
 1
 
 BUTTON
-1087
-500
-1207
-533
+808
+498
+928
+531
 show-r4
 color-by-regen4
 NIL
@@ -800,25 +826,10 @@ NIL
 NIL
 1
 
-SLIDER
-909
-534
-1081
-567
-max-forest
-max-forest
-0
-1.0
-1.0
-.01
-1
-NIL
-HORIZONTAL
-
 SWITCH
-907
+808
 421
-1017
+918
 454
 write-record?
 write-record?
@@ -827,9 +838,9 @@ write-record?
 -1000
 
 PLOT
-1257
+1158
 11
-1621
+1522
 221
 Fire size history
 Year
@@ -849,16 +860,16 @@ TEXTBOX
 534
 648
 576
-Blues - no kauri, Oranges - kauri, Turquoises - pohutakawa\nDark green - old-growth\n
+Chocolate - manuka\nBlues - no kauri, Oranges - kauri, Turquoises - pohutakawa\nDark green - old-growth\n
 11
 0.0
 1
 
 BUTTON
-1215
-464
-1356
-497
+936
+462
+1077
+495
 highlight-kauri-mate
 ask patches with [kauri-mate?] [ set pcolor red ]
 NIL
@@ -872,10 +883,10 @@ NIL
 1
 
 BUTTON
-1215
-499
-1356
-532
+936
+497
+1077
+530
 highlight-rust
 ask patches with [myrtle-rust?] [ set pcolor yellow ]
 NIL
@@ -889,9 +900,9 @@ NIL
 1
 
 SLIDER
-1410
+1311
 324
-1582
+1483
 357
 extrinsic-sd
 extrinsic-sd
@@ -904,10 +915,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1417
-451
-1589
-484
+1314
+449
+1486
+482
 rust-global-inf
 rust-global-inf
 0
@@ -919,10 +930,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1606
-451
-1778
-484
+1316
+485
+1488
+518
 phy-global-inf
 phy-global-inf
 0
@@ -934,10 +945,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1607
-488
-1779
-521
+1317
+522
+1489
+555
 phy-local-inf
 phy-local-inf
 0
@@ -949,10 +960,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1607
-524
-1779
-557
+1317
+558
+1489
+591
 phy-radius-inf
 phy-radius-inf
 0
@@ -964,12 +975,12 @@ NIL
 HORIZONTAL
 
 INPUTBOX
-1409
+1310
 256
-1617
+1518
 316
 enso-matrix-file
-parameter_files/enso_matrix.csv
+parameter_files/enso_matrix.dat
 1
 0
 String
@@ -990,25 +1001,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-1411
+1312
 360
-1583
+1484
 393
 enso-freq-wgt
 enso-freq-wgt
 0.75
 1.25
-1.0
+0.9
 .01
 1
 NIL
 HORIZONTAL
 
 SWITCH
-911
-620
-1082
-653
+954
+578
+1108
+611
 farm-edge?
 farm-edge?
 1
@@ -1016,10 +1027,10 @@ farm-edge?
 -1000
 
 SLIDER
-1091
-600
-1263
-633
+1115
+578
+1287
+611
 farm-edge-nodes
 farm-edge-nodes
 1
@@ -1031,10 +1042,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1092
-639
-1264
-672
+1116
+617
+1288
+650
 mean-farm-depth
 mean-farm-depth
 1
@@ -1046,10 +1057,10 @@ NIL
 HORIZONTAL
 
 SWITCH
-1276
-621
-1430
-654
+955
+615
+1109
+648
 farm-revegetate?
 farm-revegetate?
 1
@@ -1057,10 +1068,10 @@ farm-revegetate?
 -1000
 
 BUTTON
-1090
-538
-1232
-571
+811
+536
+953
+569
 highlight-fire-mosaic
 colour-by-lastfire
 NIL
@@ -1074,12 +1085,12 @@ NIL
 1
 
 BUTTON
-1239
-537
-1345
-570
+960
+535
+1066
+568
 show edaphic
-ask patches [ \n  set pcolor scale-color black edaphic-grad 0 1]
+ask patches [ \n  set pcolor scale-color blue edaphic-grad 0 1]
 NIL
 1
 T
@@ -1091,15 +1102,115 @@ NIL
 1
 
 INPUTBOX
-528
+538
 536
-763
+762
 596
 nlrx-info
 NIL
 1
 0
 String
+
+BUTTON
+1080
+496
+1194
+529
+show elevation
+ask patches [ \n  set pcolor scale-color grey elevation 0 150]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+1070
+535
+1162
+568
+show lform
+ask patches [\nif tpi = 1 [set pcolor blue]\nif tpi = 2 [set pcolor green]\nif tpi = 3 [set pcolor orange]\n]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+812
+626
+945
+659
+forest-gully-prop
+forest-gully-prop
+0
+1
+0.5
+.01
+1
+NIL
+HORIZONTAL
+
+CHOOSER
+809
+574
+947
+619
+terrain-type
+terrain-type
+"flat" "ridge-gully" "dtm"
+1
+
+MONITOR
+634
+601
+763
+646
+seed
+starting-seed
+0
+1
+11
+
+SLIDER
+457
+598
+629
+631
+max-ticks
+max-ticks
+0
+1000
+300.0
+50
+1
+NIL
+HORIZONTAL
+
+SLIDER
+456
+633
+628
+666
+max-forest
+max-forest
+0
+1.0
+1.0
+.02
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1442,181 +1553,6 @@ NetLogo 6.3.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
-<experiments>
-  <experiment name="fire-noinvasion" repetitions="20" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="500"/>
-    <metric>abundances</metric>
-    <metric>beyond-flamm-time</metric>
-    <enumeratedValueSet variable="fire-slow">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="track-stalled?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fraction-consumed">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="fire-frequency" first="0" step="0.01" last="0.2"/>
-    <enumeratedValueSet variable="mean-ldd">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="seed-pred">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="flamm-start">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="p">
-      <value value="0.57"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="invasion?">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="fire-invasion" repetitions="20" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="500"/>
-    <metric>abundances</metric>
-    <metric>beyond-flamm-time</metric>
-    <enumeratedValueSet variable="fire-slow">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="track-stalled?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fraction-consumed">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="fire-frequency" first="0" step="0.01" last="0.2"/>
-    <enumeratedValueSet variable="mean-ldd">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="seed-pred">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="flamm-start">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="p">
-      <value value="0.57"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-invasion">
-      <value value="0.05"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-invasion">
-      <value value="0.1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="invasion?">
-      <value value="true"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="baseline" repetitions="50" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="300"/>
-    <metric>fbm-code</metric>
-    <metric>abundances</metric>
-    <enumeratedValueSet variable="enso-freq-wgt">
-      <value value="1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="farm-revegetate?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="seed-pred">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="enso-matrix-file">
-      <value value="&quot;parameter_files/enso_matrix.csv&quot;"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="track-stalled?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mean-farm-depth">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-seed-prod-yf">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="invasion?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="crit-density-old">
-      <value value="14"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="rust-global-inf">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-ticks">
-      <value value="50"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-invasion">
-      <value value="0.1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="burn-in-regen">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="flamm-start">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-seed-prod-of">
-      <value value="8"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fraction-seed-ldd">
-      <value value="0.15"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="farm-edge?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sap-herbivory">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="phy-radius-inf">
-      <value value="1.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="phy-local-inf">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="crit-density-yng">
-      <value value="12"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-slow">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="write-record?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mean-ldd">
-      <value value="5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-forest">
-      <value value="1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="extrinsic-sd">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="fire-frequency">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="init-composition-file">
-      <value value="&quot;parameter_files/initial_composition.csv&quot;"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="farm-edge-nodes">
-      <value value="30"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="perc-seed">
-      <value value="0.57"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="phy-global-inf">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="base-invasion">
-      <value value="0.05"/>
-    </enumeratedValueSet>
-  </experiment>
-</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
