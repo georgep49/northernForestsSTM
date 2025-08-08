@@ -325,6 +325,11 @@ to-report abund-stalled
   report count patches with [stalled > 0] / world-size
 end
 
+;; Mean flammability (lsp)
+to-report mean-lsp-flammable
+  report mean [flammability] of patches
+end
+
 ;; b1 upper, b0, lower, b2 steep
 to-report decr-limit-fx [b0 b1 b2 x]
   report b1 *  exp(- b2 * x) + b0
@@ -537,7 +542,7 @@ true
 true
 "" ""
 PENS
-"lspflm" 1.0 0 -16777216 true "" "plot mean [flammability] of patches"
+"lspflm" 1.0 0 -16777216 true "" "plot mean-lsp-flammable"
 "propflm" 1.0 0 -2674135 true "" "plot abund-flammable"
 "propstl" 1.0 0 -5825686 true "" "plot abund-stalled"
 
@@ -1531,6 +1536,7 @@ NetLogo 6.4.0
     <timeLimit steps="300"/>
     <metric>abundances</metric>
     <metric>beyond-flamm-time</metric>
+    <metric>mean-lsp-flammable</metric>
     <enumeratedValueSet variable="fire-slow">
       <value value="2"/>
     </enumeratedValueSet>

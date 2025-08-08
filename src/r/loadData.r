@@ -6,26 +6,27 @@ class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNok", 
 
 names_lu <- read_csv("src/r/stateNames.csv")
 
-baseline <- read_csv("src/data/baseline/stmNorthernForests baseline-table.csv", skip = 6) |>
+baseline_raw <- read_csv("src/data/baseline/stmNorthernForests baseline-shrub-ridge-table.csv", skip = 6) |>
     janitor::clean_names() |>
     arrange(run_number, step)
 
-baseline <- baseline |>
+baseline <- baseline_raw |>
     mutate(abundances = mgsub::mgsub(abundances, pattern = c("\\[", "\\]"), replacement = c("", ""))) |>
     separate_wider_delim(abundances, delim = " ", names = class_names) |>
-    mutate(across(starts_with("prop_"), ~as.numeric(.x)))
+    mutate(across(starts_with("prop_"), ~as.numeric(.x))) |>
+    mutate(start_lsp = if_else(str_detect(init_composition_file, "forest"), "forest", "shrubland"))
 
 baseline_long <- baseline |>
-    select(run_number, step, starts_with("prop_")) |>
+    select(run_number, start_lsp, terrain_type, step, starts_with("prop_")) |>
     pivot_longer(cols = starts_with("prop_"), names_to = "state", values_to = "prop") |>
     mutate(prop = prop / (256^2)) |>
     left_join(names_lu, by = "state") |>
     filter(state != "prop_gr" & state != "prop_dSH")
 
 time_states <- baseline_long |>
-    group_by(step, state) |>
+    group_by(step, state, start_lsp, terrain_type) |>
     summarise(as_tibble_row(quantile(prop, c(0.1, 0.5, 0.9)))) |>
-    rename(prop10 = `10%`, median = `50%`, prop90 = `90%`) |>     
+    rename(prop10 = `10%`, median = `50%`, prop90 = `90%`) |>
     left_join(names_lu, by = "state")
 
 final_state <- baseline_long |>
@@ -38,6 +39,7 @@ baseline_time_gg <- ggplot(data = time_states) +
     geom_ribbon(aes(x = step, ymin = prop10, ymax = prop90, fill = state_label), alpha = 0.3) + 
     ggrepel::geom_text_repel(data = time_states %>% filter(step == 300),
             aes(x = step, y = median, label = state_label),  na.rm = TRUE) +
+    facet_grid(terrain_type ~ start_lsp) +
     theme_bw() +
     theme(legend.position = "bottom")
 
@@ -48,6 +50,7 @@ baseline_final_gg <- ggplot(data = final_state, aes(x = state_label, y = prop)) 
     labs(x = "State", y = "Final proportional abundance") +
     scale_fill_brewer(type = "qual", palette = "Dark2") +
     scale_colour_brewer(type = "qual", palette = "Dark2") +
+    facet_grid(terrain_type ~ start_lsp) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 45, hjust=1), 
             legend.position = "bottom")
