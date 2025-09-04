@@ -3,11 +3,11 @@ library(vroom)
 
 # define types to deal with zero fire files....
 ct <- c("idccliddddddddddddddddddddddddddi")
-f <- list.files("src/data/fireDispersalLHC/", pattern = "fire_record", full.names = TRUE) |>
+f <- list.files("src/data/s4Forest/fireRecordsS4f", pattern = "fire_record", full.names = TRUE) |>
   str_sort(numeric = TRUE)
 
 # maybe this works so we have data.frames
-X <- lapply(f, FUN = read_csv, col_types = ct)
+X <- lapply(f, FUN = vroom, col_types = ct)
 
 file_table <- tibble(file_name = f) |>
   mutate(ensemble = row_number())
@@ -16,8 +16,7 @@ fire_allreps <- bind_rows(X, .id = "ensemble") |>
   mutate(ensemble = as.numeric(ensemble)) |>
   left_join(file_table, by = "ensemble")
 
-write_csv(fire_allreps, file = "src/data/fireDispersalLHC/fireDispersalLHC_allfire_records.csv")
-
+write_csv(fire_allreps, file = "src/data/s4Forest/fireLHC_allfire_records.csv")
 
 #########
 library(tidyverse)
@@ -28,30 +27,36 @@ library(tidyverse)
 #                  "enso-freq-wgt" = list(min = 0.9, max = 1.1, step = 0.01, qfun = "qunif"),
 #                  "farm-edge?" = list(min = 0, max = 1, qfun = "qunif"))
 
+
 class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNok", "prop_yfK", "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
+class_names_topo <- c(paste0(class_names, "_gly"), paste0(class_names, "_slp"), paste0(class_names, "_rdg"))
 
 names_lu <- read_csv("src/r/stateNames.csv")
 
-state_fireDispersalLHC <- read_csv("src/data/fireDispersalLHC/fireDispersal_lhc.csv") |>
+state_fire_s4f_raw <- read_csv("src/data/s4Forest/scenario4_forest_lhs.csv") |>
     janitor::clean_names() |>
     arrange(siminputrow, step)
 
-fireDispersalLHC_allreps <- read_csv(file = "src/data/fireDispersalLHC/fireDispersalLHC_allfire_records.csv")
+fireDispersalLHC_allreps <- read_csv(file = "src/data/s4Forest/fireLHC_allfire_records.csv")
 
-fireDispersalLHC_size <- fireDispersalLHC_allreps |>
+fireLHC_size <- fireDispersalLHC_allreps |>
   group_by(ensemble) |>
-  summarise(mean_size = mean(fire_size, na.rm = TRUE),
+  summarise(n = n(),
+            total_size = sum(fire_size, na.rm = TRUE),
+            mean_size = mean(fire_size, na.rm = TRUE),
             median_size = median(fire_size, na.rm = TRUE),
             max_size = max(fire_size, na.rm = TRUE)) |>
   ungroup()
 
-state_fireDispersalLHC <- state_fireDispersalLHC |>
-    mutate(abundances = mgsub::mgsub(abundances, pattern = c("\\[", "\\]"), replacement = c("", ""))) |>
+# 1 - gully, 2 - slope, 3 - ridge
+state_fire_s4f <- state_fire_s4f_raw |>
+    filter(step == 300) |>
+    mutate(abundances = str_remove_all(abundances, "\\[|\\]")) |>
     separate_wider_delim(abundances, delim = " ", names = class_names) |>
-    mutate(across(starts_with("prop_"), ~as.numeric(.x)))
-
-state_fireDispersalLHC <- state_fireDispersalLHC |>
-  left_join(fireDispersalLHC_size, by = c("siminputrow" = "ensemble")) |>
+    mutate(text_data = str_remove_all(abundances_by_topo, "\\[|\\]")) |>  # remove brackets
+    separate_wider_delim(cols = text_data, names = class_names_topo, delim = " ", too_few = "align_start") |>
+    mutate(across(starts_with("prop_"), ~as.numeric(.x))) |>
+  left_join(fireLHC_size, by = c("siminputrow" = "ensemble")) |>
   rowwise() |>
   mutate(
     prop_ksh = sum(prop_kshK, prop_kshNok, prop_kshP),
@@ -59,26 +64,52 @@ state_fireDispersalLHC <- state_fireDispersalLHC |>
     prop_ofor = sum(prop_old, prop_oldP)) |>
   ungroup()
 
-summary(state_fireDispersalLHC$mean_size)
-
 
 ###
 
-traps <- state_fireDispersalLHC |>
-  select(siminputrow, step, invasion, fire_frequency, seed_pred, flamm_start, extrinsic_sd, enso_freq_wgt,  farm_edge, farm_edge, starts_with("prop_")) |>
-  select(-(21:23)) |>
-  filter(step == 300)
+traps <- state_fire_s4f |>
+  select(siminputrow, step, invasion, fire_frequency, seed_pred, flamm_start, extrinsic_sd, 
+        enso_freq_wgt,  farm_edge, farm_edge, terrain_type, starts_with("prop_"))
 
+# get most prevalent type at end of run
+# flat
 
-dom <- apply(traps[,10:20], 1, function(x) which(x == max(x)))
-traps$dom_state <- names(traps[,10:20])[dom]
-traps$dom_abund <- apply(traps[, 10:20], 1, max) / (256 ^ 2)
+traps_pal <- c("prop_dSh" = "#e7298a", "prop_mSh" = "#d95f02", 
+    "prop_kshK" = "#7570b3", "prop_yfK" = "#66a61e", "prop_old" = "#1b9e77")
 
-trap_gg <- ggplot(data = traps, aes(x  = fire_frequency, y = seed_pred) ) +
+traps_flat <- traps |> filter(terrain_type == "flat")
+dom <- apply(traps_flat[,11:21], 1, function(x) which(x == max(x)))
+traps_flat$dom_state <- names(traps_flat[,11:21])[dom]
+traps_flat$dom_abund <- apply(traps_flat[,11:21], 1, max) / (256 ^ 2)
+
+traps_flat_gg <- ggplot(data = traps_flat, aes(x  = fire_frequency, y = seed_pred) ) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  facet_grid(farm_edge ~ invasion) +
-  scale_colour_manual(values = c("#E7298A","#7570B3", "#D95F02", "#1B9E77", "#66A61E")) +
-  theme_bw()
+  scale_colour_manual(values = traps_pal) +   
+  ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
+        ncol = 1, nest_line =  TRUE, strip.position = "left") +   
+  theme(legend.position = "bottom",
+        strip.background = element_rect(fill = NA, color = NA),
+        ggh4x.facet.nestline = element_line(linetype = 3))
+        
+# ridge
+traps_ridge <- traps |> filter(terrain_type != "flat")
+dom <- apply(traps_ridge[,11:22], 1, function(x) which(x == max(x)))
+traps_ridge$dom_state <- names(traps_ridge[,11:21])[dom]
+traps_ridge$dom_abund <- apply(traps_ridge[,11:21], 1, max) / (256 ^ 2)
+
+traps_ridge_gg <- ggplot(data = traps_ridge, aes(x  = fire_frequency, y = seed_pred) ) +
+  geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
+  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
+        ncol = 1, nest_line =  TRUE, strip.position = "right") +   
+  theme(legend.position = "bottom",
+        strip.background = element_rect(fill = NA, color = NA),
+        ggh4x.facet.nestline = element_line(linetype = 3))
+
+traps_gg <- traps_flat_gg | traps_ridge_gg +
+    plot_annotation(tag_levels ="a") +
+    plot_layout(guides = "collect", axes="collect") &
+    theme(legend.position = "bottom")
+
 
 library(svglite)
 svglite(file = "figX-fireDispersalLHCtraps.svg", height = 8, width = 8, fix_text_size = FALSE)
