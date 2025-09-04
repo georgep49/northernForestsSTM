@@ -68,18 +68,49 @@ state_fire_s3f <- state_fire_s3f_raw |>
 
 ###
 traps <- state_fire_s3f |>
-  select(siminputrow, step, invasion, fire_frequency, flamm_start, extrinsic_sd, enso_freq_wgt, farm_edge, farm_edge, starts_with("prop_"))
+  select(siminputrow, step, invasion, fire_frequency, flamm_start, 
+          extrinsic_sd, enso_freq_wgt, farm_edge, farm_edge, terrain_type, 
+          run_number, starts_with("prop_"))
 
 # get most prevalent type at end of run
-dom <- apply(traps[,9:19], 1, function(x) which(x == max(x)))
-traps$dom_state <- names(traps[,9:19])[dom]
-traps$dom_abund <- apply(traps[, 9:19], 1, max) / (256 ^ 2)
+# flat
 
-trap_gg <- ggplot(data = traps, aes(x  = fire_frequency, y = extrinsic_sd) ) +
+traps_pal <- c("prop_dSh" = "#e7298a", "prop_mSh" = "#d95f02", 
+    "prop_kshK" = "#7570b3", "prop_yfK" = "#66a61e", "prop_old" = "#1b9e77")
+
+traps_flat <- traps |> filter(terrain_type == "flat")
+dom <- apply(traps_flat[,11:22], 1, function(x) which(x == max(x)))
+traps_flat$dom_state <- names(traps_flat[,11:22])[dom]
+traps_flat$dom_abund <- apply(traps_flat[,11:22], 1, max) / (256 ^ 2)
+
+traps_flat_gg <- ggplot(data = traps_flat, aes(x  = fire_frequency, y = extrinsic_sd) ) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  facet_grid(farm_edge ~ invasion) +
-  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +
-  theme_bw()
+  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +   
+  ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
+        ncol = 1, nest_line =  TRUE, strip.position = "left") +   
+  theme(legend.position = "bottom",
+        strip.background = element_rect(fill = NA, color = NA),
+        ggh4x.facet.nestline = element_line(linetype = 3))
+        
+# ridge
+traps_ridge <- traps |> filter(terrain_type != "flat")
+dom <- apply(traps_ridge[,11:22], 1, function(x) which(x == max(x)))
+traps_ridge$dom_state <- names(traps_ridge[,11:22])[dom]
+traps_ridge$dom_abund <- apply(traps_ridge[,11:22], 1, max) / (256 ^ 2)
+
+traps_ridge_gg <- ggplot(data = traps_ridge, aes(x  = fire_frequency, y = extrinsic_sd) ) +
+  geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
+  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
+        ncol = 1, nest_line =  TRUE, strip.position = "right") +   
+  theme(legend.position = "bottom",
+        strip.background = element_rect(fill = NA, color = NA),
+        ggh4x.facet.nestline = element_line(linetype = 3))
+
+traps_gg <- traps_flat_gg | traps_ridge_gg +
+    plot_annotation(tag_levels ="a") +
+    plot_layout(guides = "collect", axes="collect") &
+    theme(legend.position = "bottom")
+
 
 library(svglite)
 svglite(file = "figX-fireLHCtraps.svg", height = 8, width = 8, fix_text_size = FALSE)

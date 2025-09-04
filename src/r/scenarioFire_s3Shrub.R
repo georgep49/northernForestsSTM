@@ -20,6 +20,7 @@ write_csv(fire_allreps, file = "src/data/s3Shrub/fireLHC_allfire_records.csv")
 
 #########
 library(tidyverse)
+library(patchwork)
 
 # seems an issue with nlrx where it only records the abundances etc. as per the final tick??
 # fine here as that is all we're analysing
@@ -67,8 +68,15 @@ state_fire_s3s <- state_fire_s3s_raw |>
   ungroup()
 
 ###
+load("src/data/s3Shrub/s3ShrubAllData.zip")
+
 traps <- state_fire_s3s |>
-  select(siminputrow, step, invasion, fire_frequency, flamm_start, extrinsic_sd, enso_freq_wgt, farm_edge, farm_edge, terrain_type, run_number, starts_with("prop_"))
+  select(siminputrow, step, invasion, fire_frequency, flamm_start, 
+          extrinsic_sd, enso_freq_wgt, farm_edge, farm_edge, terrain_type, 
+          run_number, starts_with("prop_"))
+
+traps_pal <- c("prop_dSh" = "#e7298a", "prop_mSh" = "#d95f02", 
+    "prop_kshK" = "#7570b3", "prop_yfK" = "#66a61e", "prop_old" = "#1b9e77")
 
 # get most prevalent type at end of run
 # flat
@@ -79,12 +87,13 @@ traps_flat$dom_abund <- apply(traps_flat[,11:22], 1, max) / (256 ^ 2)
 
 traps_flat_gg <- ggplot(data = traps_flat, aes(x  = fire_frequency, y = extrinsic_sd) ) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +   
+  scale_colour_manual(values = traps_pal) +   
   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
         ncol = 1, nest_line =  TRUE, strip.position = "left") +   
   theme(legend.position = "bottom",
         strip.background = element_rect(fill = NA, color = NA),
         ggh4x.facet.nestline = element_line(linetype = 3))
+        
 # ridge
 traps_ridge <- traps |> filter(terrain_type != "flat")
 dom <- apply(traps_ridge[,11:22], 1, function(x) which(x == max(x)))
@@ -93,7 +102,8 @@ traps_ridge$dom_abund <- apply(traps_ridge[,11:22], 1, max) / (256 ^ 2)
 
 traps_ridge_gg <- ggplot(data = traps_ridge, aes(x  = fire_frequency, y = extrinsic_sd) ) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
+    scale_colour_manual(values = traps_pal) +     
+  ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
         ncol = 1, nest_line =  TRUE, strip.position = "right") +   
   theme(legend.position = "bottom",
         strip.background = element_rect(fill = NA, color = NA),
@@ -108,6 +118,9 @@ library(svglite)
 svglite(file = "figX-fireLHCtraps.svg", height = 8, width = 8, fix_text_size = FALSE)
 trap_gg
 dev.off()
+
+
+
 
 ####
 library(tidyverse)

@@ -66,3 +66,22 @@ baseline_gg <- baseline_time_gg + baseline_final_gg +
 svglite(file = "baseline.svg", fix_text_size = FALSE)
 baseline_gg
 dev.off()
+
+
+###
+# get proportions of the topo types
+tpi <- read_csv("src/data/baseline/stmNorthernForests tpi-fractions-table.csv", skip = 6) |>
+    janitor::clean_names() |>
+    filter(step == 0)
+
+names(tpi)[3:5] <- c("prop_gully", "prop_slope", "prop_ridge")
+
+tpi_lg <- tpi |>
+    mutate(prop_gully = prop_gully / (256 ^ 2),
+           prop_slope = prop_slope / (256 ^ 2),
+           prop_ridge = prop_ridge / (256 ^ 2)) |>
+    pivot_longer(3:5)
+
+ggplot(data = tpi_lg) +
+    geom_boxplot(aes(x = name, y = value))
+
