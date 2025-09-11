@@ -53,7 +53,7 @@ fireLHC_size <- fireLHC_allreps |>
 
 # 1 - gully, 2 - slope, 3 - ridge
 state_fire_s3s <- state_fire_s3s_raw |>
-    filter(step == 300) |>
+    filter(step == 0 | step == 300) |>
     mutate(abundances = str_remove_all(abundances, "\\[|\\]")) |>
     separate_wider_delim(abundances, delim = " ", names = class_names) |>
     mutate(text_data = str_remove_all(abundances_by_topo, "\\[|\\]")) |>  # remove brackets
@@ -67,8 +67,16 @@ state_fire_s3s <- state_fire_s3s_raw |>
     prop_ofor = sum(prop_old, prop_oldP)) |> 
   ungroup()
 
+# x <- state_fire_s3s |> 
+#   group_by(siminputrow) |>
+#   summarise(delta_forest = (prop_ofor[[length(prop_ofor)]] - prop_ofor[[1]]) / prop_ofor[[length(prop_ofor)]]) |>
+#   ungroup()
+# hist(x)
+
+save.image("src/data/s3Shrub/s3ShrubAllData.RData")
+
 ###
-load("src/data/s3Shrub/s3ShrubAllData.zip")
+load("src/data/s3Shrub/s3ShrubAllData.RData")
 
 traps <- state_fire_s3s |>
   select(siminputrow, step, invasion, fire_frequency, flamm_start, 

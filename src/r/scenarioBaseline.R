@@ -30,7 +30,7 @@ time_states <- baseline_long |>
     left_join(names_lu, by = "state")
 
 final_state <- baseline_long |>
-    filter(step == 300) |>
+    filter(step == 0, step == 300) |>
     mutate(state_label = forcats::fct_reorder(as.factor(state_label), prop, .desc = TRUE))
 
 
@@ -40,9 +40,12 @@ baseline_time_gg <- ggplot(data = time_states) +
     geom_ribbon(aes(x = step, ymin = prop10, ymax = prop90, fill = state_label), alpha = 0.3) + 
     ggrepel::geom_text_repel(data = time_states %>% filter(step == 300),
             aes(x = step, y = median, label = state_label),  na.rm = TRUE) +
-    facet_grid(terrain_type ~ start_lsp) +
+      ggh4x::facet_nested_wrap(start_lsp ~ terrain_type, 
+        ncol = 1, nest_line =  TRUE, strip.position = "left") +   
     theme_bw() +
-    theme(legend.position = "bottom")
+      theme(legend.position = "bottom",
+        strip.background = element_rect(fill = NA, color = NA),
+        ggh4x.facet.nestline = element_line(linetype = 3))
 
 
 baseline_final_gg <- ggplot(data = final_state, aes(x = state_label, y = prop)) +
@@ -51,12 +54,17 @@ baseline_final_gg <- ggplot(data = final_state, aes(x = state_label, y = prop)) 
     labs(x = "State", y = "Final proportional abundance") +
     scale_fill_brewer(type = "qual", palette = "Dark2") +
     scale_colour_brewer(type = "qual", palette = "Dark2") +
-    facet_grid(terrain_type ~ start_lsp) +
+    ggh4x::facet_nested_wrap(start_lsp ~ terrain_type, 
+        ncol = 1, nest_line =  TRUE, strip.position = "right") +   
     theme_bw() +
     theme(axis.text.x = element_text(angle = 45, hjust=1), 
-            legend.position = "bottom")
+            legend.position = "bottom",
+        strip.background = element_rect(fill = NA, color = NA),
+        ggh4x.facet.nestline = element_line(linetype = 3))
 
+save.image("src/data/baseline/baseline.RData")
 
+####
 library(patchwork)
 library(svglite)
 

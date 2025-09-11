@@ -66,6 +66,9 @@ state_fire_s3f <- state_fire_s3f_raw |>
     prop_ofor = sum(prop_old, prop_oldP)) |>
   ungroup()
 
+
+save.image("src/data/s3Forest/s3ForestAllData.RData")
+
 ###
 traps <- state_fire_s3f |>
   select(siminputrow, step, invasion, fire_frequency, flamm_start, 
