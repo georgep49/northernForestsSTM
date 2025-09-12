@@ -126,7 +126,45 @@ results <- pmap_dfr(
 
 ## add the variable importance
 results <- results |>
-  mutate(var_importance = map(model, ~ .x$variable.importance) )
+  mutate(var_importance = map(model, ~ .x$variable.importance))
+
+rf <- results$model[1]
+
+# shapviz visualisation
+# Install if needed:
+# install.packages(c("ranger", "shapviz"))
+
+library(ranger)
+library(shapviz)
+
+set.seed(123)
+
+# --- 3. Define predict function ---
+pred_fun <- function(model, newdata) {
+  predict(model, data = newdata)$predictions
+}
+
+rf <- pull(results, "model")[[1]]
+X <- s3_of_rgr[[1]]
+
+# --- 4. Compute SHAP values with fastshap ---
+shap_values <- fastshap::explain(
+  object = rf,
+  X = X,
+  pred_wrapper = pred_fun,
+  nsim = 5e3  # increase for more accuracy
+)
+
+# --- 5. Wrap into shapviz object ---
+sv <- shapviz(shap_values, X = X)
+
+
+# --- 6. Visualisations ---
+sv_gg <- sv_importance(sv, kind = "both", show_numbers = TRUE)                               # Beeswarm summary
+sv_interaction(sv, kind = "bar")        # Bar plot of global importance
+sv_dependence(sv, v = "x1")            # Dependence plot for x1
+sv_waterfall(sv, row_index = 10)       # Local explanation
+
 
 ######
 # tuned_of_fires2 <- ranger(
