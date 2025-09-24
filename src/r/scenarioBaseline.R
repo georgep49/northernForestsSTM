@@ -55,9 +55,9 @@ baseline_final_gg <- ggplot(data = final_state, aes(x = state_label, y = prop)) 
     scale_fill_brewer(type = "qual", palette = "Dark2") +
     scale_colour_brewer(type = "qual", palette = "Dark2") +
     ggh4x::facet_nested_wrap(start_lsp ~ terrain_type, 
-        ncol = 1, nest_line =  TRUE, strip.position = "right") +   
+        ncol = 1, nest_line =  TRUE, strip.position = "right") +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, hjust=1), 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1), 
             legend.position = "bottom",
         strip.background = element_rect(fill = NA, color = NA),
         ggh4x.facet.nestline = element_line(linetype = 3))
@@ -65,13 +65,18 @@ baseline_final_gg <- ggplot(data = final_state, aes(x = state_label, y = prop)) 
 save.image("src/data/baseline/baseline.RData")
 
 ####
+library(tidyverse)
 library(patchwork)
 library(svglite)
+
+load("src/data/baseline/baseline.RData")
 
 baseline_gg <- baseline_time_gg + baseline_final_gg +
   plot_annotation(tag_level = "a")
 
-svglite(file = "baseline.svg", fix_text_size = FALSE)
+
+svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/fig2_baselineDynamics.svg", 
+    width = 8, height = 13, fix_text_size = FALSE)
 baseline_gg
 dev.off()
 

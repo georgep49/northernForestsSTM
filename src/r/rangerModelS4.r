@@ -8,61 +8,18 @@ library(mlr)
 library(tuneRanger)
 library(treeshap)
 library(shapviz)
-#library(vivid)    # https://github.com/AlanInglis/vivid
-
-ice_plot <- function(x, pred, cov_facet, cov_col)
-{
-  pred <- enquo(pred)
-  cov_facet <- enquo(cov_facet)
-  cov_col <- enquo(cov_col)
-
-  ice_summ <- x %>%
-    summarise(mn = mean(yhat), .by = c(!!pred, !!cov_facet) )
-
-  if (quo_is_missing(cov_col))
-  {
-    g1 <- ggplot() +
-      geom_line(data = x, aes(x = !!pred, y = yhat, group = yhat.id), col = "grey", alpha = 0.2) +
-      geom_line(data = ice_summ, aes(x = !!pred, y = mn), col = "blue", linewidth = 1.5) +
-      theme_bw()
-  } else {
-    g1 <- ggplot() +
-      geom_line(data = x, aes(x = !!pred, y = yhat, group = yhat.id, col = !!cov_col), alpha = 0.2) +
-      geom_line(data = ice_summ, aes(x = !!pred, y = mn), col = "blue", linewidth = 1.5) +
-      scale_color_distiller(palette = "PiYG")
-      theme_bw()
-  }
-  if (!quo_is_missing(cov_facet)) {g1 <- g1 + facet_wrap(vars(!!cov_facet))}
-
-  list(ice_summ, g1)
-}
 
 ##################### 
 # Shrublanb
-## Baseline in case we need it for reference
-load("src/data/baseline/baseline.RData")
-
-summ_old <- baseline |>
-  group_by(start_lsp, terrain_type) |>
-   summarise(
-    min_of = min(prop_old + prop_oldP) / (256 ^ 2),
-    mdn_of = median(prop_old + prop_oldP) / (256 ^ 2),
-    mean_of = mean(prop_old + prop_oldP) / (256 ^ 2),
-    max_of = max(prop_old + prop_oldP) / (256 ^ 2)
-   ) |>
-   ungroup()
 
 ### Fire only SA - merge forest and shrubland starts
-load("src/data/s3Shrub/s3ShrubAllData.RData")
-load("src/data/s3Forest/s3ForestAllData.RData")
+load("src/data/s4/s4Shrub/s4ShrubAllData.RData")
+load("src/data/s4/s4Forest/s4ForestAllData.RData")
 
-state_fire_s3sf <- bind_rows(list(shrub = state_fire_s3s, forest = state_fire_s3f), 
-  .id = "start_lsp")
+state_fire_s4sf <- bind_rows(list(shrub = state_fire_s4s, forest = state_fire_s4f), .id = "start_lsp")
 
-fire_s3sf <- state_fire_s3sf |>
-  select(siminputrow, start_lsp, terrain_type,fire_frequency, flamm_start, 
-        extrinsic_sd, enso_freq_wgt, farm_edge, invasion, step, prop_ofor, 
-        mean_size, terrain_type, start_lsp) |>
+fire_s4sf <- state_fire_s4sf |>
+  select(siminputrow, start_lsp, terrain_type, fire_frequency, flamm_start,  extrinsic_sd, fraction_seed_ldd, seed_pred, mean_ldd, sap_herbivory, enso_freq_wgt, farm_edge, invasion, step, prop_ofor, mean_size, terrain_type, start_lsp) |>
   mutate(prop_ofor_ave = mean(prop_ofor / (256 ^ 2))) |>
   group_by(siminputrow) |>
   mutate(siminputrow = paste0(siminputrow, str_sub(start_lsp, 1, 1)),
@@ -74,10 +31,10 @@ fire_s3sf <- state_fire_s3sf |>
       invasion = as.factor(invasion),
       mean_size = ifelse(is.na(mean_size), 0, mean_size / (256 ^ 2)))
 
-fire_s3sf <- split(fire_s3sf, f = list(fire_s3sf$start_lsp, fire_s3sf$terrain_type))
+fire_s4sf <- split(fire_s4sf, f = list(fire_s4sf$start_lsp, fire_s4sf$terrain_type))
 
 # titles for subsequent plots
-ttl <- data.frame(sc = names(fire_s3sf)) |>
+ttl <- data.frame(sc = names(fire_s4sf)) |>
   mutate(sc = str_replace(sc, pattern = "\\.", replacement = "-")) |>
   mutate(sc = str_to_title(sc)) |>
   mutate(sc = str_replace(sc, pattern = "Ridge-", replacement = ""))
@@ -85,21 +42,20 @@ ttl <- data.frame(sc = names(fire_s3sf)) |>
 
 #############################
 ## Old forest amount model
-ofor_params <- c("fire_frequency", "flamm_start", "extrinsic_sd",  "enso_freq_wgt", "farm_edge", "invasion", "prop_ofor")
+ofor_params <- c("fire_frequency", "flamm_start",  "extrinsic_sd", "flamm_start", "seed_pred", "mean_ldd", "sap_herbivory", "enso_freq_wgt", "farm_edge", "invasion", "prop_ofor")
 
-s3_of_rgr <- map(fire_s3sf, select, all_of(ofor_params))
+s4_of_rgr <- map(fire_s4sf, select, all_of(ofor_params))
 
 # Tune the hyperparameters using mlr and tuneRanger (omit factors...)
-# USe imap to iterate over the start_lsp x terrain combos
-fires3_of_task <- imap(s3_of_rgr, ~ makeRegrTask(id = .y, data = .x, target = "prop_ofor"))
+# Use imap to iterate over the start_lsp x terrain combos
+fires4_of_task <- imap(s4_of_rgr, ~ makeRegrTask(id = .y, data = .x, target = "prop_ofor"))
 # estimateTimeTuneRanger(fires2_of_task)
 
 # default measure is the variance reduction (~ impurity)
-#  fires2_of_tune <- tuneRanger(fires2_of_task, num.trees = 1000, num.threads = 4, iters = 70)
-fires3_of_tune <- map(fires3_of_task, tuneRanger, num.trees = 1000, num.threads = 4, iters = 70)
+fires4_of_tune <- map(fires4_of_task, tuneRanger, num.trees = 1000, num.threads = 4, iters = 70)
 
 # Build the old forest model with tuned hyper-parameters
-rgr_of_hp <- map_dfr(fires3_of_tune, ~ {
+rgr_of_hp <- map_dfr(fires4_of_tune, ~ {
     as.data.frame(as.data.frame(.x$recommended.pars))
   }, .id = "run")
 
@@ -110,7 +66,7 @@ rgr_of_hp <- transpose(rgr_of_hp)
 
 # Run ranger row-wise with pmap
 results_of <- pmap_dfr(
-  list(params = rgr_of_hp, df = s3_of_rgr),
+  list(params = rgr_of_hp, df = s4_of_rgr),
   function(params, df) {
     model <- ranger(
       prop_ofor ~ .,
@@ -140,7 +96,7 @@ results_of <- results_of |>
 
 vi_of <- map(results_of$model, pluck, "variable.importance") |>
   bind_rows() |>
-  mutate(scenario = names(fires3_of_tune))  |>
+  mutate(scenario = names(fires4_of_tune))  |>
   pivot_longer(cols = -scenario) |>
   group_by(scenario) |>
   mutate(value_sc = value / sum(value)) |>
@@ -160,28 +116,28 @@ g_of <- ggplot(data = vi_of) +
 
 
 # SHAP analysis and visualisation
-s3_of_unify <- pmap(list(results_area$model, s3_of_rgr), unify)
+s4_of_unify <- pmap(list(results_of$model, s4_of_rgr), unify)
 
-# unified_rgr_of <- unify(results_of$model[[4]], s3_of_rgr[[4]])
-s3_of_tX <- pmap(list(s3_of_unify, x = s3_of_rgr), treeshap)
+# unified_rgr_of <- unify(results_of$model[[4]], s4_of_rgr[[4]])
+s4_of_tX <- pmap(list(s4_of_unify, x = s4_of_rgr), treeshap)
 
-s3_of_sv <- map(s3_of_tX, shapviz)
-names(s3_of_sv) <- ttl$sc
+s4_of_sv <- map(s4_of_tX, shapviz)
+names(s4_of_sv) <- ttl$sc
 
 # use the multi shapviz syntax 
 # https://cran.csiro.au/web/packages/shapviz/vignettes/multiple_output.html
 
-m_of <- mshapviz(s3_of_sv)
-s3_of_vi <- sv_importance(m_of, show_numbers = TRUE, viridis_args = list())
+m_of <- mshapviz(s4_of_sv)
+s4_of_vi <- sv_importance(m_of, show_numbers = TRUE, viridis_args = list())
 
-s3_of_swarm <- sv_importance(m_of, kind = "beeswarm", bee_width = 0.25, show_numbers = TRUE) +
+s4_of_swarm <- sv_importance(m_of, kind = "beeswarm", bee_width = 0.25, show_numbers = TRUE) +
   plot_layout(ncol = 1)
 
-s3_of_gg <- s3_of_vi / s3_of_swarm +
+s4_of_gg <- s4_of_vi / s4_of_swarm +
   plot_layout(heights = c(1,4)) &
   theme_bw()
 
-# patchwork::plot_layout(s3_of_svImpt, ncol = 1)
+# patchwork::plot_layout(s4_of_svImpt, ncol = 1)
 
 ##################################
 ## Fire size amount model
@@ -190,18 +146,18 @@ s3_of_gg <- s3_of_vi / s3_of_swarm +
 ## Old forest amount model
 area_params <- c("fire_frequency", "flamm_start", "extrinsic_sd",  "enso_freq_wgt", "farm_edge", "invasion", "mean_size")
 
-s3_area_rgr <- map(fire_s3sf, select, all_of(area_params))
+s4_area_rgr <- map(fire_s4sf, select, all_of(area_params))
 
 # Tune the hyperparameters using mlr and tuneRanger (omit factors...)
 # USe imap to iterate over the start_lsp x terrain combos
-fires3_area_task <- imap(s3_area_rgr, ~ makeRegrTask(id = .y, data = .x, target = "mean_size"))
-# estimateTimeTuneRanger(fires3_area_task)
+fires4_area_task <- imap(s4_area_rgr, ~ makeRegrTask(id = .y, data = .x, target = "mean_size"))
+# estimateTimeTuneRanger(fires4_area_task)
 
 # default measure is the variance reduction (~ impurity)
-fires3_area_tune <- map(fires3_area_task, tuneRanger, num.trees = 1000, num.threads = 4, iters = 70)
+fires4_area_tune <- map(fires4_area_task, tuneRanger, num.trees = 1000, num.threads = 4, iters = 70)
 
 # Build the old forest model with tuned hyper-parameters
-rgr_area_hp <- map_dfr(fires3_area_tune, ~ {
+rgr_area_hp <- map_dfr(fires4_area_tune, ~ {
     as.data.frame(as.data.frame(.x$recommended.pars))
   }, .id = "run")
 
@@ -212,7 +168,7 @@ rgr_area_hp <- transpose(rgr_area_hp)
 
 # Run ranger row-wise with pmap
 results_area <- pmap_dfr(
-  list(params = rgr_area_hp, df = s3_area_rgr),
+  list(params = rgr_area_hp, df = s4_area_rgr),
   function(params, df) {
     model <- ranger(
       mean_size ~ .,
@@ -240,13 +196,12 @@ results_area <- results_area |>
 
 vi_area <- map(results_area$model, pluck, "variable.importance") |>
   bind_rows() |>
-  mutate(scenario = names(fires3_area_tune))  |>
+  mutate(scenario = names(fires4_area_tune))  |>
   pivot_longer(cols = -scenario) |>
   group_by(scenario) |>
   mutate(value_sc = value / sum(value)) |>
   ungroup() |>
-  separate_wider_delim(cols = scenario, delim = ".", 
-        names = c("lsp", "terrain"), cols_remove = FALSE)
+  separate_wider_delim(cols = scenario, delim = ".", names = c("lsp", "terrain"), cols_remove = FALSE)
 
 g_area <- ggplot(data = vi_area) +
   geom_col(aes(y = name, x = value_sc)) +
@@ -256,34 +211,33 @@ g_area <- ggplot(data = vi_area) +
   theme_bw() +
   theme(legend.position = "bottom",
         strip.background = element_rect(fill = NA, color = NA),
-        ggh4x.facet.nestline = element_line(linetype = 3)) 
+        ggh4x.facet.nestline = element_line(linetype = 3))
 
 
 # SHAP analysis and visualisation
-s3_area_unify <- pmap(list(results_area$model, s3_area_rgr), unify)
+s4_area_unify <- pmap(list(results_area$model, s4_area_rgr), unify)
 
-# unified_rgr_of <- unify(results_of$model[[4]], s3_of_rgr[[4]])
-s3_area_tX <- pmap(list(s3_area_unify, x = s3_area_rgr), treeshap)
+# unified_rgr_of <- unify(results_of$model[[4]], s4_of_rgr[[4]])
+s4_area_tX <- pmap(list(s4_area_unify, x = s4_area_rgr), treeshap)
 
-s3_area_sv <- map(s3_area_tX, shapviz)
-names(s3_area_sv) <- ttl$sc
+s4_area_sv <- map(s4_area_tX, shapviz)
+names(s4_area_sv) <- ttl$sc
 
 # use the multi shapviz syntax 
 # https://cran.csiro.au/web/packages/shapviz/vignettes/multiple_output.html
 
-m_area <- mshapviz(s3_area_sv)
-s3_area_vi <- sv_importance(m_area, show_numbers = TRUE, viridis_args = list())
+m_area <- mshapviz(s4_area_sv)
+s4_area_vi <- sv_importance(m_area, show_numbers = TRUE, viridis_args = list())
 
-s3_area_vi
+s4_area_vi
 
-s3_area_swarm <- sv_importance(m_area, kind = "beeswarm", bee_width = 0.25, show_numbers = TRUE) +
+s4_area_swarm <- sv_importance(m_area, kind = "beeswarm", bee_width = 0.25, show_numbers = TRUE) +
   plot_layout(ncol = 1)
 
-s3_area_gg <- s3_area_vi / s3_area_swarm +
+s4_area_gg <- s4_area_vi / s4_area_swarm +
   plot_layout(heights = c(1,4)) &
   theme_bw()
 
+save.image("src/data/s3s4Ranger/s4RangerModels.RData")
 
-#save.image("src/data/s3/s3s4Ranger/s3RangerModels.RData")
-
-#load("src/data/s3/s3s4Ranger/s3RangerModels.RData")
+#load("src/data/s4/s4s4Ranger/s4RangerModels.RData")

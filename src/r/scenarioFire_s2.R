@@ -38,8 +38,8 @@ fire_size <- fire_records |>
 
 ####
 class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNok", "prop_yfK", "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
-
 names_lu <- read_csv("src/r/stateNames.csv")
+
 
 fire_farms <- vroom("src/data/s2/stmNorthernForests fire-invasion-forest-start-table.csv", skip = 6) |>
     janitor::clean_names() |>
@@ -61,7 +61,7 @@ fire_farms_state <- filter(fire_farms, step == 300)
 
 vroom_write(file = "src/data/s2/fireFarmsState_s2.csv", delim = ",", x = fire_farms_state)
 
-save.image("src/data/s2/s2AllData.zip")
+save.image("src/data/s2/s2AllData.RData")
 
 ####################
 lsp_type <- c(`parameter_files/initial_forest_composition.dat` = "Forest",
@@ -114,9 +114,9 @@ freqFarm_gg <- firesize_gg + ofor_gg +
   plot_annotation(tag_level = "a") &
   theme(legend.position = "bottom")
 
-svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/freqFarm_plot.svg", fix_text_size = FALSE, width = 5.5, height = 8)
+svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/fig3_freqFarm_plot.svg", fix_text_size = FALSE, width = 5.5, height = 8)
 freqFarm_gg
 dev.off()
 ####
 
-
+save.image("src/data/s2/s2AllData.RData")

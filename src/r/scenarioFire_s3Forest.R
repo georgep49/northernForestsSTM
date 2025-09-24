@@ -103,21 +103,22 @@ traps_ridge$dom_abund <- apply(traps_ridge[,11:22], 1, max) / (256 ^ 2)
 
 traps_ridge_gg <- ggplot(data = traps_ridge, aes(x  = fire_frequency, y = extrinsic_sd) ) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
+  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +
+  ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
         ncol = 1, nest_line =  TRUE, strip.position = "right") +   
   theme(legend.position = "bottom",
         strip.background = element_rect(fill = NA, color = NA),
         ggh4x.facet.nestline = element_line(linetype = 3))
 
-traps_gg <- traps_flat_gg | traps_ridge_gg +
+traps_gg_s3f <- traps_flat_gg | traps_ridge_gg +
     plot_annotation(tag_levels ="a") +
     plot_layout(guides = "collect", axes="collect") &
     theme(legend.position = "bottom")
 
 
 library(svglite)
-svglite(file = "figX-fireLHCtraps.svg", height = 8, width = 8, fix_text_size = FALSE)
-trap_gg
+svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/figSMX_fireLHCtraps_Forest.svg", height = 13, width = 8, fix_text_size = FALSE)
+traps_gg_s3f
 dev.off()
 
 ####
@@ -141,4 +142,32 @@ farmstart_fire <- ggplot(fireHistory %>% slice_sample(prop = 0.2)) +
   facet_wrap(~start_farm)
 
 
+########
+load("src/data/s3/s3Forest/s3ForestAllData.RData")
+
+gdata::keep(state_fire_s3f, sure = TRUE)
+
+tpi_frac <- vroom("src/data/baseline/stmNorthernForests tpi-fractions-table.csv", skip = 6) |>
+  janitor::clean_names()
+
+names(tpi_frac)[3:5] <- c("gully", "slope", "ridge")
+tpi_frac[3:5] <- tpi_frac[3:5] / (256 ^ 2)
+
+tpi_frac_summ <- tpi_frac |>
+  summarise(mean_gully = mean(gully), mean_slope = mean(slope), mean_ridge = mean(ridge))
+
+tpi_forest <- state_fire_s3f |>
+  select(run_number, terrain_type, farm_edge, fire_frequency, prop_old_gly, prop_oldP_gly, prop_ofor) |>
+  filter(terrain_type != "flat") |>
+  mutate(mean_gully = tpi_frac_summ$mean_gully) |>
+  mutate(prop_ofor_gly = prop_old_gly + prop_oldP_gly)
+
+x <- tpi_forest |>
+  filter(prop_ofor > 0) |>
+  mutate(exp_gly_of = mean_gully * prop_ofor) |>
+  mutate(ratio_gly_of = prop_ofor_gly / exp_gly_of)
  
+ ggplot(x) + 
+  geom_point(aes(x = prop_ofor, y = ratio_gly_of, col = farm_edge)) + 
+  geom_hline(yintercept = 1, col = "red") +
+  theme_bw()

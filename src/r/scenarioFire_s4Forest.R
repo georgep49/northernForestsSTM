@@ -16,7 +16,7 @@ fire_allreps <- bind_rows(X, .id = "ensemble") |>
   mutate(ensemble = as.numeric(ensemble)) |>
   left_join(file_table, by = "ensemble")
 
-write_csv(fire_allreps, file = "src/data/s4Forest/fireLHC_allfire_records.csv")
+write_csv(fire_allreps, file = "src/data/s4/s4Forest/fireLHC_allfire_records.csv")
 
 #########
 library(tidyverse)
@@ -33,11 +33,11 @@ class_names_topo <- c(paste0(class_names, "_gly"), paste0(class_names, "_slp"), 
 
 names_lu <- read_csv("src/r/stateNames.csv")
 
-state_fire_s4f_raw <- read_csv("src/data/s4Forest/scenario4_forest_lhs.csv") |>
+state_fire_s4f_raw <- read_csv("src/data/s4/s4Forest/scenario4_forest_lhs.csv") |>
     janitor::clean_names() |>
     arrange(siminputrow, step)
 
-fireDispersalLHC_allreps <- read_csv(file = "src/data/s4Forest/fireLHC_allfire_records.csv")
+fireDispersalLHC_allreps <- read_csv(file = "src/data/s4/s4Forest/fireLHC_allfire_records.csv")
 
 fireLHC_size <- fireDispersalLHC_allreps |>
   group_by(ensemble) |>
@@ -68,14 +68,12 @@ state_fire_s4f <- state_fire_s4f_raw |>
 ###
 
 traps <- state_fire_s4f |>
-  select(siminputrow, step, invasion, fire_frequency, seed_pred, flamm_start, extrinsic_sd, 
-        enso_freq_wgt,  farm_edge, farm_edge, terrain_type, starts_with("prop_"))
+  select(siminputrow, step, invasion, fire_frequency, seed_pred, flamm_start, extrinsic_sd, enso_freq_wgt,  farm_edge, farm_edge, terrain_type, starts_with("prop_"))
 
 # get most prevalent type at end of run
 # flat
 
-traps_pal <- c("prop_dSh" = "#e7298a", "prop_mSh" = "#d95f02", 
-    "prop_kshK" = "#7570b3", "prop_yfK" = "#66a61e", "prop_old" = "#1b9e77")
+traps_pal <- c("prop_dSh" = "#e7298a", "prop_mSh" = "#d95f02", "prop_kshK" = "#7570b3", "prop_yfK" = "#66a61e", "prop_old" = "#1b9e77")
 
 traps_flat <- traps |> filter(terrain_type == "flat")
 dom <- apply(traps_flat[,11:21], 1, function(x) which(x == max(x)))
@@ -99,19 +97,18 @@ traps_ridge$dom_abund <- apply(traps_ridge[,11:21], 1, max) / (256 ^ 2)
 
 traps_ridge_gg <- ggplot(data = traps_ridge, aes(x  = fire_frequency, y = seed_pred) ) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
-        ncol = 1, nest_line =  TRUE, strip.position = "right") +   
-  theme(legend.position = "bottom",
-        strip.background = element_rect(fill = NA, color = NA),
-        ggh4x.facet.nestline = element_line(linetype = 3))
+  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +   ggh4x::facet_nested_wrap(farm_edge ~ invasion, ncol = 1, nest_line =  TRUE, strip.position = "right") +   
+  theme(legend.position = "bottom", 
+    strip.background = element_rect(fill = NA, color = NA), 
+    ggh4x.facet.nestline = element_line(linetype = 3))
 
 traps_gg <- traps_flat_gg | traps_ridge_gg +
     plot_annotation(tag_levels ="a") +
     plot_layout(guides = "collect", axes="collect") &
     theme(legend.position = "bottom")
 
-
-library(svglite)
-svglite(file = "figX-fireDispersalLHCtraps.svg", height = 8, width = 8, fix_text_size = FALSE)
-trap_gg
-dev.off()
+save.image("src/data/s4/s4Forest/s4ForestAllData.RData")
+# library(svglite)
+# svglite(file = "figX-fireDispersalLHCtraps.svg", height = 8, width = 8, fix_text_size = FALSE)
+# trap_gg
+# dev.off()
