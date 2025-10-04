@@ -116,7 +116,7 @@ to succession
            set trans 0.1 + ( 1 - ((1 / forest-nhb) ^ (table:get aux-params-dict "grass-to-sh-exp") ))
          ]    ;; prob based onfarm-revegetate? nhb
          
-         ;; TO DO - what about transition from grass to invaded shrubland? 
+         ;; what about transition from grass to invaded shrubland? 
          if random-float 1 < trans
          [
            set class "m-sh"

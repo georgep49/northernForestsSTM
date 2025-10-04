@@ -139,16 +139,17 @@ end
 
 ;; Compute Topographic Wetness Index (TWI; 0 dry to ... high wet)
 ;; https://en.wikipedia.org/wiki/Topographic_wetness_index
+;; https://gis.stackexchange.com/questions/104543/getting-negative-topographic-wetness-index-twi-values-in-saga-gis/113535#113535    
+
 to calculate-TWI
   ask patches [
     if slope > 0 [
       set TWI ln (flow-accum / ( tan slope * (180 / pi)))
     ]
     if TWI <= 0 [ set TWI 0 ]  ;; Prevent division errors - this is very steep slopes
-;; https://gis.stackexchange.com/questions/104543/getting-negative-topographic-wetness-index-twi-values-in-saga-gis/113535#113535    
-  ]
-  
-  ;; Need to tidy up the zero slope locales (set to high value, 95th% of TWI aribitrarily)
+
+  ]  
+  ;; Zero slope locales set to high value, 95th% of TWI (arbitrarily)
   let sort-twi (sort [twi] of patches with [slope > 0 and twi > 0])
   let n round length sort-twi * 0.95  
   let zero-twi item n sort-twi

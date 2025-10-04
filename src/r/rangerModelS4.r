@@ -134,8 +134,13 @@ s4_of_swarm <- sv_importance(m_of, kind = "beeswarm", bee_width = 0.25, show_num
   plot_layout(ncol = 1)
 
 s4_of_gg <- s4_of_vi / s4_of_swarm +
-  plot_layout(heights = c(1,4)) &
+  plot_layout(heights = c(1, 4)) &
   theme_bw()
+
+library(svglite)
+svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/fig8-old_rangerS4.svg", height = 13, width = 8, fix_text_size = FALSE)
+s4_of_gg
+dev.off()
 
 # patchwork::plot_layout(s4_of_svImpt, ncol = 1)
 
@@ -143,8 +148,8 @@ s4_of_gg <- s4_of_vi / s4_of_swarm +
 ## Fire size amount model
 # Tune the hyperparameters using mlr and tuneRanger
 
-## Old forest amount model
-area_params <- c("fire_frequency", "flamm_start", "extrinsic_sd",  "enso_freq_wgt", "farm_edge", "invasion", "mean_size")
+## Fire area model
+area_params <- c("fire_frequency", "flamm_start",  "extrinsic_sd", "seed_pred", "mean_ldd", "sap_herbivory", "enso_freq_wgt", "farm_edge", "invasion", "mean_size")
 
 s4_area_rgr <- map(fire_s4sf, select, all_of(area_params))
 
@@ -238,6 +243,11 @@ s4_area_gg <- s4_area_vi / s4_area_swarm +
   plot_layout(heights = c(1,4)) &
   theme_bw()
 
+library(svglite)
+svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/figSM-area_rangerS3.svg", height = 13, width = 8, fix_text_size = FALSE)
+s4_area_gg
+dev.off()
+
 save.image("src/data/s3s4Ranger/s4RangerModels.RData")
 
-#load("src/data/s4/s4s4Ranger/s4RangerModels.RData")
+load("src/data/s3s4Ranger/s4RangerModels.RData")

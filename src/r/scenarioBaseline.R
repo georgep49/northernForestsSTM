@@ -1,6 +1,8 @@
 # Baseline plots
 
 library(tidyverse)
+library(patchwork)
+library(svglite)
 
 class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNok", "prop_yfK", "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
 
@@ -30,15 +32,24 @@ time_states <- baseline_long |>
     left_join(names_lu, by = "state")
 
 final_state <- baseline_long |>
-    filter(step == 0, step == 300) |>
+    filter(step == 0 | step == 300) |>
     mutate(state_label = forcats::fct_reorder(as.factor(state_label), prop, .desc = TRUE))
 
+final_state_of <- time_states |>
+    filter(state == "prop_old", step == 300)    
+    
 
 ###
+state_labels <- time_states |>
+    filter(step == 300) |>
+    group_by(start_lsp, terrain_type) |>
+    slice_max(median, n = 2) |>
+    ungroup()
+
 baseline_time_gg <- ggplot(data = time_states) +
     geom_line(aes(x = step, y = median, col = state_label)) +
     geom_ribbon(aes(x = step, ymin = prop10, ymax = prop90, fill = state_label), alpha = 0.3) + 
-    ggrepel::geom_text_repel(data = time_states %>% filter(step == 300),
+    ggrepel::geom_text_repel(data = state_labels %>% filter(step == 300),
             aes(x = step, y = median, label = state_label),  na.rm = TRUE) +
       ggh4x::facet_nested_wrap(start_lsp ~ terrain_type, 
         ncol = 1, nest_line =  TRUE, strip.position = "left") +   
@@ -46,7 +57,6 @@ baseline_time_gg <- ggplot(data = time_states) +
       theme(legend.position = "bottom",
         strip.background = element_rect(fill = NA, color = NA),
         ggh4x.facet.nestline = element_line(linetype = 3))
-
 
 baseline_final_gg <- ggplot(data = final_state, aes(x = state_label, y = prop)) +
     geom_boxplot(aes(fill = state_group), outliers = FALSE) +
@@ -65,9 +75,6 @@ baseline_final_gg <- ggplot(data = final_state, aes(x = state_label, y = prop)) 
 save.image("src/data/baseline/baseline.RData")
 
 ####
-library(tidyverse)
-library(patchwork)
-library(svglite)
 
 load("src/data/baseline/baseline.RData")
 
@@ -77,6 +84,12 @@ baseline_gg <- baseline_time_gg + baseline_final_gg +
 
 svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/fig2_baselineDynamics.svg", 
     width = 8, height = 13, fix_text_size = FALSE)
+baseline_gg
+dev.off()
+
+
+pdf(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/fig2_baselineDynamics.pdf", 
+    paper = "a4")
 baseline_gg
 dev.off()
 

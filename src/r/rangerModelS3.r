@@ -181,13 +181,17 @@ s3_of_gg <- s3_of_vi / s3_of_swarm +
   plot_layout(heights = c(1,4)) &
   theme_bw()
 
-# patchwork::plot_layout(s3_of_svImpt, ncol = 1)
+
+library(svglite)
+svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/fig7-old_rangerS3.svg", height = 13, width = 8, fix_text_size = FALSE)
+s3_of_gg
+dev.off()
 
 ##################################
 ## Fire size amount model
 # Tune the hyperparameters using mlr and tuneRanger
 
-## Old forest amount model
+## Fire area amount model
 area_params <- c("fire_frequency", "flamm_start", "extrinsic_sd",  "enso_freq_wgt", "farm_edge", "invasion", "mean_size")
 
 s3_area_rgr <- map(fire_s3sf, select, all_of(area_params))
@@ -237,7 +241,6 @@ results_area <- pmap_dfr(
 results_area <- results_area |>
   mutate(var_importance = map(model, ~ .x$variable.importance))
 
-
 vi_area <- map(results_area$model, pluck, "variable.importance") |>
   bind_rows() |>
   mutate(scenario = names(fires3_area_tune))  |>
@@ -283,7 +286,11 @@ s3_area_gg <- s3_area_vi / s3_area_swarm +
   plot_layout(heights = c(1,4)) &
   theme_bw()
 
+library(svglite)
+svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/figSM-area_rangerS3.svg", height = 13, width = 8, fix_text_size = FALSE)
+s3_area_gg
+dev.off()
 
-#save.image("src/data/s3/s3s4Ranger/s3RangerModels.RData")
+save.image("src/data/s3s4Ranger/s3RangerModels.RData")
 
-#load("src/data/s3/s3s4Ranger/s3RangerModels.RData")
+# load("src/data/s3s4Ranger/s3RangerModels.RData")

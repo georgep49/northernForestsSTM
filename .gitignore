@@ -2,6 +2,7 @@
 *.csv
 *.RData
 *.zip
+*.7z
 *.svg
 *.lnk
 *.tmp.nlogo

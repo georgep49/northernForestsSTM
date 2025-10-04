@@ -1,9 +1,11 @@
 library(tidyverse)
 library(vroom)
+library(patchwork)
+library(svglite)
 
 # define types to deal with zero fire files....
 ct <- c("idccliddddddddddddddddddddddddddi")
-f <- list.files("src/data/s3Forest/fireRecordsS3f", pattern = "fire_record", full.names = TRUE) |>
+f <- list.files("src/data/s3/s3Forest/fireRecordsS3f", pattern = "fire_record", full.names = TRUE) |>
   str_sort(numeric = TRUE)
 
 # maybe this works so we have data.frames
@@ -16,7 +18,7 @@ fire_allreps <- bind_rows(X, .id = "ensemble") |>
   mutate(ensemble = as.numeric(ensemble)) |>
   left_join(file_table, by = "ensemble")
 
-write_csv(fire_allreps, file = "src/data/s3Forest/fireLHC_allfire_records.csv")
+write_csv(fire_allreps, file = "src/data/s3/s3Forest/fireLHC_allfire_records.csv")
 
 #########
 library(tidyverse)
@@ -35,11 +37,11 @@ class_names_topo <- c(paste0(class_names, "_gly"), paste0(class_names, "_slp"), 
 
 names_lu <- read_csv("src/r/stateNames.csv")
 
-state_fire_s3f_raw <- read_csv("src/data/s3Forest/scenario3_forest_lhs.csv") |>
+state_fire_s3f_raw <- read_csv("src/data/s3/s3Forest/scenario3_forest_lhs.csv") |>
     janitor::clean_names() |>
     arrange(siminputrow, step)
 
-fireLHC_allreps <- read_csv(file = "src/data/s3Forest/fireLHC_allfire_records.csv")
+fireLHC_allreps <- read_csv(file = "src/data/s3/s3Forest/fireLHC_allfire_records.csv")
 
 fireLHC_size <- fireLHC_allreps |>
   group_by(ensemble) |>
@@ -66,8 +68,7 @@ state_fire_s3f <- state_fire_s3f_raw |>
     prop_ofor = sum(prop_old, prop_oldP)) |>
   ungroup()
 
-
-save.image("src/data/s3Forest/s3ForestAllData.RData")
+save.image("src/data/s3/s3Forest/s3ForestAllData.RData")
 
 ###
 traps <- state_fire_s3f |>
@@ -81,45 +82,55 @@ traps <- state_fire_s3f |>
 traps_pal <- c("prop_dSh" = "#e7298a", "prop_mSh" = "#d95f02", 
     "prop_kshK" = "#7570b3", "prop_yfK" = "#66a61e", "prop_old" = "#1b9e77")
 
-traps_flat <- traps |> filter(terrain_type == "flat")
-dom <- apply(traps_flat[,11:22], 1, function(x) which(x == max(x)))
-traps_flat$dom_state <- names(traps_flat[,11:22])[dom]
-traps_flat$dom_abund <- apply(traps_flat[,11:22], 1, max) / (256 ^ 2)
+traps_flat <- traps |> 
+  filter(terrain_type == "flat")
+dom <- apply(traps_flat[, 11:22], 1, function(x) which(x == max(x)))
+traps_flat$dom_state <- names(traps_flat[, 11:22])[dom]
+traps_flat$dom_abund <- apply(traps_flat[, 11:22], 1, max) / (256 ^ 2)
 
-traps_flat_gg <- ggplot(data = traps_flat, aes(x  = fire_frequency, y = extrinsic_sd) ) +
+traps_flat_gg <- ggplot(data = traps_flat, aes(x  = fire_frequency, y = extrinsic_sd)) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +   
+  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +
+  scale_size_continuous(limits = c(0, 1), breaks = seq(0.0, 1.0, 0.2)) +
   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
-        ncol = 1, nest_line =  TRUE, strip.position = "left") +   
+        ncol = 1, nest_line =  TRUE, strip.position = "left") +
+  theme_bw() +
   theme(legend.position = "bottom",
         strip.background = element_rect(fill = NA, color = NA),
         ggh4x.facet.nestline = element_line(linetype = 3))
         
 # ridge
-traps_ridge <- traps |> filter(terrain_type != "flat")
+traps_ridge <- traps |>
+  filter(terrain_type != "flat")
 dom <- apply(traps_ridge[,11:22], 1, function(x) which(x == max(x)))
-traps_ridge$dom_state <- names(traps_ridge[,11:22])[dom]
-traps_ridge$dom_abund <- apply(traps_ridge[,11:22], 1, max) / (256 ^ 2)
+traps_ridge$dom_state <- names(traps_ridge[, 11:22])[dom]
+traps_ridge$dom_abund <- apply(traps_ridge[, 11:22], 1, max) / (256 ^ 2)
 
 traps_ridge_gg <- ggplot(data = traps_ridge, aes(x  = fire_frequency, y = extrinsic_sd) ) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
   scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +
+  scale_size_continuous(limits = c(0, 1), breaks = seq(0., 1.0, 0.2)) +
   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
-        ncol = 1, nest_line =  TRUE, strip.position = "right") +   
+        ncol = 1, nest_line =  TRUE, strip.position = "right") +
+  theme_bw() +
   theme(legend.position = "bottom",
         strip.background = element_rect(fill = NA, color = NA),
         ggh4x.facet.nestline = element_line(linetype = 3))
 
 traps_gg_s3f <- traps_flat_gg | traps_ridge_gg +
-    plot_annotation(tag_levels ="a") +
-    plot_layout(guides = "collect", axes="collect") &
-    theme(legend.position = "bottom")
+    plot_annotation(tag_levels = "a") +
+    plot_layout(guides = "collect", axes = "collect") &
+    theme(legend.position = "bottom", legend.box="vertical", legend.margin=margin())
 
 
 library(svglite)
 svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/figSMX_fireLHCtraps_Forest.svg", height = 13, width = 8, fix_text_size = FALSE)
 traps_gg_s3f
 dev.off()
+
+save.image("src/data/s3/s3Forest/s3ForestAllData.RData")
+# load("src/data/s3/s3Forest/s3ForestAllData.RData")
+
 
 ####
 library(tidyverse)
@@ -143,31 +154,31 @@ farmstart_fire <- ggplot(fireHistory %>% slice_sample(prop = 0.2)) +
 
 
 ########
-load("src/data/s3/s3Forest/s3ForestAllData.RData")
+# load("src/data/s3/s3Forest/s3ForestAllData.RData")
 
-gdata::keep(state_fire_s3f, sure = TRUE)
+# gdata::keep(state_fire_s3f, sure = TRUE)
 
-tpi_frac <- vroom("src/data/baseline/stmNorthernForests tpi-fractions-table.csv", skip = 6) |>
-  janitor::clean_names()
+# tpi_frac <- vroom("src/data/baseline/stmNorthernForests tpi-fractions-table.csv", skip = 6) |>
+#   janitor::clean_names()
 
-names(tpi_frac)[3:5] <- c("gully", "slope", "ridge")
-tpi_frac[3:5] <- tpi_frac[3:5] / (256 ^ 2)
+# names(tpi_frac)[3:5] <- c("gully", "slope", "ridge")
+# tpi_frac[3:5] <- tpi_frac[3:5] / (256 ^ 2)
 
-tpi_frac_summ <- tpi_frac |>
-  summarise(mean_gully = mean(gully), mean_slope = mean(slope), mean_ridge = mean(ridge))
+# tpi_frac_summ <- tpi_frac |>
+#   summarise(mean_gully = mean(gully), mean_slope = mean(slope), mean_ridge = mean(ridge))
 
-tpi_forest <- state_fire_s3f |>
-  select(run_number, terrain_type, farm_edge, fire_frequency, prop_old_gly, prop_oldP_gly, prop_ofor) |>
-  filter(terrain_type != "flat") |>
-  mutate(mean_gully = tpi_frac_summ$mean_gully) |>
-  mutate(prop_ofor_gly = prop_old_gly + prop_oldP_gly)
+# tpi_forest <- state_fire_s3f |>
+#   select(run_number, terrain_type, farm_edge, fire_frequency, prop_old_gly, prop_oldP_gly, prop_ofor) |>
+#   filter(terrain_type != "flat") |>
+#   mutate(mean_gully = tpi_frac_summ$mean_gully) |>
+#   mutate(prop_ofor_gly = prop_old_gly + prop_oldP_gly)
 
-x <- tpi_forest |>
-  filter(prop_ofor > 0) |>
-  mutate(exp_gly_of = mean_gully * prop_ofor) |>
-  mutate(ratio_gly_of = prop_ofor_gly / exp_gly_of)
+# x <- tpi_forest |>
+#   filter(prop_ofor > 0) |>
+#   mutate(exp_gly_of = mean_gully * prop_ofor) |>
+#   mutate(ratio_gly_of = prop_ofor_gly / exp_gly_of)
  
- ggplot(x) + 
-  geom_point(aes(x = prop_ofor, y = ratio_gly_of, col = farm_edge)) + 
-  geom_hline(yintercept = 1, col = "red") +
-  theme_bw()
+#  ggplot(x) + 
+#   geom_point(aes(x = prop_ofor, y = ratio_gly_of, col = farm_edge)) + 
+#   geom_hline(yintercept = 1, col = "red") +
+#   theme_bw()
