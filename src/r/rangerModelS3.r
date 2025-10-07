@@ -38,7 +38,7 @@ ice_plot <- function(x, pred, cov_facet, cov_col)
 }
 
 ##################### 
-# Shrublanb
+# Shrubland
 ## Baseline in case we need it for reference
 load("src/data/baseline/baseline.RData")
 
@@ -259,7 +259,7 @@ g_area <- ggplot(data = vi_area) +
   theme_bw() +
   theme(legend.position = "bottom",
         strip.background = element_rect(fill = NA, color = NA),
-        ggh4x.facet.nestline = element_line(linetype = 3)) 
+        ggh4x.facet.nestline = element_line(linetype = 3))
 
 
 # SHAP analysis and visualisation
@@ -292,5 +292,4 @@ s3_area_gg
 dev.off()
 
 save.image("src/data/s3s4Ranger/s3RangerModels.RData")
-
 # load("src/data/s3s4Ranger/s3RangerModels.RData")

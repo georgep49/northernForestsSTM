@@ -240,11 +240,12 @@ s4_area_swarm <- sv_importance(m_area, kind = "beeswarm", bee_width = 0.25, show
   plot_layout(ncol = 1)
 
 s4_area_gg <- s4_area_vi / s4_area_swarm +
-  plot_layout(heights = c(1,4)) &
+  plot_layout(heights = c(1, 4)) &
   theme_bw()
 
 library(svglite)
-svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/figSM-area_rangerS3.svg", height = 13, width = 8, fix_text_size = FALSE)
+svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/figSM-area_rangerS4.svg", 
+  height = 13, width = 8, fix_text_size = FALSE)
 s4_area_gg
 dev.off()
 

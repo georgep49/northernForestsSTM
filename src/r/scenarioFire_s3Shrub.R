@@ -5,7 +5,7 @@ library(svglite)
 
 # define types to deal with zero fire files....
 ct <- c("idccliddddddddddddddddddddddddddi")
-f <- list.files("src/data/s3Shrub/fireRecordsS3s", pattern = "fire_record", full.names = TRUE) |>
+f <- list.files("src/data/s3/s3Shrub/fireRecordsS3s", pattern = "fire_record", full.names = TRUE) |>
   str_sort(numeric = TRUE)
 
 # this works so we have data.frames
@@ -18,7 +18,7 @@ fire_allreps <- bind_rows(X, .id = "ensemble") |>
   mutate(ensemble = as.numeric(ensemble)) |>
   left_join(file_table, by = "ensemble")
 
-write_csv(fire_allreps, file = "src/data/s3Shrub/fireLHC_allfire_records.csv")
+write_csv(fire_allreps, file = "src/data/s3/s3Shrub/fireLHC_allfire_records.csv")
 
 #########
 library(tidyverse)
@@ -33,16 +33,18 @@ library(patchwork)
 #                  "enso-freq-wgt" = list(min = 0.9, max = 1.1, step = 0.01, qfun = "qunif"),
 #                  "farm-edge?" = list(min = 0, max = 1, qfun = "qunif"))
 
-class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNok", "prop_yfK", "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
-class_names_topo <- c(paste0(class_names, "_gly"), paste0(class_names, "_slp"), paste0(class_names, "_rdg"))
+class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNok", "prop_yfK", 
+  "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
+class_names_topo <- c(paste0(class_names, "_gly"), paste0(class_names, "_slp"), 
+  paste0(class_names, "_rdg"))
 
 names_lu <- read_csv("src/r/stateNames.csv")
 
-state_fire_s3s_raw <- read_csv("src/data/s3Shrub/scenario3_shrub_lhs.csv") |>
+state_fire_s3s_raw <- read_csv("src/data/s3/s3Shrub/scenario3_shrub_lhs.csv") |>
     janitor::clean_names() |>
     arrange(siminputrow, step)
 
-fireLHC_allreps <- read_csv(file = "src/data/s3Shrub/fireLHC_allfire_records.csv")
+fireLHC_allreps <- read_csv(file = "src/data/s3/s3Shrub/fireLHC_allfire_records.csv")
 
 fireLHC_size <- fireLHC_allreps |>
   group_by(ensemble) |>
@@ -66,7 +68,7 @@ state_fire_s3s <- state_fire_s3s_raw |>
   mutate(
     prop_ksh = sum(prop_kshK, prop_kshNok, prop_kshP),
     prop_yfor = sum(prop_yfK, prop_yfNok, prop_yfP),
-    prop_ofor = sum(prop_old, prop_oldP)) |> 
+    prop_ofor = sum(prop_old, prop_oldP)) |>
   ungroup()
 
 # x <- state_fire_s3s |> 
@@ -75,7 +77,7 @@ state_fire_s3s <- state_fire_s3s_raw |>
 #   ungroup()
 # hist(x)
 
-save.image("src/data/s3Shrub/s3ShrubAllData.RData")
+save.image("src/data/s3/s3Shrub/s3ShrubAllData.RData")
 
 ###
 load("src/data/s3/s3Shrub/s3ShrubAllData.RData")
@@ -101,7 +103,7 @@ traps_flat_gg <- ggplot(data = traps_flat, aes(x  = fire_frequency, y = extrinsi
   scale_colour_manual(values = traps_pal) +
   scale_size_continuous(limits = c(0, 1), breaks = seq(0., 1.0, 0.2)) +
   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
-        ncol = 1, nest_line =  TRUE, strip.position = "left") +   
+        ncol = 1, nest_line =  TRUE, strip.position = "left") +
   theme_bw() +
   theme(legend.position = "bottom",
         strip.background = element_rect(fill = NA, color = NA),
@@ -128,7 +130,7 @@ traps_ridge_gg <- ggplot(data = traps_ridge, aes(x  = fire_frequency, y = extrin
 traps_gg_s3s <- traps_flat_gg | traps_ridge_gg +
     plot_annotation(tag_levels ="a") +
     plot_layout(guides = "collect", axes = "collect") &
-    theme(legend.position = "bottom", legend.box="vertical", legend.margin=margin())
+    theme(legend.position = "bottom", legend.box = "vertical", legend.margin = margin())
     
 
 library(svglite)
