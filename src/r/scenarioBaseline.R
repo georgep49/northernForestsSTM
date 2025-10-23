@@ -29,14 +29,14 @@ time_states <- baseline_long |>
     group_by(step, state, start_lsp, terrain_type) |>
     summarise(as_tibble_row(quantile(prop, c(0.1, 0.5, 0.9)))) |>
     rename(prop10 = `10%`, median = `50%`, prop90 = `90%`) |>
-    left_join(names_lu, by = "state")
+    left_join(names_lu, by = "state")  # gives abbrev names etc. for plotting
 
 final_state <- baseline_long |>
     filter(step == 0 | step == 300) |>
     mutate(state_label = forcats::fct_reorder(as.factor(state_label), prop, .desc = TRUE))
 
 final_state_of <- time_states |>
-    filter(state == "prop_old", step == 300)    
+    filter(state == "prop_old", step == 300)
     
 
 ###
@@ -45,6 +45,9 @@ state_labels <- time_states |>
     group_by(start_lsp, terrain_type) |>
     slice_max(median, n = 2) |>
     ungroup()
+
+state_pal <- c("prop_dSh" = "#e7298a", "prop_mSh" = "#d95f02", 
+    "ksh" = "#7570b3", "yf" = "#66a61e", "of" = "#1b9e77")
 
 baseline_time_gg <- ggplot(data = time_states) +
     geom_line(aes(x = step, y = median, col = state_label)) +
@@ -62,8 +65,8 @@ baseline_final_gg <- ggplot(data = final_state, aes(x = state_label, y = prop)) 
     geom_boxplot(aes(fill = state_group), outliers = FALSE) +
     geom_jitter(aes(fill = state_group, col = state_group), width = 0.1, alpha = 0.2) +
     labs(x = "State", y = "Final proportional abundance") +
-    scale_fill_brewer(type = "qual", palette = "Dark2") +
-    scale_colour_brewer(type = "qual", palette = "Dark2") +
+    scale_fill_manual(values = state_pal) +
+    scale_colour_manual(values = state_pal) +
     ggh4x::facet_nested_wrap(start_lsp ~ terrain_type, 
         ncol = 1, nest_line =  TRUE, strip.position = "right") +
     theme_bw() +

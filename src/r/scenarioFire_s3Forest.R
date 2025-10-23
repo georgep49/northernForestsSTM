@@ -73,7 +73,7 @@ save.image("src/data/s3/s3Forest/s3ForestAllData.RData")
 ###
 traps <- state_fire_s3f |>
   select(siminputrow, step, invasion, fire_frequency, flamm_start, 
-          extrinsic_sd, enso_freq_wgt, farm_edge, farm_edge, terrain_type, 
+          extrinsic_sd, enso_freq_wgt, farm_edge, terrain_type, 
           run_number, starts_with("prop_"))
 
 # get most prevalent type at end of run
@@ -90,7 +90,7 @@ traps_flat$dom_abund <- apply(traps_flat[, 11:22], 1, max) / (256 ^ 2)
 
 traps_flat_gg <- ggplot(data = traps_flat, aes(x  = fire_frequency, y = extrinsic_sd)) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +
+  scale_colour_manual(values = traps_pal) +
   scale_size_continuous(limits = c(0, 1), breaks = seq(0.0, 1.0, 0.2)) +
   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
         ncol = 1, nest_line =  TRUE, strip.position = "left") +
@@ -108,7 +108,7 @@ traps_ridge$dom_abund <- apply(traps_ridge[, 11:22], 1, max) / (256 ^ 2)
 
 traps_ridge_gg <- ggplot(data = traps_ridge, aes(x  = fire_frequency, y = extrinsic_sd) ) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +
+  scale_colour_manual(values = traps_pal) +
   scale_size_continuous(limits = c(0, 1), breaks = seq(0., 1.0, 0.2)) +
   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
         ncol = 1, nest_line =  TRUE, strip.position = "right") +
@@ -129,7 +129,7 @@ traps_gg_s3f
 dev.off()
 
 save.image("src/data/s3/s3Forest/s3ForestAllData.RData")
-# load("src/data/s3/s3Forest/s3ForestAllData.RData")
+load("src/data/s3/s3Forest/s3ForestAllData.RData")
 
 
 ####
@@ -151,6 +151,16 @@ farmstart_fire <- ggplot(fireHistory %>% slice_sample(prop = 0.2)) +
   geom_histogram(aes(fire_size, after_stat(density))) +
   scale_x_log10() +
   facet_wrap(~start_farm)
+
+#######
+ggplot(traps) + 
+  geom_boxplot(aes(y = prop_old, x = farm_edge)) + 
+  facet_wrap(~terrain_type)
+
+state_fire_s3f |>
+    group_by(terrain_type, farm_edge) |>
+    summarise(mold = median(prop_old),
+        mfire = median(median_size, na.rm = TRUE))
 
 
 ########
