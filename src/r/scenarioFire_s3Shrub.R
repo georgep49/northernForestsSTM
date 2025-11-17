@@ -3,6 +3,8 @@ library(vroom)
 library(patchwork)
 library(svglite)
 
+source("src/r/wranglers.r")
+
 # define types to deal with zero fire files....
 ct <- c("idccliddddddddddddddddddddddddddi")
 f <- list.files("src/data/s3/s3Shrub/fireRecordsS3s", pattern = "fire_record", full.names = TRUE) |>
@@ -33,7 +35,7 @@ library(patchwork)
 #                  "enso-freq-wgt" = list(min = 0.9, max = 1.1, step = 0.01, qfun = "qunif"),
 #                  "farm-edge?" = list(min = 0, max = 1, qfun = "qunif"))
 
-class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNok", "prop_yfK", 
+class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNoK", "prop_yfK", 
   "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
 class_names_topo <- c(paste0(class_names, "_gly"), paste0(class_names, "_slp"), 
   paste0(class_names, "_rdg"))
@@ -56,26 +58,7 @@ fireLHC_size <- fireLHC_allreps |>
   ungroup()
 
 # 1 - gully, 2 - slope, 3 - ridge
-state_fire_s3s <- state_fire_s3s_raw |>
-    filter(step == 0 | step == 300) |>
-    mutate(abundances = str_remove_all(abundances, "\\[|\\]")) |>
-    separate_wider_delim(abundances, delim = " ", names = class_names) |>
-    mutate(text_data = str_remove_all(abundances_by_topo, "\\[|\\]")) |>  # remove brackets
-    separate_wider_delim(cols = text_data, names = class_names_topo, delim = " ", too_few = "align_start") |>
-    mutate(across(starts_with("prop_"), ~as.numeric(.x))) |>
-  left_join(fireLHC_size, by = c("siminputrow" = "ensemble")) |>
-  rowwise() |>
-  mutate(
-    prop_ksh = sum(prop_kshK, prop_kshNok, prop_kshP),
-    prop_yfor = sum(prop_yfK, prop_yfNok, prop_yfP),
-    prop_ofor = sum(prop_old, prop_oldP)) |>
-  ungroup()
-
-# x <- state_fire_s3s |> 
-#   group_by(siminputrow) |>
-#   summarise(delta_forest = (prop_ofor[[length(prop_ofor)]] - prop_ofor[[1]]) / prop_ofor[[length(prop_ofor)]]) |>
-#   ungroup()
-# hist(x)
+state_fire_s3s <- parse_to_state(state_fire_s3s_raw)
 
 save.image("src/data/s3/s3Shrub/s3ShrubAllData.RData")
 

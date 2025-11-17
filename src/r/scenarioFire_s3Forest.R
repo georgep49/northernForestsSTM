@@ -3,6 +3,8 @@ library(vroom)
 library(patchwork)
 library(svglite)
 
+source("src/r/wranglers.r")
+
 # define types to deal with zero fire files....
 ct <- c("idccliddddddddddddddddddddddddddi")
 f <- list.files("src/data/s3/s3Forest/fireRecordsS3f", pattern = "fire_record", full.names = TRUE) |>
@@ -32,8 +34,10 @@ library(tidyverse)
 #                  "enso-freq-wgt" = list(min = 0.9, max = 1.1, step = 0.01, qfun = "qunif"),
 #                  "farm-edge?" = list(min = 0, max = 1, qfun = "qunif"))
 
-class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNok", "prop_yfK", "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
-class_names_topo <- c(paste0(class_names, "_gly"), paste0(class_names, "_slp"), paste0(class_names, "_rdg"))
+class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNok", 
+  "prop_yfK", "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
+class_names_topo <- c(paste0(class_names, "_gly"), paste0(class_names, "_slp"),
+  paste0(class_names, "_rdg"))
 
 names_lu <- read_csv("src/r/stateNames.csv")
 
@@ -53,27 +57,14 @@ fireLHC_size <- fireLHC_allreps |>
   ungroup()
 
 # 1 - gully, 2 - slope, 3 - ridge
-state_fire_s3f <- state_fire_s3f_raw |>
-    filter(step == 300) |>
-    mutate(abundances = str_remove_all(abundances, "\\[|\\]")) |>
-    separate_wider_delim(abundances, delim = " ", names = class_names) |>
-    mutate(text_data = str_remove_all(abundances_by_topo, "\\[|\\]")) |>  # remove brackets
-    separate_wider_delim(cols = text_data, names = class_names_topo, delim = " ", too_few = "align_start") |>
-    mutate(across(starts_with("prop_"), ~as.numeric(.x))) |>
-  left_join(fireLHC_size, by = c("siminputrow" = "ensemble")) |>
-  rowwise() |>
-  mutate(
-    prop_ksh = sum(prop_kshK, prop_kshNok, prop_kshP),
-    prop_yfor = sum(prop_yfK, prop_yfNok, prop_yfP),
-    prop_ofor = sum(prop_old, prop_oldP)) |>
-  ungroup()
+state_fire_s3f <- parse_to_state(state_fire_s3f_raw)
 
 save.image("src/data/s3/s3Forest/s3ForestAllData.RData")
 
 ###
 traps <- state_fire_s3f |>
   select(siminputrow, step, invasion, fire_frequency, flamm_start, 
-          extrinsic_sd, enso_freq_wgt, farm_edge, terrain_type, 
+          extrinsic_sd, enso_freq_wgt, farm_edge, farm_edge, terrain_type, 
           run_number, starts_with("prop_"))
 
 # get most prevalent type at end of run
@@ -90,7 +81,7 @@ traps_flat$dom_abund <- apply(traps_flat[, 11:22], 1, max) / (256 ^ 2)
 
 traps_flat_gg <- ggplot(data = traps_flat, aes(x  = fire_frequency, y = extrinsic_sd)) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  scale_colour_manual(values = traps_pal) +
+  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +
   scale_size_continuous(limits = c(0, 1), breaks = seq(0.0, 1.0, 0.2)) +
   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
         ncol = 1, nest_line =  TRUE, strip.position = "left") +
@@ -108,7 +99,7 @@ traps_ridge$dom_abund <- apply(traps_ridge[, 11:22], 1, max) / (256 ^ 2)
 
 traps_ridge_gg <- ggplot(data = traps_ridge, aes(x  = fire_frequency, y = extrinsic_sd) ) +
   geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
-  scale_colour_manual(values = traps_pal) +
+  scale_colour_brewer(type = "qual", palette = "Dark2", direction = -1) +
   scale_size_continuous(limits = c(0, 1), breaks = seq(0., 1.0, 0.2)) +
   ggh4x::facet_nested_wrap(farm_edge ~ invasion, 
         ncol = 1, nest_line =  TRUE, strip.position = "right") +
@@ -129,7 +120,7 @@ traps_gg_s3f
 dev.off()
 
 save.image("src/data/s3/s3Forest/s3ForestAllData.RData")
-load("src/data/s3/s3Forest/s3ForestAllData.RData")
+# load("src/data/s3/s3Forest/s3ForestAllData.RData")
 
 
 ####
@@ -152,16 +143,7 @@ farmstart_fire <- ggplot(fireHistory %>% slice_sample(prop = 0.2)) +
   scale_x_log10() +
   facet_wrap(~start_farm)
 
-#######
-ggplot(traps) + 
-  geom_boxplot(aes(y = prop_old, x = farm_edge)) + 
-  facet_wrap(~terrain_type)
-
-state_fire_s3f |>
-    group_by(terrain_type, farm_edge) |>
-    summarise(mold = median(prop_old),
-        mfire = median(median_size, na.rm = TRUE))
-
+save.image("src/data/s3/s3Forest/s3ForestAllData.RData")
 
 ########
 # load("src/data/s3/s3Forest/s3ForestAllData.RData")

@@ -3,6 +3,8 @@ library(vroom)
 library(patchwork)
 library(svglite)
 
+source("src/r/wranglers.r")
+
 # define types to deal with zero fire files....
 ct <- c("idccliddddddddddddddddddddddddddi")
 f <- list.files("src/data/s4/s4Shrub/fireRecordsS4s", pattern = "fire_record", full.names = TRUE) |>
@@ -24,7 +26,7 @@ write_csv(fire_allreps,
 #########
 library(tidyverse)
 
-class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNok", "prop_yfK", "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
+class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNoK", "prop_yfK", "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
 class_names_topo <- c(paste0(class_names, "_gly"), paste0(class_names, "_slp"), paste0(class_names, "_rdg"))
 
 names_lu <- read_csv("src/r/stateNames.csv")
@@ -43,24 +45,14 @@ fireLHC_size <- fireDispersalLHC_allreps |>
   ungroup()
 
 # 1 - gully, 2 - slope, 3 - ridge
-state_fire_s4s <- state_fire_s4s_raw |>
-    filter(step == 300) |>
-    mutate(abundances = str_remove_all(abundances, "\\[|\\]")) |>
-    separate_wider_delim(abundances, delim = " ", names = class_names) |>
-    mutate(text_data = str_remove_all(abundances_by_topo, "\\[|\\]")) |>  # remove brackets
-    separate_wider_delim(cols = text_data, names = class_names_topo, delim = " ", too_few = "align_start") |>
-    mutate(across(starts_with("prop_"), ~as.numeric(.x))) |>
-  left_join(fireLHC_size, by = c("siminputrow" = "ensemble")) |>
-  rowwise() |>
-  mutate(
-    prop_ksh = sum(prop_kshK, prop_kshNok, prop_kshP),
-    prop_yfor = sum(prop_yfK, prop_yfNok, prop_yfP),
-    prop_ofor = sum(prop_old, prop_oldP)) |>
-  ungroup()
+state_fire_s4s <- parse_to_state(state_fire_s4s_raw)
+
+save.image("src/data/s4/s4Shrub/s4ShrubAllData.RData")
 ###
 
 traps <- state_fire_s4s |>
-  select(siminputrow, step, invasion, fire_frequency, seed_pred, flamm_start, extrinsic_sd, enso_freq_wgt,  farm_edge, farm_edge, terrain_type, starts_with("prop_"))
+  select(siminputrow, step, invasion, fire_frequency, seed_pred, flamm_start,
+     extrinsic_sd, enso_freq_wgt,  farm_edge, farm_edge, terrain_type, starts_with("prop_"))
 
 # get most prevalent type at end of run
 # flat
@@ -112,4 +104,40 @@ traps_gg_s4s
 dev.off()
 
 save.image("src/data/s4/s4Shrub/s4ShrubAllData.RData")
+
+#######
+### rotated for slides
 load("src/data/s4/s4Shrub/s4ShrubAllData.RData")
+
+
+traps_flat_rot_gg <- ggplot(data = traps_flat, aes(x  = fire_frequency, y = seed_pred) ) +
+  geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
+  scale_colour_manual(values = traps_pal) +
+  scale_size_continuous(limits = c(0, 1), breaks = seq(0., 1.0, 0.2)) +
+  ggh4x::facet_nested_wrap(farm_edge ~ invasion, ncol = 4,
+      nest_line = TRUE, strip.position = "top") +
+  theme_bw() +
+  theme(legend.position = "right",
+    strip.background = element_rect(fill = NA, color = NA),
+    ggh4x.facet.nestline = element_line(linetype = 3))
+
+
+traps_ridge_rot_gg <- ggplot(data = traps_ridge, aes(x  = fire_frequency, y = seed_pred) ) +
+  geom_point(aes(size = dom_abund, col = dom_state), alpha = 0.6) +
+  scale_colour_manual(values = traps_pal) +
+  scale_size_continuous(limits = c(0, 1), breaks = seq(0., 1.0, 0.2)) +
+  ggh4x::facet_nested_wrap(farm_edge ~ invasion, ncol = 4, nest_line =  TRUE, strip.position = "bottom") +
+  theme_bw() +
+  theme(legend.position = "right", 
+    strip.background = element_rect(fill = NA, color = NA),
+    ggh4x.facet.nestline = element_line(linetype = 3))
+
+traps_gg_rot_s4s <- traps_flat_rot_gg / traps_ridge_rot_gg +
+    plot_layout(guides = "collect", axes = "collect") &
+    theme(legend.position = "right", legend.margin=margin())
+
+svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/fig5-fireDispersalLHCtrapsShrubROTATED.svg", height = 8, width = 13, fix_text_size = FALSE)
+traps_gg_rot_s4s
+dev.off()
+
+save.image("src/data/s4/s4Shrub/s4ShrubAllData.RData")

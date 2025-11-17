@@ -3,6 +3,8 @@ library(vroom)
 library(patchwork)
 library(svglite)
 
+source("src/r/wranglers.r")
+
 # define types to deal with zero fire files....
 ct <- c("idccliddddddddddddddddddddddddddi")
 f <- list.files("src/data/s4/s4Forest/fireRecordsS4f", pattern = "fire_record", full.names = TRUE) |>
@@ -24,14 +26,7 @@ write_csv(fire_allreps,
 #########
 library(tidyverse)
 
-# variables = list("fire-frequency" = list(min = 0.0, max = 0.2, step = 0.01, qfun = "qunif"),
-#                  "flamm-start" = list(min = 0.0, max = 0.2, step = 0.01, qfun = "qunif"),
-#                  "extrinsic-sd" = list(min = 0.0, max = 0.2, step = 0.01, qfun = "qunif"),
-#                  "enso-freq-wgt" = list(min = 0.9, max = 1.1, step = 0.01, qfun = "qunif"),
-#                  "farm-edge?" = list(min = 0, max = 1, qfun = "qunif"))
-
-
-class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNoK", "prop_yfK", "prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
+class_names <- c("prop_gr", "prop_dSh", "prop_mSh", "prop_kshK", "prop_kshNoK", "prop_yfK", " prop_yfNok", "prop_old" , "prop_kshP", "prop_yfP", "prop_oldP")
 class_names_topo <- c(paste0(class_names, "_gly"), paste0(class_names, "_slp"), paste0(class_names, "_rdg"))
 
 names_lu <- read_csv("src/r/stateNames.csv")
@@ -52,20 +47,9 @@ fireLHC_size <- fireDispersalLHC_allreps |>
   ungroup()
 
 # 1 - gully, 2 - slope, 3 - ridge
-state_fire_s4f <- state_fire_s4f_raw |>
-    filter(step == 300) |>
-    mutate(abundances = str_remove_all(abundances, "\\[|\\]")) |>
-    separate_wider_delim(abundances, delim = " ", names = class_names) |>
-    mutate(text_data = str_remove_all(abundances_by_topo, "\\[|\\]")) |>  # remove brackets
-    separate_wider_delim(cols = text_data, names = class_names_topo, delim = " ", too_few = "align_start") |>
-    mutate(across(starts_with("prop_"), ~as.numeric(.x))) |>
-  left_join(fireLHC_size, by = c("siminputrow" = "ensemble")) |>
-  rowwise() |>
-  mutate(
-    prop_ksh = sum(prop_kshK, prop_kshNoK, prop_kshP),
-    prop_yfor = sum(prop_yfK, prop_yfNok, prop_yfP),
-    prop_ofor = sum(prop_old, prop_oldP)) |>
-  ungroup()
+state_fire_s4f <- parse_to_state(state_fire_s4f_raw)
+
+save.image("src/data/s4/s4Forest/s4ForestAllData.RData")
 ###
 
 traps <- state_fire_s4f |>

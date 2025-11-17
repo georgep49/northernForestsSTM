@@ -38,7 +38,6 @@ final_state <- baseline_long |>
 final_state_of <- time_states |>
     filter(state == "prop_old", step == 300)
     
-
 ###
 state_labels <- time_states |>
     filter(step == 300) |>
@@ -46,7 +45,7 @@ state_labels <- time_states |>
     slice_max(median, n = 2) |>
     ungroup()
 
-state_pal <- c("prop_dSh" = "#e7298a", "prop_mSh" = "#d95f02", 
+state_pal <- c("dsh" = "#e7298a", "msh" = "#d95f02", 
     "ksh" = "#7570b3", "yf" = "#66a61e", "of" = "#1b9e77")
 
 baseline_time_gg <- ggplot(data = time_states) +
@@ -78,12 +77,13 @@ baseline_final_gg <- ggplot(data = final_state, aes(x = state_label, y = prop)) 
 save.image("src/data/baseline/baseline.RData")
 
 ####
-
 load("src/data/baseline/baseline.RData")
+
+library(patchwork)
+library(svglite)
 
 baseline_gg <- baseline_time_gg + baseline_final_gg +
   plot_annotation(tag_level = "a")
-
 
 svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/fig2_baselineDynamics.svg", 
     width = 8, height = 13, fix_text_size = FALSE)
@@ -91,10 +91,10 @@ baseline_gg
 dev.off()
 
 
-pdf(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/fig2_baselineDynamics.pdf", 
-    paper = "a4")
-baseline_gg
-dev.off()
+# pdf(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/fig2_baselineDynamics.pdf", 
+#     paper = "a4")
+# baseline_gg
+# dev.off()
 
 
 ###

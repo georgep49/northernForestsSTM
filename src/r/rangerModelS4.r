@@ -16,10 +16,13 @@ library(shapviz)
 load("src/data/s4/s4Shrub/s4ShrubAllData.RData")
 load("src/data/s4/s4Forest/s4ForestAllData.RData")
 
-state_fire_s4sf <- bind_rows(list(shrub = state_fire_s4s, forest = state_fire_s4f), .id = "start_lsp")
+state_fire_s4sf <- bind_rows(list(shrub = state_fire_s4s, forest = state_fire_s4f), 
+  .id = "start_lsp")
 
 fire_s4sf <- state_fire_s4sf |>
-  select(siminputrow, start_lsp, terrain_type, fire_frequency, flamm_start,  extrinsic_sd, fraction_seed_ldd, seed_pred, mean_ldd, sap_herbivory, enso_freq_wgt, farm_edge, invasion, step, prop_ofor, mean_size, terrain_type, start_lsp) |>
+  select(siminputrow, start_lsp, terrain_type, fire_frequency, flamm_start,  extrinsic_sd, fraction_seed_ldd, 
+  seed_pred, mean_ldd, sap_herbivory, enso_freq_wgt, farm_edge, invasion, 
+  step, prop_ofor, delta_ofor, mean_size, terrain_type, start_lsp) |>
   mutate(prop_ofor_ave = mean(prop_ofor / (256 ^ 2))) |>
   group_by(siminputrow) |>
   mutate(siminputrow = paste0(siminputrow, str_sub(start_lsp, 1, 1)),
@@ -42,13 +45,15 @@ ttl <- data.frame(sc = names(fire_s4sf)) |>
 
 #############################
 ## Old forest amount model
-ofor_params <- c("fire_frequency", "flamm_start",  "extrinsic_sd", "flamm_start", "seed_pred", "mean_ldd", "sap_herbivory", "enso_freq_wgt", "farm_edge", "invasion", "prop_ofor")
+ofor_params <- c("fire_frequency", "flamm_start",  "extrinsic_sd", "flamm_start", 
+  "seed_pred", "mean_ldd", "sap_herbivory", "enso_freq_wgt", "farm_edge",
+   "invasion", "delta_ofor")
 
 s4_of_rgr <- map(fire_s4sf, select, all_of(ofor_params))
 
 # Tune the hyperparameters using mlr and tuneRanger (omit factors...)
 # Use imap to iterate over the start_lsp x terrain combos
-fires4_of_task <- imap(s4_of_rgr, ~ makeRegrTask(id = .y, data = .x, target = "prop_ofor"))
+fires4_of_task <- imap(s4_of_rgr, ~ makeRegrTask(id = .y, data = .x, target = "delta_ofor"))
 # estimateTimeTuneRanger(fires2_of_task)
 
 # default measure is the variance reduction (~ impurity)
@@ -69,7 +74,7 @@ results_of <- pmap_dfr(
   list(params = rgr_of_hp, df = s4_of_rgr),
   function(params, df) {
     model <- ranger(
-      prop_ofor ~ .,
+      delta_ofor ~ .,
       data = df,
       mtry = params$mtry,
       min.node.size = params$min.node.size,
@@ -124,7 +129,7 @@ s4_of_tX <- pmap(list(s4_of_unify, x = s4_of_rgr), treeshap)
 s4_of_sv <- map(s4_of_tX, shapviz)
 names(s4_of_sv) <- ttl$sc
 
-# use the multi shapviz syntax 
+# use the multi shapviz syntax
 # https://cran.csiro.au/web/packages/shapviz/vignettes/multiple_output.html
 
 m_of <- mshapviz(s4_of_sv)
@@ -149,7 +154,8 @@ dev.off()
 # Tune the hyperparameters using mlr and tuneRanger
 
 ## Fire area model
-area_params <- c("fire_frequency", "flamm_start",  "extrinsic_sd", "seed_pred", "mean_ldd", "sap_herbivory", "enso_freq_wgt", "farm_edge", "invasion", "mean_size")
+area_params <- c("fire_frequency", "flamm_start",  "extrinsic_sd", "seed_pred",
+   "mean_ldd", "sap_herbivory", "enso_freq_wgt", "farm_edge", "invasion", "mean_size")
 
 s4_area_rgr <- map(fire_s4sf, select, all_of(area_params))
 
@@ -198,7 +204,6 @@ results_area <- pmap_dfr(
 results_area <- results_area |>
   mutate(var_importance = map(model, ~ .x$variable.importance))
 
-
 vi_area <- map(results_area$model, pluck, "variable.importance") |>
   bind_rows() |>
   mutate(scenario = names(fires4_area_tune))  |>
@@ -227,12 +232,12 @@ s4_area_tX <- pmap(list(s4_area_unify, x = s4_area_rgr), treeshap)
 
 s4_area_sv <- map(s4_area_tX, shapviz)
 names(s4_area_sv) <- ttl$sc
-
+map()
 # use the multi shapviz syntax 
 # https://cran.csiro.au/web/packages/shapviz/vignettes/multiple_output.html
 
 m_area <- mshapviz(s4_area_sv)
-s4_area_vi <- sv_importance(m_area, show_numbers = TRUE, viridis_args = list())
+s4_area_vi <- sv_importance(m_area, viridis_args = list())
 
 s4_area_vi
 
@@ -243,12 +248,84 @@ s4_area_gg <- s4_area_vi / s4_area_swarm +
   plot_layout(heights = c(1, 4)) &
   theme_bw()
 
-library(svglite)
-svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/figSM-area_rangerS4.svg", 
-  height = 13, width = 8, fix_text_size = FALSE)
-s4_area_gg
-dev.off()
+# library(svglite)
+# svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/figSM-area_rangerS4.svg", 
+#   height = 13, width = 8, fix_text_size = FALSE)
+# s4_area_gg
+# dev.off()
 
 save.image("src/data/s3s4Ranger/s4RangerModels.RData")
 
+
+### Code to extract interactions
+library(tidyverse)
+library(shapviz)
 load("src/data/s3s4Ranger/s4RangerModels.RData")
+
+s4_of_shaps <- map(s4_of_sv, function(x) {colMeans(abs(x$S))} ) |> 
+  bind_rows()
+
+s4_of_shap_max <- colnames(s4_of_shaps)[apply(s4_of_shaps, 1, which.max)]
+
+s4_of_ia_top <- pmap(list(s4_of_sv, s4_of_shap_max), potential_interactions) |> 
+  bind_rows() |>
+  mutate(expt = ttl$sc) |>
+  separate_wider_delim(expt, delim = "-", names = c("lsp", "terrain"), cols_remove = FALSE) |>
+  janitor::clean_names() |>
+  pivot_longer(cols = -c(lsp, terrain, expt)) |>
+  filter(!is.na(value))
+
+var_tag <- data.frame(expt = ttl$sc, v_name = s4_of_shap_max) |>
+  separate_wider_delim(expt, delim = "-", names = c("lsp", "terrain"), cols_remove = FALSE)
+
+
+s4_of_ia_gg <- ggplot(s4_of_ia_top) +
+  geom_col(aes(x = name, y = value, fill = value)) +
+  facet_grid(lsp ~ terrain) +
+  scale_fill_viridis_c(option = "magma", limits = c(0, 0.8)) +
+  scale_x_discrete(guide = guide_axis(angle = 90)) +
+  geom_text(data = var_tag, aes(x = -Inf, y = Inf, label = paste("Main = ", v_name)), 
+    hjust = -0.1, vjust = 1.5) +
+  theme_bw() +
+  theme()
+
+#
+s4_area_shaps <- map(s4_area_sv, function(x) {colMeans(abs(x$S))} ) |> 
+  bind_rows()
+
+s4_area_shap_max <- colnames(s4_area_shaps)[apply(s4_area_shaps, 1, which.max)]
+
+s4_area_ia_top <- pmap(list(s4_area_sv, s4_area_shap_max), potential_interactions) |> 
+  bind_rows() |>
+  mutate(expt = ttl$sc) |>
+  separate_wider_delim(expt, delim = "-", names = c("lsp", "terrain"), cols_remove = FALSE) |>
+  janitor::clean_names() |>
+  pivot_longer(cols = -c(lsp, terrain, expt)) |>
+  filter(!is.na(value))
+
+var_tag <- data.frame(expt = ttl$sc, v_name = s4_area_shap_max) |>
+  separate_wider_delim(expt, delim = "-", names = c("lsp", "terrain"), cols_remove = FALSE)
+
+
+s4_area_ia_gg <- ggplot(s4_area_ia_top) +
+  geom_col(aes(x = name, y = value, fill = value)) +
+  facet_grid(lsp ~ terrain) +
+  scale_fill_viridis_c(option = "magma", limits = c(0, 0.8)) +
+  scale_x_discrete(guide = guide_axis(angle = 90)) +
+  geom_text(data = var_tag, aes(x = -Inf, y = Inf, label = paste("Main = ", v_name)), 
+    hjust = -0.1, vjust = 1.5) +
+  theme_bw() +
+  theme()
+
+library(patchwork)
+s4_inter_gg <- s4_of_ia_gg / s4_area_ia_gg +
+  plot_annotation(tag_levels = "a") +
+  plot_layout(guides = "collect", axis_titles = "collect")
+
+library(svglite)
+svglite(file = "../../Papers/Current/NSC/NRT/fire/figs/revised/SM/figSM-interactions_rangerS4.svg",
+  height = 13, width = 8, fix_text_size = FALSE)
+s4_inter_gg
+dev.off()
+
+save.image("src/data/s3s4Ranger/s4RangerModels.RData")
