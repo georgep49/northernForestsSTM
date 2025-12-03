@@ -7,3 +7,7 @@
 *.lnk
 *.tmp.nlogo
 *.pdf
+src/nlogo/ecosystemsCode/
+desc/
+src/nlogo/scratch/
+src/nlogo/lspConstruction/
